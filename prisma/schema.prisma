@@ -1,0 +1,181 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Course {
+  id             String       @id @default(cuid())
+  name           String       @unique
+  nineHolePar    Int
+  nineHoleRating Float
+  nineHoleSlope  Int
+  holes          CourseHole[]
+  weeks          Week[]
+  createdAt      DateTime     @default(now())
+}
+
+model CourseHole {
+  id          String @id @default(cuid())
+  courseId    String
+  holeNumber  Int
+  par         Int
+  strokeIndex Int
+  course      Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@unique([courseId, holeNumber])
+}
+
+model Player {
+  id              String           @id @default(cuid())
+  name            String
+  email           String?
+  active          Boolean          @default(true)
+  seedHandicap    Float?
+  attendance      Attendance[]
+  handicapRecords HandicapRecord[]
+  matchesAsP1     Match[]          @relation("Player1Matches")
+  matchesAsP2     Match[]          @relation("Player2Matches")
+  weeksCtp        Week[]           @relation("CtpWinner")
+  weeksLp         Week[]           @relation("LpWinner")
+  holeScores      HoleScore[]
+  auditLogs       AuditLog[]
+  createdAt       DateTime         @default(now())
+}
+
+model Season {
+  id        String     @id @default(cuid())
+  name      String
+  type      SeasonType
+  startDate DateTime
+  endDate   DateTime
+  weeks     Week[]
+  createdAt DateTime   @default(now())
+
+  @@unique([type, startDate])
+}
+
+enum SeasonType {
+  spring
+  summer
+}
+
+model Week {
+  id                    String           @id @default(cuid())
+  seasonId              String
+  weekNumber            Int
+  date                  DateTime
+  courseId              String?
+  ctpHoleNumber         Int?
+  longestPuttHoleNumber Int?
+  ctpWinnerId           String?
+  longestPuttWinnerId   String?
+  locked                Boolean          @default(false)
+  season                Season           @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+  course                Course?          @relation(fields: [courseId], references: [id])
+  ctpWinner             Player?          @relation("CtpWinner", fields: [ctpWinnerId], references: [id])
+  longestPuttWinner     Player?          @relation("LpWinner", fields: [longestPuttWinnerId], references: [id])
+  attendance            Attendance[]
+  matches               Match[]
+  handicapRecords       HandicapRecord[]
+  holeScores            HoleScore[]
+  auditLogs             AuditLog[]
+  createdAt             DateTime         @default(now())
+
+  @@unique([seasonId, weekNumber])
+  @@unique([seasonId, date])
+}
+
+model Attendance {
+  id          String    @id @default(cuid())
+  weekId       String
+  playerId     String
+  present      Boolean   @default(false)
+  checkedInAt  DateTime?
+  week         Week      @relation(fields: [weekId], references: [id], onDelete: Cascade)
+  player       Player    @relation(fields: [playerId], references: [id], onDelete: Cascade)
+
+  @@unique([weekId, playerId])
+}
+
+model Match {
+  id                      String      @id @default(cuid())
+  weekId                   String
+  player1Id                String
+  player2Id                String
+  player1HandicapIndex     Float?
+  player2HandicapIndex     Float?
+  strokeWinnerId           String?
+  matchPlayLeadBy          Int?
+  matchPlayHolesRemaining  Int?
+  matchPlayWinnerId        String?
+  player2ScorecardOnly     Boolean     @default(false)
+  locked                   Boolean     @default(false)
+  week                     Week        @relation(fields: [weekId], references: [id], onDelete: Cascade)
+  player1                  Player      @relation("Player1Matches", fields: [player1Id], references: [id], onDelete: Restrict)
+  player2                  Player      @relation("Player2Matches", fields: [player2Id], references: [id], onDelete: Restrict)
+  holeScores               HoleScore[]
+  auditLogs                AuditLog[]
+  createdAt                DateTime    @default(now())
+}
+
+model HoleScore {
+  id            String    @id @default(cuid())
+  weekId         String
+  playerId       String
+  matchId        String?
+  holeNumber     Int
+  grossScore     Int
+  adjustedScore  Int
+  week           Week      @relation(fields: [weekId], references: [id], onDelete: Cascade)
+  player         Player    @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  match          Match?    @relation(fields: [matchId], references: [id], onDelete: SetNull)
+
+  @@unique([weekId, playerId, holeNumber])
+}
+
+model HandicapRecord {
+  id                 String    @id @default(cuid())
+  playerId           String
+  weekId             String?
+  date               DateTime
+  grossScore         Int
+  adjustedGrossScore Int
+  courseRating       Float
+  slopeRating        Int
+  coursePar          Int
+  courseDifferential Float
+  usedInIndex        Boolean   @default(false)
+  isImported         Boolean   @default(false)
+  week               Week?     @relation(fields: [weekId], references: [id], onDelete: SetNull)
+  player             Player    @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  createdAt          DateTime  @default(now())
+
+  @@unique([playerId, date, grossScore])
+  @@unique([playerId, weekId])
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  weekId    String?
+  matchId   String?
+  playerId  String?
+  action    String
+  field     String?
+  oldValue  String?
+  newValue  String?
+  timestamp DateTime @default(now())
+  week      Week?    @relation(fields: [weekId], references: [id], onDelete: SetNull)
+  match     Match?   @relation(fields: [matchId], references: [id], onDelete: SetNull)
+  player    Player?  @relation(fields: [playerId], references: [id], onDelete: SetNull)
+}
+
+model Commissioner {
+  id           String   @id @default(cuid())
+  username     String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+}

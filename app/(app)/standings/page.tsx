@@ -1,0 +1,57 @@
+import { getStandingsPageData } from '@/lib/standings'
+
+export default async function StandingsPage() {
+  const data = await getStandingsPageData()
+
+  return (
+    <section className="space-y-4 px-4 py-6">
+      <div className="rounded-xl border border-surface-border bg-surface-elevated p-4">
+        <p className="text-xs font-semibold uppercase tracking-[0.06em] text-text-muted">
+          Standings
+        </p>
+        <h2 className="mt-2 text-xl font-bold text-text-primary">
+          {data.selectedSeasonName ?? 'Season Tables'}
+        </h2>
+        <p className="mt-2 text-sm text-text-secondary">
+          {data.selectedSeasonName
+            ? 'Current season points, stroke wins, and match wins update from submitted scorecards.'
+            : 'Create a season and submit match scores to populate standings.'}
+        </p>
+      </div>
+
+      {data.standings.length > 0 ? (
+        <div className="overflow-hidden rounded-xl border border-surface-border bg-surface-elevated">
+          <div className="grid grid-cols-[52px_1fr_72px_72px_72px_60px_60px] border-b border-surface-border bg-surface-sunken px-4 py-3 text-[11px] font-semibold uppercase tracking-[0.06em] text-text-muted">
+            <span>#</span>
+            <span>Player</span>
+            <span>Pts</span>
+            <span>Stroke</span>
+            <span>Match</span>
+            <span>CTP</span>
+            <span>LP</span>
+          </div>
+          <div className="divide-y divide-surface-border">
+            {data.standings.map((row, index) => (
+              <div
+                key={row.playerId}
+                className="grid grid-cols-[52px_1fr_72px_72px_72px_60px_60px] px-4 py-3 text-sm text-text-primary"
+              >
+                <span>{index + 1}</span>
+                <span>{row.name}</span>
+                <span>{row.totalPoints}</span>
+                <span>{row.strokeWins}</span>
+                <span>{row.matchPlayWins}</span>
+                <span>{row.ctpWins}</span>
+                <span>{row.lpWins}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : (
+        <div className="rounded-xl border border-surface-border bg-surface-elevated p-4 text-sm text-text-secondary">
+          No matches played this season yet.
+        </div>
+      )}
+    </section>
+  )
+}

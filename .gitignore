@@ -1,0 +1,13 @@
+.DS_Store
+.claude
+.context
+.gstack
+.env
+.env.local
+.env.production
+.next
+node_modules
+coverage
+dist
+*.log
+*.tsbuildinfo

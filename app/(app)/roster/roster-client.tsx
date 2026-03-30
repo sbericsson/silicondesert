@@ -232,12 +232,17 @@ export function RosterClient({ initialData }: RosterClientProps) {
               <option value="spring">Spring</option>
               <option value="summer">Summer</option>
             </select>
-            <input
-              className="w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
-              type="date"
-              value={seasonStartDate}
-              onChange={(event) => setSeasonStartDate(event.target.value)}
-            />
+            <div>
+              <p className="mb-1.5 text-xs font-semibold uppercase tracking-[0.06em] text-text-muted">
+                Start Date
+              </p>
+              <input
+                className="w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
+                type="date"
+                value={seasonStartDate}
+                onChange={(event) => setSeasonStartDate(event.target.value)}
+              />
+            </div>
             <textarea
               className="min-h-28 w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
               placeholder="Comma-separated Friday dates, e.g. 2026-04-03, 2026-04-10, 2026-04-17"

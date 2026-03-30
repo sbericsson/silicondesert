@@ -9,9 +9,9 @@ export default async function HistoryPage() {
         <p className="text-xs font-semibold uppercase tracking-[0.06em] text-text-muted">
           History
         </p>
-        <h2 className="mt-2 text-xl font-bold text-text-primary">Past Weeks</h2>
+        <h2 className="mt-2 text-xl font-bold text-text-primary">Season Schedule</h2>
         <p className="mt-2 text-sm text-text-secondary">
-          Completed weeks, locked rounds, and match summaries appear here.
+          All scheduled weeks, match summaries, and results for the season.
         </p>
       </div>
 
@@ -77,7 +77,7 @@ export default async function HistoryPage() {
         ))
       ) : (
         <div className="rounded-xl border border-surface-border bg-surface-elevated p-4 text-sm text-text-secondary">
-          No history yet. Create a season and complete a week to populate this screen.
+          No weeks scheduled yet. Create a season with Friday dates to populate this screen.
         </div>
       )}
     </section>

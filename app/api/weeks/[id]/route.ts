@@ -30,6 +30,8 @@ export async function PATCH(
     courseId?: string | null
     ctpHoleNumber?: number | null
     longestPuttHoleNumber?: number | null
+    ctpWinnerId?: string | null
+    longestPuttWinnerId?: string | null
   } = {}
 
   if ('courseId' in body) {
@@ -44,6 +46,14 @@ export async function PATCH(
     updates.longestPuttHoleNumber = parseOptionalInt(body.longestPuttHoleNumber)
   }
 
+  if ('ctpWinnerId' in body) {
+    updates.ctpWinnerId = typeof body.ctpWinnerId === 'string' ? body.ctpWinnerId : null
+  }
+
+  if ('longestPuttWinnerId' in body) {
+    updates.longestPuttWinnerId = typeof body.longestPuttWinnerId === 'string' ? body.longestPuttWinnerId : null
+  }
+
   const existingWeek = await prisma.week.findUnique({
     where: { id: params.id }
   })
@@ -52,7 +62,11 @@ export async function PATCH(
     return NextResponse.json({ error: 'Week not found' }, { status: 404 })
   }
 
-  if (existingWeek.locked) {
+  // CTP/LP winner fields can be updated after lock (post-round data).
+  // Course, CTP hole, and LP hole cannot be changed once locked.
+  const lockedFields = ['courseId', 'ctpHoleNumber', 'longestPuttHoleNumber'] as const
+  const hasLockedFieldUpdate = lockedFields.some((field) => field in updates)
+  if (existingWeek.locked && hasLockedFieldUpdate) {
     return NextResponse.json({ error: 'Locked weeks cannot be edited' }, { status: 409 })
   }
 

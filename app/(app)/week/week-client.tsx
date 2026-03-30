@@ -14,6 +14,8 @@ type WeekPageData = {
     courseName: string | null
     ctpHoleNumber: number | null
     longestPuttHoleNumber: number | null
+    ctpWinnerId: string | null
+    longestPuttWinnerId: string | null
     locked: boolean
     matchCount: number
     matches: Array<{
@@ -110,7 +112,7 @@ export function WeekClient({ initialData }: WeekClientProps) {
     })
   }
 
-  async function updateWeekField(field: 'courseId' | 'ctpHoleNumber' | 'longestPuttHoleNumber', value: string) {
+  async function updateWeekField(field: 'courseId' | 'ctpHoleNumber' | 'longestPuttHoleNumber' | 'ctpWinnerId' | 'longestPuttWinnerId', value: string) {
     if (!data.currentWeek) {
       return
     }
@@ -288,6 +290,48 @@ export function WeekClient({ initialData }: WeekClientProps) {
           </select>
         </label>
       </section>
+
+      {data.currentWeek.locked ? (
+        <section className="grid gap-3 md:grid-cols-2">
+          <label className="rounded-xl border border-surface-border bg-surface-elevated p-4">
+            <p className="text-xs font-semibold uppercase tracking-[0.06em] text-text-muted">
+              CTP Winner · Hole {data.currentWeek.ctpHoleNumber ?? '—'}
+            </p>
+            <select
+              className="mt-2 w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
+              value={data.currentWeek.ctpWinnerId ?? ''}
+              onChange={(event) => updateWeekField('ctpWinnerId', event.target.value)}
+              disabled={isRefreshing}
+            >
+              <option value="">No winner recorded</option>
+              {data.attendance.filter((player) => player.present).map((player) => (
+                <option key={player.playerId} value={player.playerId}>
+                  {player.name}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label className="rounded-xl border border-surface-border bg-surface-elevated p-4">
+            <p className="text-xs font-semibold uppercase tracking-[0.06em] text-text-muted">
+              LP Winner · Hole {data.currentWeek.longestPuttHoleNumber ?? '—'}
+            </p>
+            <select
+              className="mt-2 w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
+              value={data.currentWeek.longestPuttWinnerId ?? ''}
+              onChange={(event) => updateWeekField('longestPuttWinnerId', event.target.value)}
+              disabled={isRefreshing}
+            >
+              <option value="">No winner recorded</option>
+              {data.attendance.filter((player) => player.present).map((player) => (
+                <option key={player.playerId} value={player.playerId}>
+                  {player.name}
+                </option>
+              ))}
+            </select>
+          </label>
+        </section>
+      ) : null}
 
       <section className="rounded-xl border border-surface-border bg-surface-elevated">
         <div className="flex items-center justify-between border-b border-surface-border px-4 py-3">

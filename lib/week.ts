@@ -176,6 +176,8 @@ export async function getCurrentWeekPageData() {
           courseName: currentWeek.course?.name ?? null,
           ctpHoleNumber: currentWeek.ctpHoleNumber,
           longestPuttHoleNumber: currentWeek.longestPuttHoleNumber,
+          ctpWinnerId: currentWeek.ctpWinnerId,
+          longestPuttWinnerId: currentWeek.longestPuttWinnerId,
           locked: currentWeek.locked,
           matchCount: currentWeek.matches.length,
           matches: currentWeek.matches.map((match) => ({

@@ -20,7 +20,8 @@ export default async function StandingsPage() {
       </div>
 
       {data.standings.length > 0 ? (
-        <div className="overflow-hidden rounded-xl border border-surface-border bg-surface-elevated">
+        <div className="overflow-x-auto">
+          <div className="min-w-[500px] overflow-hidden rounded-xl border border-surface-border bg-surface-elevated">
           <div className="grid grid-cols-[52px_1fr_72px_72px_72px_60px_60px] border-b border-surface-border bg-surface-sunken px-4 py-3 text-[11px] font-semibold uppercase tracking-[0.06em] text-text-muted">
             <span>#</span>
             <span>Player</span>
@@ -45,6 +46,7 @@ export default async function StandingsPage() {
                 <span>{row.lpWins}</span>
               </div>
             ))}
+          </div>
           </div>
         </div>
       ) : (

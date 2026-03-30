@@ -35,7 +35,7 @@ export default async function HistoryPage() {
 
             <div className="px-4 py-3">
               <p className="text-xs text-text-secondary">
-                CTP {week.ctpHoleNumber ?? '—'} · LP {week.longestPuttHoleNumber ?? '—'}
+                CTP {week.ctpHoleNumber ?? '—'}{week.ctpWinnerName ? ` · ${week.ctpWinnerName}` : ''} · LP {week.longestPuttHoleNumber ?? '—'}{week.longestPuttWinnerName ? ` · ${week.longestPuttWinnerName}` : ''}
               </p>
             </div>
 

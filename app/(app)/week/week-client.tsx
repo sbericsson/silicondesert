@@ -124,7 +124,7 @@ export function WeekClient({ initialData }: WeekClientProps) {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          [field]: value === '' ? null : field === 'courseId' ? value : Number(value)
+          [field]: value === '' ? null : (field === 'courseId' || field === 'ctpWinnerId' || field === 'longestPuttWinnerId') ? value : Number(value)
         })
       })
 

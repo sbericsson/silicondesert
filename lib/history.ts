@@ -20,6 +20,8 @@ export async function getHistoryPageData() {
     include: {
       season: true,
       course: true,
+      ctpWinner: true,
+      longestPuttWinner: true,
       matches: {
         include: {
           player1: true,
@@ -41,7 +43,9 @@ export async function getHistoryPageData() {
       locked: week.locked,
       matchCount: week.matches.length,
       ctpHoleNumber: week.ctpHoleNumber,
+      ctpWinnerName: week.ctpWinner?.name ?? null,
       longestPuttHoleNumber: week.longestPuttHoleNumber,
+      longestPuttWinnerName: week.longestPuttWinner?.name ?? null,
       matches: week.matches.map((match) => ({
         id: match.id,
         player1Name: match.player1.name,

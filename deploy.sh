@@ -56,7 +56,7 @@ echo "  Done."
 # ── 4. Dependencies ────────────────────────────────────────────────────────────
 
 echo "► Installing dependencies..."
-npm ci --omit=dev --quiet
+npm ci --quiet
 echo "  Done."
 
 # ── 5. Prisma migrations ───────────────────────────────────────────────────────

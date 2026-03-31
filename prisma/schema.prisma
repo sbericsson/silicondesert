@@ -13,9 +13,28 @@ model Course {
   nineHolePar    Int
   nineHoleRating Float
   nineHoleSlope  Int
+  tees           CourseTee[]
   holes          CourseHole[]
   weeks          Week[]
   createdAt      DateTime     @default(now())
+}
+
+model CourseTee {
+  id             String   @id @default(cuid())
+  courseId       String
+  color          TeeColor
+  nineHolePar    Int
+  nineHoleRating Float
+  nineHoleSlope  Int
+  course         Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@unique([courseId, color])
+}
+
+enum TeeColor {
+  blue
+  white
+  yellow
 }
 
 model CourseHole {
@@ -36,6 +55,7 @@ model Player {
   cellPhone       String?
   active          Boolean          @default(true)
   seedHandicap    Float?
+  seasonTeeChoices PlayerSeasonTee[]
   attendance      Attendance[]
   handicapRecords HandicapRecord[]
   matchesAsP1     Match[]          @relation("Player1Matches")
@@ -54,10 +74,23 @@ model Season {
   startDate DateTime
   endDate   DateTime
   archivedAt DateTime?
+  playerTeeChoices PlayerSeasonTee[]
   weeks     Week[]
   createdAt DateTime   @default(now())
 
   @@unique([type, startDate])
+}
+
+model PlayerSeasonTee {
+  id        String   @id @default(cuid())
+  playerId  String
+  seasonId  String
+  teeColor  TeeColor @default(white)
+  createdAt DateTime @default(now())
+  player    Player   @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  season    Season   @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+
+  @@unique([playerId, seasonId])
 }
 
 enum SeasonType {

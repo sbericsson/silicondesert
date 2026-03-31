@@ -10,6 +10,9 @@ export async function GET() {
 
   const courses = await prisma.course.findMany({
     include: {
+      tees: {
+        orderBy: { color: 'asc' }
+      },
       holes: {
         orderBy: { holeNumber: 'asc' }
       }

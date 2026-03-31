@@ -68,6 +68,7 @@ export function courseHandicap(
   courseRating: number,
   coursePar: number
 ) {
-  const fullEighteen = (handicapIndexValue * slopeRating) / 113 + (courseRating - coursePar)
-  return Math.round(fullEighteen / 2)
+  const nineHoleHandicapIndex = roundToTenth(handicapIndexValue / 2)
+  const value = (nineHoleHandicapIndex * slopeRating) / 113 + (courseRating - coursePar)
+  return Math.round(value)
 }

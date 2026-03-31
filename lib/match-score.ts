@@ -6,6 +6,7 @@ import {
   scoreDifferential,
   strokesReceivedOnHole
 } from '@/lib/handicap'
+import { getCourseTee, getPlayerSeasonTeeColor } from '@/lib/course-tee'
 import { calculateMatchPlayResult, calculateMatchPoints } from '@/lib/scoring'
 import { recomputeUsedInIndex } from '@/lib/handicap-records'
 import { writeAuditLog } from '@/lib/audit'
@@ -57,6 +58,7 @@ export async function getMatchScorePageData(weekId: string, matchId: string) {
         include: {
           course: {
             include: {
+              tees: true,
               holes: {
                 orderBy: { holeNumber: 'asc' }
               }
@@ -71,7 +73,8 @@ export async function getMatchScorePageData(weekId: string, matchId: string) {
           handicapRecords: {
             orderBy: { date: 'asc' },
             take: 20
-          }
+          },
+          seasonTeeChoices: true
         }
       },
       player2: {
@@ -79,7 +82,8 @@ export async function getMatchScorePageData(weekId: string, matchId: string) {
           handicapRecords: {
             orderBy: { date: 'asc' },
             take: 20
-          }
+          },
+          seasonTeeChoices: true
         }
       }
     }
@@ -102,17 +106,31 @@ export async function getMatchScorePageData(weekId: string, matchId: string) {
   const attendanceMap = new Map(match.week.attendance.map((entry) => [entry.playerId, entry.present]))
   const player1Index = getEffectiveHandicapIndex(match.player1, match.player1HandicapIndex)
   const player2Index = getEffectiveHandicapIndex(match.player2, match.player2HandicapIndex)
+  const player1TeeColor = getPlayerSeasonTeeColor(match.player1.seasonTeeChoices, match.week.season.id)
+  const player2TeeColor = getPlayerSeasonTeeColor(match.player2.seasonTeeChoices, match.week.season.id)
+  const player1Tee = getCourseTee(match.week.course.tees, player1TeeColor, {
+    color: 'white',
+    nineHolePar: match.week.course.nineHolePar,
+    nineHoleRating: match.week.course.nineHoleRating,
+    nineHoleSlope: match.week.course.nineHoleSlope
+  })
+  const player2Tee = getCourseTee(match.week.course.tees, player2TeeColor, {
+    color: 'white',
+    nineHolePar: match.week.course.nineHolePar,
+    nineHoleRating: match.week.course.nineHoleRating,
+    nineHoleSlope: match.week.course.nineHoleSlope
+  })
   const player1CourseHandicap = courseHandicap(
     player1Index,
-    match.week.course.nineHoleSlope,
-    match.week.course.nineHoleRating,
-    match.week.course.nineHolePar
+    player1Tee.nineHoleSlope,
+    player1Tee.nineHoleRating,
+    player1Tee.nineHolePar
   )
   const player2CourseHandicap = courseHandicap(
     player2Index,
-    match.week.course.nineHoleSlope,
-    match.week.course.nineHoleRating,
-    match.week.course.nineHolePar
+    player2Tee.nineHoleSlope,
+    player2Tee.nineHoleRating,
+    player2Tee.nineHolePar
   )
 
   const scoreMap = new Map(holeScores.map((score) => [`${score.playerId}:${score.holeNumber}`, score]))
@@ -157,6 +175,7 @@ export async function getMatchScorePageData(weekId: string, matchId: string) {
       player1: {
         id: match.player1.id,
         name: match.player1.name,
+        teeColor: player1TeeColor,
         handicapIndex: player1Index,
         courseHandicap: player1CourseHandicap,
         present: attendanceMap.get(match.player1Id) ?? false
@@ -164,6 +183,7 @@ export async function getMatchScorePageData(weekId: string, matchId: string) {
       player2: {
         id: match.player2.id,
         name: match.player2.name,
+        teeColor: player2TeeColor,
         handicapIndex: player2Index,
         courseHandicap: player2CourseHandicap,
         present: attendanceMap.get(match.player2Id) ?? false
@@ -211,6 +231,7 @@ export async function submitMatchScores(input: {
         include: {
           course: {
             include: {
+              tees: true,
               holes: {
                 orderBy: { holeNumber: 'asc' }
               }
@@ -225,7 +246,8 @@ export async function submitMatchScores(input: {
           handicapRecords: {
             orderBy: { date: 'asc' },
             take: 20
-          }
+          },
+          seasonTeeChoices: true
         }
       },
       player2: {
@@ -233,7 +255,8 @@ export async function submitMatchScores(input: {
           handicapRecords: {
             orderBy: { date: 'asc' },
             take: 20
-          }
+          },
+          seasonTeeChoices: true
         }
       }
     }
@@ -260,17 +283,31 @@ export async function submitMatchScores(input: {
 
   const player1Index = getEffectiveHandicapIndex(match.player1, match.player1HandicapIndex)
   const player2Index = getEffectiveHandicapIndex(match.player2, match.player2HandicapIndex)
+  const player1TeeColor = getPlayerSeasonTeeColor(match.player1.seasonTeeChoices, match.week.season.id)
+  const player2TeeColor = getPlayerSeasonTeeColor(match.player2.seasonTeeChoices, match.week.season.id)
+  const player1Tee = getCourseTee(course.tees, player1TeeColor, {
+    color: 'white',
+    nineHolePar: course.nineHolePar,
+    nineHoleRating: course.nineHoleRating,
+    nineHoleSlope: course.nineHoleSlope
+  })
+  const player2Tee = getCourseTee(course.tees, player2TeeColor, {
+    color: 'white',
+    nineHolePar: course.nineHolePar,
+    nineHoleRating: course.nineHoleRating,
+    nineHoleSlope: course.nineHoleSlope
+  })
   const player1CourseHandicap = courseHandicap(
     player1Index,
-    course.nineHoleSlope,
-    course.nineHoleRating,
-    course.nineHolePar
+    player1Tee.nineHoleSlope,
+    player1Tee.nineHoleRating,
+    player1Tee.nineHolePar
   )
   const player2CourseHandicap = courseHandicap(
     player2Index,
-    course.nineHoleSlope,
-    course.nineHoleRating,
-    course.nineHolePar
+    player2Tee.nineHoleSlope,
+    player2Tee.nineHoleRating,
+    player2Tee.nineHolePar
   )
 
   const holeByNumber = new Map(course.holes.map((hole) => [hole.holeNumber, hole]))
@@ -441,13 +478,13 @@ export async function submitMatchScores(input: {
         date: match.week.date,
         grossScore: player1Gross,
         adjustedGrossScore: player1AdjustedGross,
-        courseRating: course.nineHoleRating,
-        slopeRating: course.nineHoleSlope,
-        coursePar: course.nineHolePar,
+        courseRating: player1Tee.nineHoleRating,
+        slopeRating: player1Tee.nineHoleSlope,
+        coursePar: player1Tee.nineHolePar,
         courseDifferential: scoreDifferential(
           player1AdjustedGross,
-          course.nineHoleRating,
-          course.nineHoleSlope
+          player1Tee.nineHoleRating,
+          player1Tee.nineHoleSlope
         )
       },
       create: {
@@ -456,13 +493,13 @@ export async function submitMatchScores(input: {
         date: match.week.date,
         grossScore: player1Gross,
         adjustedGrossScore: player1AdjustedGross,
-        courseRating: course.nineHoleRating,
-        slopeRating: course.nineHoleSlope,
-        coursePar: course.nineHolePar,
+        courseRating: player1Tee.nineHoleRating,
+        slopeRating: player1Tee.nineHoleSlope,
+        coursePar: player1Tee.nineHolePar,
         courseDifferential: scoreDifferential(
           player1AdjustedGross,
-          course.nineHoleRating,
-          course.nineHoleSlope
+          player1Tee.nineHoleRating,
+          player1Tee.nineHoleSlope
         )
       }
     })
@@ -478,13 +515,13 @@ export async function submitMatchScores(input: {
         date: match.week.date,
         grossScore: player2Gross,
         adjustedGrossScore: player2AdjustedGross,
-        courseRating: course.nineHoleRating,
-        slopeRating: course.nineHoleSlope,
-        coursePar: course.nineHolePar,
+        courseRating: player2Tee.nineHoleRating,
+        slopeRating: player2Tee.nineHoleSlope,
+        coursePar: player2Tee.nineHolePar,
         courseDifferential: scoreDifferential(
           player2AdjustedGross,
-          course.nineHoleRating,
-          course.nineHoleSlope
+          player2Tee.nineHoleRating,
+          player2Tee.nineHoleSlope
         )
       },
       create: {
@@ -493,13 +530,13 @@ export async function submitMatchScores(input: {
         date: match.week.date,
         grossScore: player2Gross,
         adjustedGrossScore: player2AdjustedGross,
-        courseRating: course.nineHoleRating,
-        slopeRating: course.nineHoleSlope,
-        coursePar: course.nineHolePar,
+        courseRating: player2Tee.nineHoleRating,
+        slopeRating: player2Tee.nineHoleSlope,
+        coursePar: player2Tee.nineHolePar,
         courseDifferential: scoreDifferential(
           player2AdjustedGross,
-          course.nineHoleRating,
-          course.nineHoleSlope
+          player2Tee.nineHoleRating,
+          player2Tee.nineHoleSlope
         )
       }
     })

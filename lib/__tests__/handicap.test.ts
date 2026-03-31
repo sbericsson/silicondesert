@@ -27,6 +27,6 @@ describe('handicap helpers', () => {
   })
 
   it('computes nine-hole course handicap', () => {
-    expect(courseHandicap(14.2, 128, 35.2, 36)).toBe(8)
+    expect(courseHandicap(14.2, 128, 35.2, 36)).toBe(7)
   })
 })

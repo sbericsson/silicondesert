@@ -22,6 +22,7 @@ type MatchScorePageData = {
     player1: {
       id: string
       name: string
+      teeColor: 'blue' | 'white' | 'yellow'
       handicapIndex: number
       courseHandicap: number
       present: boolean
@@ -29,6 +30,7 @@ type MatchScorePageData = {
     player2: {
       id: string
       name: string
+      teeColor: 'blue' | 'white' | 'yellow'
       handicapIndex: number
       courseHandicap: number
       present: boolean
@@ -224,7 +226,9 @@ export function MatchScoreClient({ initialData }: MatchScoreClientProps) {
               Score Entry
             </p>
             <h2 className="mt-2 text-xl font-bold text-text-primary">{initialData.match.weekLabel}</h2>
-            <p className="mt-2 text-sm text-text-secondary">{initialData.match.courseName}</p>
+            <p className="mt-2 text-sm text-text-secondary">
+              {initialData.match.courseName} · {initialData.match.player1.teeColor.toUpperCase()} / {initialData.match.player2.teeColor.toUpperCase()}
+            </p>
           </div>
           <Link className="text-sm text-accent-text" href="/week">
             Back to Week

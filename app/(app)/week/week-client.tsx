@@ -22,6 +22,8 @@ type WeekPageData = {
       id: string
       player1Name: string
       player2Name: string
+      player1TeeColor: 'blue' | 'white' | 'yellow'
+      player2TeeColor: 'blue' | 'white' | 'yellow'
       player1Handicap: number
       player2Handicap: number
       player2ScorecardOnly: boolean
@@ -40,6 +42,7 @@ type WeekPageData = {
     name: string
     present: boolean
     checkedInAt: string | null
+    teeColor: 'blue' | 'white' | 'yellow'
     handicap: {
       kind: 'HCP' | 'PRO' | 'EST'
       value: string | null
@@ -48,6 +51,11 @@ type WeekPageData = {
   courses: Array<{
     id: string
     name: string
+    tees: Array<{
+      color: 'blue' | 'white' | 'yellow'
+      rating: number
+      slope: number
+    }>
   }>
   presentCount: number
   totalPlayers: number
@@ -401,7 +409,8 @@ export function WeekClient({ initialData }: WeekClientProps) {
                       : 'bg-transparent text-text-secondary'
                 }`}
               >
-                {player.handicap.kind === 'HCP' ? player.handicap.value : player.handicap.kind}
+                {player.handicap.kind === 'HCP' ? player.handicap.value : player.handicap.kind} ·{' '}
+                {player.teeColor.toUpperCase()}
               </span>
             </button>
           ))}
@@ -461,14 +470,18 @@ export function WeekClient({ initialData }: WeekClientProps) {
                   {match.scoreComplete ? 'Complete' : data.currentWeek?.locked ? 'Pending scores' : 'Tentative'}
                 </p>
                 <div className="mt-2 flex items-center justify-between text-sm text-text-primary">
-                  <span>{match.player1Name}</span>
-                  <span className="text-text-secondary">HCP {match.player1Handicap.toFixed(1)}</span>
+                  <span>
+                    {match.player1Name} ({match.player1TeeColor.toUpperCase()})
+                  </span>
+                  <span className="text-text-secondary">HCP {match.player1Handicap}</span>
                 </div>
                 <div className="mt-1 text-center text-xs uppercase tracking-[0.06em] text-text-muted">vs</div>
                 <div className="mt-1 flex items-center justify-between text-sm text-text-primary">
-                  <span>{match.player2Name}</span>
+                  <span>
+                    {match.player2Name} ({match.player2TeeColor.toUpperCase()})
+                  </span>
                   <span className="text-text-secondary">
-                    {match.player2ScorecardOnly ? 'Reference scorecard' : `HCP ${match.player2Handicap.toFixed(1)}`}
+                    {match.player2ScorecardOnly ? 'Reference scorecard' : `HCP ${match.player2Handicap}`}
                   </span>
                 </div>
                 {data.currentWeek?.locked ? (

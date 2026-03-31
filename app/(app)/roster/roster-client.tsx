@@ -3,6 +3,7 @@
 import type { FormEvent } from 'react'
 import { startTransition, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import type { TeeColor } from '@prisma/client'
 import { formatUsPhoneInput, formatUsPhoneNumber } from '@/lib/phone'
 import {
   formatImportedHandicapRoundsText,
@@ -17,6 +18,10 @@ type RosterPageData = {
     cellPhone: string | null
     active: boolean
     seedHandicap: number | null
+    seasonTeeChoices: Array<{
+      seasonId: string
+      teeColor: TeeColor
+    }>
     importedHandicapRounds: Array<{
       date: string
       grossScore: number
@@ -60,6 +65,9 @@ export function RosterClient({ initialData }: RosterClientProps) {
   const [editingPlayerCellPhone, setEditingPlayerCellPhone] = useState('')
   const [editingPlayerSeedHandicap, setEditingPlayerSeedHandicap] = useState('')
   const [editingPlayerImportedRoundsText, setEditingPlayerImportedRoundsText] = useState('')
+  const [editingPlayerSeasonTeeChoices, setEditingPlayerSeasonTeeChoices] = useState<
+    Record<string, TeeColor>
+  >({})
   const [seasonName, setSeasonName] = useState('')
   const [seasonType, setSeasonType] = useState<'spring' | 'summer'>('spring')
   const [seasonStartDate, setSeasonStartDate] = useState('')
@@ -172,7 +180,11 @@ export function RosterClient({ initialData }: RosterClientProps) {
         email: editingPlayerEmail,
         cellPhone: editingPlayerCellPhone,
         seedHandicap: editingPlayerSeedHandicap,
-        importedHandicapRounds: parsedImportedRounds.rounds
+        importedHandicapRounds: parsedImportedRounds.rounds,
+        seasonTeeChoices: Object.entries(editingPlayerSeasonTeeChoices).map(([seasonId, teeColor]) => ({
+          seasonId,
+          teeColor
+        }))
       })
     })
 
@@ -189,6 +201,7 @@ export function RosterClient({ initialData }: RosterClientProps) {
     setEditingPlayerCellPhone('')
     setEditingPlayerSeedHandicap('')
     setEditingPlayerImportedRoundsText('')
+    setEditingPlayerSeasonTeeChoices({})
     setIsSubmitting(false)
     await refreshPage('Player updated.')
   }
@@ -200,6 +213,18 @@ export function RosterClient({ initialData }: RosterClientProps) {
     setEditingPlayerCellPhone(formatUsPhoneNumber(player.cellPhone) ?? '')
     setEditingPlayerSeedHandicap(player.seedHandicap?.toString() ?? '')
     setEditingPlayerImportedRoundsText(formatImportedHandicapRoundsText(player.importedHandicapRounds))
+    setEditingPlayerSeasonTeeChoices(
+      Object.fromEntries(
+        player.seasonTeeChoices.map((choice) => [choice.seasonId, choice.teeColor])
+      )
+    )
+  }
+
+  function updateEditingPlayerSeasonTeeChoice(seasonId: string, teeColor: TeeColor) {
+    setEditingPlayerSeasonTeeChoices((current) => ({
+      ...current,
+      [seasonId]: teeColor
+    }))
   }
 
   function handlePlayerCellPhoneChange(value: string) {
@@ -707,6 +732,40 @@ export function RosterClient({ initialData }: RosterClientProps) {
               value={editingPlayerSeedHandicap}
               onChange={(event) => setEditingPlayerSeedHandicap(event.target.value)}
             />
+          </div>
+          <div className="mt-4 rounded-lg border border-surface-border bg-surface-sunken p-3">
+            <p className="text-xs font-semibold uppercase tracking-[0.06em] text-text-muted">
+              Season Tee Choice
+            </p>
+            <div className="mt-3 space-y-3">
+              {data.seasons.length > 0 ? (
+                data.seasons.map((season) => (
+                  <div key={season.id} className="grid gap-2 md:grid-cols-[1fr_140px] md:items-center">
+                    <div>
+                      <p className="text-sm font-medium text-text-primary">{season.name}</p>
+                      <p className="text-xs text-text-secondary">
+                        {season.archivedAt ? 'Archived season' : 'Applies across this season'}
+                      </p>
+                    </div>
+                    <select
+                      className="w-full rounded-md border border-surface-border bg-surface-elevated px-3 py-2.5 text-sm text-text-primary"
+                      value={editingPlayerSeasonTeeChoices[season.id] ?? 'white'}
+                      onChange={(event) =>
+                        updateEditingPlayerSeasonTeeChoice(season.id, event.target.value as TeeColor)
+                      }
+                    >
+                      <option value="blue">Blue</option>
+                      <option value="white">White</option>
+                      <option value="yellow">Yellow</option>
+                    </select>
+                  </div>
+                ))
+              ) : (
+                <p className="text-sm text-text-secondary">
+                  Create a season first, then assign each player’s tee color for that season.
+                </p>
+              )}
+            </div>
           </div>
           <div className="mt-4 rounded-lg border border-surface-border bg-surface-sunken p-3">
             <p className="text-xs font-semibold uppercase tracking-[0.06em] text-text-muted">

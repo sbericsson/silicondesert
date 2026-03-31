@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import type { TeeColor } from '@prisma/client'
 import { prisma } from '@/lib/db'
 import { getApiSession, unauthorizedResponse } from '@/lib/api-auth'
 import { normalizeUsPhoneNumber } from '@/lib/phone'
@@ -27,6 +28,12 @@ export async function PATCH(
   } = {}
   let importedHandicapRounds:
     | ReturnType<typeof validateImportedHandicapRounds>['rounds']
+    | undefined
+  let seasonTeeChoices:
+    | Array<{
+        seasonId: string
+        teeColor: TeeColor
+      }>
     | undefined
 
   if ('name' in body && typeof body.name === 'string') {
@@ -83,6 +90,38 @@ export async function PATCH(
     importedHandicapRounds = validatedImportedRounds.rounds
   }
 
+  if ('seasonTeeChoices' in body) {
+    if (!Array.isArray(body.seasonTeeChoices)) {
+      return NextResponse.json({ error: 'Season tee choices must be an array' }, { status: 400 })
+    }
+
+    const normalizedChoices = body.seasonTeeChoices.flatMap((choice: unknown) => {
+      if (!choice || typeof choice !== 'object') {
+        return []
+      }
+
+      const seasonId = typeof (choice as { seasonId?: unknown }).seasonId === 'string'
+        ? (choice as { seasonId: string }).seasonId
+        : null
+      const teeColor = (choice as { teeColor?: unknown }).teeColor
+
+      if (!seasonId || (teeColor !== 'blue' && teeColor !== 'white' && teeColor !== 'yellow')) {
+        return []
+      }
+
+      return [{ seasonId, teeColor }]
+    })
+
+    if (normalizedChoices.length !== body.seasonTeeChoices.length) {
+      return NextResponse.json(
+        { error: 'Each season tee choice must include a seasonId and teeColor' },
+        { status: 400 }
+      )
+    }
+
+    seasonTeeChoices = normalizedChoices
+  }
+
   const player = await prisma.$transaction(async (tx) => {
     const updatedPlayer = await tx.player.update({
       where: { id: params.id },
@@ -119,7 +158,47 @@ export async function PATCH(
       await recomputeUsedInIndex(tx, params.id)
     }
 
+    if (seasonTeeChoices !== undefined) {
+      const validSeasonIds = new Set(
+        (
+          await tx.season.findMany({
+            where: {
+              id: {
+                in: seasonTeeChoices.map((choice) => choice.seasonId)
+              }
+            },
+            select: { id: true }
+          })
+        ).map((season) => season.id)
+      )
+
+      if (validSeasonIds.size !== seasonTeeChoices.length) {
+        throw new Error('One or more selected seasons could not be found')
+      }
+
+      for (const choice of seasonTeeChoices) {
+        await tx.playerSeasonTee.upsert({
+          where: {
+            playerId_seasonId: {
+              playerId: params.id,
+              seasonId: choice.seasonId
+            }
+          },
+          update: {
+            teeColor: choice.teeColor
+          },
+          create: {
+            playerId: params.id,
+            seasonId: choice.seasonId,
+            teeColor: choice.teeColor
+          }
+        })
+      }
+    }
+
     return updatedPlayer
+  }).catch((error: Error) => {
+    throw error
   })
 
   return NextResponse.json(player)

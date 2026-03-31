@@ -31,7 +31,8 @@ export async function getRosterPageData() {
         handicapRecords: {
           orderBy: { date: 'asc' },
           take: 20
-        }
+        },
+        seasonTeeChoices: true
       },
       orderBy: [{ active: 'desc' }, { name: 'asc' }]
     }),
@@ -66,6 +67,10 @@ export async function getRosterPageData() {
       cellPhone: player.cellPhone,
       active: player.active,
       seedHandicap: player.seedHandicap,
+      seasonTeeChoices: player.seasonTeeChoices.map((choice) => ({
+        seasonId: choice.seasonId,
+        teeColor: choice.teeColor
+      })),
       importedHandicapRounds: player.handicapRecords
         .filter((record) => record.isImported && record.weekId === null)
         .sort((a, b) => a.date.getTime() - b.date.getTime())

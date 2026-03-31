@@ -50,7 +50,9 @@ export async function getRosterPageData() {
       id: player.id,
       name: player.name,
       email: player.email,
+      cellPhone: player.cellPhone,
       active: player.active,
+      seedHandicap: player.seedHandicap,
       handicap: getPlayerDisplay(player)
     })),
     seasons: seasons.map((season) => ({

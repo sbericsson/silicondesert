@@ -28,6 +28,10 @@ export async function POST(request: NextRequest) {
   const name = typeof body.name === 'string' ? body.name.trim() : ''
   const email =
     typeof body.email === 'string' && body.email.trim().length > 0 ? body.email.trim() : null
+  const cellPhone =
+    typeof body.cellPhone === 'string' && body.cellPhone.trim().length > 0
+      ? body.cellPhone.trim()
+      : null
   const seedHandicap =
     body.seedHandicap === null || body.seedHandicap === undefined || body.seedHandicap === ''
       ? null
@@ -45,6 +49,7 @@ export async function POST(request: NextRequest) {
     data: {
       name,
       email,
+      cellPhone,
       seedHandicap
     }
   })

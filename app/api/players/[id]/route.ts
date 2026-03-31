@@ -15,6 +15,7 @@ export async function PATCH(
   const updates: {
     name?: string
     email?: string | null
+    cellPhone?: string | null
     active?: boolean
     seedHandicap?: number | null
   } = {}
@@ -26,6 +27,13 @@ export async function PATCH(
   if ('email' in body) {
     updates.email =
       typeof body.email === 'string' && body.email.trim().length > 0 ? body.email.trim() : null
+  }
+
+  if ('cellPhone' in body) {
+    updates.cellPhone =
+      typeof body.cellPhone === 'string' && body.cellPhone.trim().length > 0
+        ? body.cellPhone.trim()
+        : null
   }
 
   if ('active' in body && typeof body.active === 'boolean') {

@@ -9,7 +9,9 @@ type RosterPageData = {
     id: string
     name: string
     email: string | null
+    cellPhone: string | null
     active: boolean
+    seedHandicap: number | null
     handicap: {
       kind: 'HCP' | 'PRO' | 'EST'
       value: string | null
@@ -34,11 +36,19 @@ export function RosterClient({ initialData }: RosterClientProps) {
   const [data, setData] = useState(initialData)
   const [playerName, setPlayerName] = useState('')
   const [playerEmail, setPlayerEmail] = useState('')
+  const [playerCellPhone, setPlayerCellPhone] = useState('')
   const [playerSeedHandicap, setPlayerSeedHandicap] = useState('')
+  const [editingPlayerId, setEditingPlayerId] = useState<string | null>(null)
+  const [editingPlayerName, setEditingPlayerName] = useState('')
+  const [editingPlayerEmail, setEditingPlayerEmail] = useState('')
+  const [editingPlayerCellPhone, setEditingPlayerCellPhone] = useState('')
+  const [editingPlayerSeedHandicap, setEditingPlayerSeedHandicap] = useState('')
   const [seasonName, setSeasonName] = useState('')
   const [seasonType, setSeasonType] = useState<'spring' | 'summer'>('spring')
   const [seasonStartDate, setSeasonStartDate] = useState('')
-  const [seasonWeekDates, setSeasonWeekDates] = useState('')
+  const [seasonWeekDates, setSeasonWeekDates] = useState<string[]>([])
+  const [seasonDatePickerValue, setSeasonDatePickerValue] = useState('')
+  const [seasonWeekCount, setSeasonWeekCount] = useState('8')
   const [message, setMessage] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -68,6 +78,7 @@ export function RosterClient({ initialData }: RosterClientProps) {
       body: JSON.stringify({
         name: playerName,
         email: playerEmail,
+        cellPhone: playerCellPhone,
         seedHandicap: playerSeedHandicap
       })
     })
@@ -81,6 +92,7 @@ export function RosterClient({ initialData }: RosterClientProps) {
 
     setPlayerName('')
     setPlayerEmail('')
+    setPlayerCellPhone('')
     setPlayerSeedHandicap('')
     setIsSubmitting(false)
     await refreshPage('Player created.')
@@ -110,16 +122,96 @@ export function RosterClient({ initialData }: RosterClientProps) {
     await refreshPage(active ? 'Player activated.' : 'Player deactivated.')
   }
 
+  async function handleSavePlayer(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    if (!editingPlayerId) {
+      return
+    }
+
+    setIsSubmitting(true)
+    setError(null)
+    setMessage(null)
+
+    const response = await fetch(`/api/players/${editingPlayerId}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        name: editingPlayerName,
+        email: editingPlayerEmail,
+        cellPhone: editingPlayerCellPhone,
+        seedHandicap: editingPlayerSeedHandicap
+      })
+    })
+
+    if (!response.ok) {
+      const payload = await response.json().catch(() => null)
+      setError(payload?.error ?? 'Unable to save player')
+      setIsSubmitting(false)
+      return
+    }
+
+    setEditingPlayerId(null)
+    setEditingPlayerName('')
+    setEditingPlayerEmail('')
+    setEditingPlayerCellPhone('')
+    setEditingPlayerSeedHandicap('')
+    setIsSubmitting(false)
+    await refreshPage('Player updated.')
+  }
+
+  function beginEditingPlayer(player: RosterPageData['players'][number]) {
+    setEditingPlayerId(player.id)
+    setEditingPlayerName(player.name)
+    setEditingPlayerEmail(player.email ?? '')
+    setEditingPlayerCellPhone(player.cellPhone ?? '')
+    setEditingPlayerSeedHandicap(player.seedHandicap?.toString() ?? '')
+  }
+
+  function addSeasonDate(date: string) {
+    if (!date) {
+      return
+    }
+
+    setSeasonWeekDates((current) => [...new Set([...current, date])].sort())
+    setSeasonDatePickerValue('')
+  }
+
+  function removeSeasonDate(date: string) {
+    setSeasonWeekDates((current) => current.filter((item) => item !== date))
+  }
+
+  function generateWeeklyDates() {
+    if (!seasonStartDate) {
+      setError('Choose a season start date first.')
+      return
+    }
+
+    const weeks = Number(seasonWeekCount)
+    if (!Number.isInteger(weeks) || weeks < 1) {
+      setError('Week count must be at least 1.')
+      return
+    }
+
+    const start = new Date(`${seasonStartDate}T00:00:00-07:00`)
+    const dates = Array.from({ length: weeks }, (_, index) => {
+      const next = new Date(start)
+      next.setDate(start.getDate() + index * 7)
+      return next.toISOString().slice(0, 10)
+    })
+
+    setSeasonWeekDates(dates)
+    setError(null)
+  }
+
   async function handleCreateSeason(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setIsSubmitting(true)
     setError(null)
     setMessage(null)
 
-    const weekDates = seasonWeekDates
-      .split(',')
-      .map((value) => value.trim())
-      .filter(Boolean)
+    const weekDates = [...seasonWeekDates]
 
     const response = await fetch('/api/seasons', {
       method: 'POST',
@@ -143,7 +235,8 @@ export function RosterClient({ initialData }: RosterClientProps) {
 
     setSeasonName('')
     setSeasonStartDate('')
-    setSeasonWeekDates('')
+    setSeasonWeekDates([])
+    setSeasonDatePickerValue('')
     setIsSubmitting(false)
     await refreshPage('Season created.')
   }
@@ -195,6 +288,12 @@ export function RosterClient({ initialData }: RosterClientProps) {
             />
             <input
               className="w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
+              placeholder="Cell phone (optional)"
+              value={playerCellPhone}
+              onChange={(event) => setPlayerCellPhone(event.target.value)}
+            />
+            <input
+              className="w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
               inputMode="decimal"
               placeholder="Seed handicap (optional)"
               value={playerSeedHandicap}
@@ -243,12 +342,57 @@ export function RosterClient({ initialData }: RosterClientProps) {
                 onChange={(event) => setSeasonStartDate(event.target.value)}
               />
             </div>
-            <textarea
-              className="min-h-28 w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
-              placeholder="Comma-separated Friday dates, e.g. 2026-04-03, 2026-04-10, 2026-04-17"
-              value={seasonWeekDates}
-              onChange={(event) => setSeasonWeekDates(event.target.value)}
-            />
+            <div className="grid gap-3 md:grid-cols-[1fr_120px]">
+              <input
+                className="w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
+                type="date"
+                value={seasonDatePickerValue}
+                onChange={(event) => setSeasonDatePickerValue(event.target.value)}
+              />
+              <button
+                type="button"
+                className="rounded-lg border border-surface-border bg-surface-sunken px-4 py-3 text-sm font-semibold text-text-primary"
+                onClick={() => addSeasonDate(seasonDatePickerValue)}
+              >
+                Add Date
+              </button>
+            </div>
+            <div className="grid gap-3 md:grid-cols-[120px_1fr]">
+              <input
+                className="w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
+                inputMode="numeric"
+                value={seasonWeekCount}
+                onChange={(event) => setSeasonWeekCount(event.target.value)}
+              />
+              <button
+                type="button"
+                className="rounded-lg border border-surface-border bg-surface-sunken px-4 py-3 text-sm font-semibold text-text-primary"
+                onClick={generateWeeklyDates}
+              >
+                Generate Weekly Dates
+              </button>
+            </div>
+            <div className="rounded-lg border border-surface-border bg-surface-sunken p-3">
+              <p className="text-xs font-semibold uppercase tracking-[0.06em] text-text-muted">
+                Selected Week Dates
+              </p>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {seasonWeekDates.length > 0 ? (
+                  seasonWeekDates.map((date) => (
+                    <button
+                      key={date}
+                      type="button"
+                      className="rounded bg-accent-dim px-2 py-1 text-xs font-semibold text-accent-text"
+                      onClick={() => removeSeasonDate(date)}
+                    >
+                      {date} ×
+                    </button>
+                  ))
+                ) : (
+                  <p className="text-sm text-text-secondary">No dates selected yet.</p>
+                )}
+              </div>
+            </div>
             <button
               type="submit"
               className="w-full rounded-lg bg-accent px-4 py-3 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:bg-surface-sunken disabled:text-text-disabled"
@@ -272,26 +416,95 @@ export function RosterClient({ initialData }: RosterClientProps) {
               <div className="flex-1">
                 <p className="text-sm font-medium text-text-primary">{player.name}</p>
                 <p className="mt-1 text-xs text-text-secondary">
-                  {player.email ?? 'No email'} ·{' '}
+                  {player.email ?? 'No email'} · {player.cellPhone ?? 'No cell'} ·{' '}
                   {player.handicap.kind === 'HCP' ? player.handicap.value : player.handicap.kind}
                 </p>
               </div>
-              <button
-                type="button"
-                className={`rounded-lg px-3 py-2 text-sm font-semibold ${
-                  player.active
-                    ? 'bg-surface-sunken text-text-primary'
-                    : 'bg-accent-dim text-accent-text'
-                }`}
-                onClick={() => handleTogglePlayer(player.id, !player.active)}
-                disabled={isSubmitting}
-              >
-                {player.active ? 'Deactivate' : 'Activate'}
-              </button>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  className="rounded-lg bg-surface-sunken px-3 py-2 text-sm font-semibold text-text-primary"
+                  onClick={() => beginEditingPlayer(player)}
+                  disabled={isSubmitting}
+                >
+                  Edit
+                </button>
+                <button
+                  type="button"
+                  className={`rounded-lg px-3 py-2 text-sm font-semibold ${
+                    player.active
+                      ? 'bg-surface-sunken text-text-primary'
+                      : 'bg-accent-dim text-accent-text'
+                  }`}
+                  onClick={() => handleTogglePlayer(player.id, !player.active)}
+                  disabled={isSubmitting}
+                >
+                  {player.active ? 'Deactivate' : 'Activate'}
+                </button>
+              </div>
             </div>
           ))}
         </div>
       </section>
+
+      {editingPlayerId ? (
+        <form
+          className="rounded-xl border border-surface-border bg-surface-elevated p-4"
+          onSubmit={handleSavePlayer}
+        >
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.06em] text-text-muted">
+                Edit Player
+              </p>
+              <p className="mt-1 text-sm text-text-secondary">
+                Update player profile, contact info, and seeded handicap.
+              </p>
+            </div>
+            <button
+              type="button"
+              className="text-sm text-text-secondary"
+              onClick={() => setEditingPlayerId(null)}
+            >
+              Close
+            </button>
+          </div>
+          <div className="mt-4 grid gap-3 md:grid-cols-2">
+            <input
+              className="w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
+              placeholder="Name"
+              value={editingPlayerName}
+              onChange={(event) => setEditingPlayerName(event.target.value)}
+            />
+            <input
+              className="w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
+              placeholder="Email"
+              value={editingPlayerEmail}
+              onChange={(event) => setEditingPlayerEmail(event.target.value)}
+            />
+            <input
+              className="w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
+              placeholder="Cell phone"
+              value={editingPlayerCellPhone}
+              onChange={(event) => setEditingPlayerCellPhone(event.target.value)}
+            />
+            <input
+              className="w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
+              inputMode="decimal"
+              placeholder="Seed handicap"
+              value={editingPlayerSeedHandicap}
+              onChange={(event) => setEditingPlayerSeedHandicap(event.target.value)}
+            />
+          </div>
+          <button
+            type="submit"
+            className="mt-4 w-full rounded-lg bg-accent px-4 py-3 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:bg-surface-sunken disabled:text-text-disabled"
+            disabled={isSubmitting}
+          >
+            Save Player
+          </button>
+        </form>
+      ) : null}
 
       <section className="rounded-xl border border-surface-border bg-surface-elevated">
         <div className="border-b border-surface-border px-4 py-3">

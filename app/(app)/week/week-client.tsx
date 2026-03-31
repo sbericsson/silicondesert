@@ -173,6 +173,25 @@ export function WeekClient({ initialData }: WeekClientProps) {
     })
   }
 
+  async function startUpcomingWeek() {
+    if (!data.upcomingWeek) {
+      return
+    }
+
+    await runAction(async () => {
+      const response = await fetch(`/api/weeks/${data.upcomingWeek?.id}/start`, {
+        method: 'POST'
+      })
+
+      if (!response.ok) {
+        const payload = await response.json().catch(() => null)
+        throw new Error(payload?.error ?? 'Unable to start the upcoming week')
+      }
+
+      setMessage('Upcoming week started for today.')
+    })
+  }
+
   if (!data.currentWeek) {
     return (
       <section className="px-4 py-6">
@@ -194,6 +213,16 @@ export function WeekClient({ initialData }: WeekClientProps) {
             <p>Players on roster: {data.totalPlayers}</p>
             <p className="mt-2">Courses configured: {data.courses.length}</p>
           </div>
+          {data.upcomingWeek ? (
+            <button
+              type="button"
+              className="mt-4 w-full rounded-lg bg-accent px-4 py-3 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:bg-surface-sunken disabled:text-text-disabled"
+              onClick={startUpcomingWeek}
+              disabled={isRefreshing}
+            >
+              {isRefreshing ? 'Working...' : `Start Week ${data.upcomingWeek.weekNumber} Now`}
+            </button>
+          ) : null}
         </div>
       </section>
     )

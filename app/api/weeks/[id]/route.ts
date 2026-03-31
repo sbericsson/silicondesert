@@ -55,11 +55,22 @@ export async function PATCH(
   }
 
   const existingWeek = await prisma.week.findUnique({
-    where: { id: params.id }
+    where: { id: params.id },
+    include: {
+      season: {
+        select: {
+          archivedAt: true
+        }
+      }
+    }
   })
 
   if (!existingWeek) {
     return NextResponse.json({ error: 'Week not found' }, { status: 404 })
+  }
+
+  if (existingWeek.season.archivedAt) {
+    return NextResponse.json({ error: 'Archived seasons cannot be edited' }, { status: 409 })
   }
 
   // CTP/LP winner fields can be updated after lock (post-round data).

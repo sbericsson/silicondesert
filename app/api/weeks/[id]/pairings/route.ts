@@ -42,7 +42,8 @@ export async function POST(
         select: { id: true, locked: true }
       },
       season: {
-        include: {
+        select: {
+          archivedAt: true,
           weeks: {
             where: {
               id: { not: params.id }
@@ -56,6 +57,10 @@ export async function POST(
 
   if (!week) {
     return NextResponse.json({ error: 'Week not found' }, { status: 404 })
+  }
+
+  if (week.season.archivedAt) {
+    return NextResponse.json({ error: 'Archived seasons cannot be edited' }, { status: 409 })
   }
 
   if (week.locked) {

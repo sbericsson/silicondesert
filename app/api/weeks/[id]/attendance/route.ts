@@ -21,11 +21,22 @@ export async function POST(
   }
 
   const week = await prisma.week.findUnique({
-    where: { id: params.id }
+    where: { id: params.id },
+    include: {
+      season: {
+        select: {
+          archivedAt: true
+        }
+      }
+    }
   })
 
   if (!week) {
     return NextResponse.json({ error: 'Week not found' }, { status: 404 })
+  }
+
+  if (week.season.archivedAt) {
+    return NextResponse.json({ error: 'Archived seasons cannot be edited' }, { status: 409 })
   }
 
   if (week.locked) {

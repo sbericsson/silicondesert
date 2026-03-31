@@ -53,6 +53,7 @@ model Season {
   type      SeasonType
   startDate DateTime
   endDate   DateTime
+  archivedAt DateTime?
   weeks     Week[]
   createdAt DateTime   @default(now())
 

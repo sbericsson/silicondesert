@@ -3,8 +3,8 @@
 import Link from 'next/link'
 import { useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { applyESC, strokesReceivedOnHole } from '@/lib/handicap'
-import { calculateMatchPoints } from '@/lib/scoring'
+import { applyESC } from '@/lib/handicap'
+import { calculateMatchPlayResult, calculateMatchPoints } from '@/lib/scoring'
 
 type MatchScorePageData = {
   match: {
@@ -14,6 +14,7 @@ type MatchScorePageData = {
     courseName: string
     ctpHoleNumber: number | null
     locked: boolean
+    seasonArchived: boolean
     player2ScorecardOnly: boolean
     matchPlayLeadBy: number | null
     matchPlayHolesRemaining: number | null
@@ -54,25 +55,42 @@ interface MatchScoreClientProps {
   initialData: MatchScorePageData
 }
 
-const matchPlayOptions = [
-  { label: 'Select result...', leadBy: null, holesRemaining: null, winner: null },
-  { label: 'All square', leadBy: 0, holesRemaining: 0, winner: null },
-  { label: '1 up', leadBy: 1, holesRemaining: 0, winner: 'dynamic' as const },
-  { label: '2 & 1', leadBy: 2, holesRemaining: 1, winner: 'dynamic' as const },
-  { label: '3 & 2', leadBy: 3, holesRemaining: 2, winner: 'dynamic' as const },
-  { label: '4 & 3', leadBy: 4, holesRemaining: 3, winner: 'dynamic' as const },
-  { label: '5 & 4', leadBy: 5, holesRemaining: 4, winner: 'dynamic' as const },
-  { label: '6 & 5', leadBy: 6, holesRemaining: 5, winner: 'dynamic' as const },
-  { label: '7 & 6', leadBy: 7, holesRemaining: 6, winner: 'dynamic' as const },
-  { label: '8 & 7', leadBy: 8, holesRemaining: 7, winner: 'dynamic' as const }
-]
-
-function buildMatchPlayValue(leadBy: number | null, holesRemaining: number | null, winnerId: string | null) {
-  if (leadBy === null || holesRemaining === null && leadBy !== 1 && leadBy !== 0) {
-    return ''
+function formatMatchPlayLabel(
+  result: {
+    matchPlayWinnerId: string | null
+    matchPlayLeadBy: number
+    matchPlayHolesRemaining: number
+    completeHoleCount: number
+  } | null,
+  player1: { id: string; name: string },
+  player2: { id: string; name: string }
+) {
+  if (!result) {
+    return 'Enter scores to calculate match play.'
   }
 
-  return `${winnerId ?? 'tie'}:${leadBy}:${holesRemaining ?? 0}`
+  if (result.completeHoleCount < 9 && result.matchPlayLeadBy === 0) {
+    return `All square through ${result.completeHoleCount}.`
+  }
+
+  const winnerName =
+    result.matchPlayWinnerId === player1.id
+      ? player1.name
+      : result.matchPlayWinnerId === player2.id
+        ? player2.name
+        : null
+
+  if (result.matchPlayWinnerId === null) {
+    return result.matchPlayHolesRemaining === 0
+      ? 'Match halved.'
+      : `All square through ${result.completeHoleCount}.`
+  }
+
+  if (result.matchPlayHolesRemaining === 0) {
+    return `${winnerName} ${result.matchPlayLeadBy} up.`
+  }
+
+  return `${winnerName} ${result.matchPlayLeadBy} & ${result.matchPlayHolesRemaining}.`
 }
 
 export function MatchScoreClient({ initialData }: MatchScoreClientProps) {
@@ -82,15 +100,6 @@ export function MatchScoreClient({ initialData }: MatchScoreClientProps) {
   )
   const [player2Scores, setPlayer2Scores] = useState<Record<number, string>>(
     Object.fromEntries(initialData.rows.map((row) => [row.holeNumber, row.player2Gross?.toString() ?? '']))
-  )
-  const [matchPlayValue, setMatchPlayValue] = useState(
-    initialData.match.matchPlayLeadBy === null
-      ? ''
-      : buildMatchPlayValue(
-          initialData.match.matchPlayLeadBy,
-          initialData.match.matchPlayHolesRemaining,
-          initialData.match.matchPlayWinnerId
-        )
   )
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -117,7 +126,7 @@ export function MatchScoreClient({ initialData }: MatchScoreClientProps) {
   const completeHoleCount = computedRows.filter(
     (row) => row.player1Gross !== null && row.player2Gross !== null
   ).length
-  const isComplete = completeHoleCount === 9 && matchPlayValue !== ''
+  const isComplete = completeHoleCount === 9
 
   const totals = {
     player1Gross: computedRows.reduce((sum, row) => sum + (row.player1Gross ?? 0), 0),
@@ -128,28 +137,24 @@ export function MatchScoreClient({ initialData }: MatchScoreClientProps) {
     player2Net: computedRows.reduce((sum, row) => sum + (row.player2Net ?? 0), 0)
   }
 
-  const parsedMatchPlay = (() => {
-    if (!matchPlayValue) {
-      return null
-    }
+  const matchPlayResult = calculateMatchPlayResult(
+    computedRows.map((row) => ({
+      player1Net: row.player1Net,
+      player2Net: row.player2Net
+    })),
+    initialData.match.player1.id,
+    initialData.match.player2.id
+  )
 
-    const [winnerId, leadBy, holesRemaining] = matchPlayValue.split(':')
-    return {
-      matchPlayWinnerId: winnerId === 'tie' ? null : winnerId,
-      matchPlayLeadBy: Number(leadBy),
-      matchPlayHolesRemaining: Number(holesRemaining)
-    }
-  })()
-
-  const pointsPreview = isComplete && parsedMatchPlay
+  const pointsPreview = isComplete && matchPlayResult
     ? calculateMatchPoints(
         {
           player1Id: initialData.match.player1.id,
           player2Id: initialData.match.player2.id,
           player1NetScore: totals.player1Net,
           player2NetScore: totals.player2Net,
-          matchPlayWinnerId: parsedMatchPlay.matchPlayWinnerId,
-          matchPlayLeadBy: parsedMatchPlay.matchPlayLeadBy,
+          matchPlayWinnerId: matchPlayResult.matchPlayWinnerId,
+          matchPlayLeadBy: matchPlayResult.matchPlayLeadBy,
           player2ScorecardOnly: initialData.match.player2ScorecardOnly
         },
         initialData.match.player1.present,
@@ -158,7 +163,7 @@ export function MatchScoreClient({ initialData }: MatchScoreClientProps) {
     : null
 
   async function handleSubmit() {
-    if (!isComplete || !parsedMatchPlay) {
+    if (!isComplete || !matchPlayResult) {
       return
     }
 
@@ -180,8 +185,7 @@ export function MatchScoreClient({ initialData }: MatchScoreClientProps) {
           player2Scores: computedRows.map((row) => ({
             holeNumber: row.holeNumber,
             grossScore: row.player2Gross
-          })),
-          ...parsedMatchPlay
+          }))
         })
       }
     )
@@ -234,6 +238,12 @@ export function MatchScoreClient({ initialData }: MatchScoreClientProps) {
         </div>
       ) : null}
 
+      {initialData.match.seasonArchived ? (
+        <div className="rounded-md border border-warning bg-warning/10 px-4 py-3 text-sm text-warning-text">
+          This season is archived. Scores remain visible, but edits are disabled.
+        </div>
+      ) : null}
+
       <div className="rounded-md border-l-[3px] border-accent bg-accent-dim px-4 py-3 text-sm text-accent-text">
         {completeHoleCount} of 9 holes entered
       </div>
@@ -263,6 +273,7 @@ export function MatchScoreClient({ initialData }: MatchScoreClientProps) {
                   inputMode="numeric"
                   value={player1Scores[row.holeNumber]}
                   onChange={(event) => setScore('player1', row.holeNumber, event.target.value)}
+                  disabled={initialData.match.seasonArchived}
                 />
                 <p className={`text-xs ${row.player1Gross !== row.player1Adj ? 'text-warning-text' : 'text-text-secondary'}`}>
                   Adj {row.player1Adj ?? '—'} · Net {row.player1Net ?? '—'}
@@ -274,6 +285,7 @@ export function MatchScoreClient({ initialData }: MatchScoreClientProps) {
                   inputMode="numeric"
                   value={player2Scores[row.holeNumber]}
                   onChange={(event) => setScore('player2', row.holeNumber, event.target.value)}
+                  disabled={initialData.match.seasonArchived}
                 />
                 <p className={`text-xs ${row.player2Gross !== row.player2Adj ? 'text-warning-text' : 'text-text-secondary'}`}>
                   Adj {row.player2Adj ?? '—'} · Net {row.player2Net ?? '—'}
@@ -301,45 +313,18 @@ export function MatchScoreClient({ initialData }: MatchScoreClientProps) {
 
         <div className="rounded-xl border border-surface-border bg-surface-elevated p-4">
           <p className="text-xs font-semibold uppercase tracking-[0.06em] text-text-muted">
-            Match Play Result
+            Match Play
           </p>
-          <select
-            className="mt-3 w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
-            value={matchPlayValue}
-            onChange={(event) => setMatchPlayValue(event.target.value)}
-          >
-            {matchPlayOptions.flatMap((option) => {
-              if (option.winner !== 'dynamic') {
-                return (
-                  <option
-                    key={option.label}
-                    value={
-                      option.leadBy === null
-                        ? ''
-                        : `${option.winner ?? 'tie'}:${option.leadBy}:${option.holesRemaining ?? 0}`
-                    }
-                  >
-                    {option.label}
-                  </option>
-                )
-              }
-
-              return [
-                <option
-                  key={`${option.label}-${initialData.match.player1.id}`}
-                  value={`${initialData.match.player1.id}:${option.leadBy}:${option.holesRemaining}`}
-                >
-                  {initialData.match.player1.name} {option.label}
-                </option>,
-                <option
-                  key={`${option.label}-${initialData.match.player2.id}`}
-                  value={`${initialData.match.player2.id}:${option.leadBy}:${option.holesRemaining}`}
-                >
-                  {initialData.match.player2.name} {option.label}
-                </option>
-              ]
-            })}
-          </select>
+          <p className="mt-3 text-base font-semibold text-text-primary">
+            {formatMatchPlayLabel(
+              matchPlayResult,
+              initialData.match.player1,
+              initialData.match.player2
+            )}
+          </p>
+          <p className="mt-2 text-xs text-text-secondary">
+            Match play updates automatically from each hole&apos;s net result.
+          </p>
         </div>
       </section>
 
@@ -362,10 +347,12 @@ export function MatchScoreClient({ initialData }: MatchScoreClientProps) {
       <button
         type="button"
         className="w-full rounded-lg bg-accent px-4 py-4 text-base font-semibold text-white disabled:cursor-not-allowed disabled:bg-surface-sunken disabled:text-text-disabled"
-        disabled={!isComplete || isSubmitting}
+        disabled={!isComplete || isSubmitting || initialData.match.seasonArchived}
         onClick={handleSubmit}
       >
-        {!isComplete
+        {initialData.match.seasonArchived
+          ? 'Season Archived'
+          : !isComplete
           ? `Submit Scores (${9 - completeHoleCount} holes remaining)`
           : isSubmitting
             ? 'Saving...'

@@ -26,6 +26,77 @@ export interface WeekMatchPoints extends MatchInput {
   player2Present: boolean
 }
 
+export interface MatchPlayHoleInput {
+  player1Net: number | null
+  player2Net: number | null
+}
+
+export interface MatchPlayResult {
+  matchPlayWinnerId: string | null
+  matchPlayLeadBy: number
+  matchPlayHolesRemaining: number
+  completeHoleCount: number
+}
+
+export function calculateMatchPlayResult(
+  holes: MatchPlayHoleInput[],
+  player1Id: string,
+  player2Id: string
+): MatchPlayResult | null {
+  let player1Lead = 0
+  let completeHoleCount = 0
+  let clinchedResult: MatchPlayResult | null = null
+
+  for (const hole of holes) {
+    if (hole.player1Net === null || hole.player2Net === null) {
+      break
+    }
+
+    completeHoleCount += 1
+
+    if (hole.player1Net < hole.player2Net) {
+      player1Lead += 1
+    } else if (hole.player2Net < hole.player1Net) {
+      player1Lead -= 1
+    }
+
+    const holesRemaining = 9 - completeHoleCount
+    if (Math.abs(player1Lead) > holesRemaining) {
+      clinchedResult = {
+        matchPlayWinnerId: player1Lead > 0 ? player1Id : player2Id,
+        matchPlayLeadBy: Math.abs(player1Lead),
+        matchPlayHolesRemaining: holesRemaining,
+        completeHoleCount
+      }
+      break
+    }
+  }
+
+  if (completeHoleCount === 0) {
+    return null
+  }
+
+  if (clinchedResult) {
+    return clinchedResult
+  }
+
+  if (completeHoleCount < 9) {
+    return {
+      matchPlayWinnerId: player1Lead === 0 ? null : player1Lead > 0 ? player1Id : player2Id,
+      matchPlayLeadBy: Math.abs(player1Lead),
+      matchPlayHolesRemaining: 9 - completeHoleCount,
+      completeHoleCount
+    }
+  }
+
+  return {
+    matchPlayWinnerId: player1Lead === 0 ? null : player1Lead > 0 ? player1Id : player2Id,
+    matchPlayLeadBy: Math.abs(player1Lead),
+    matchPlayHolesRemaining: 0,
+    completeHoleCount
+  }
+}
+
 export function calculateMatchPoints(
   match: MatchInput,
   player1Present: boolean,

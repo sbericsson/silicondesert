@@ -38,7 +38,20 @@ export async function getRosterPageData() {
     prisma.season.findMany({
       include: {
         weeks: {
-          orderBy: { date: 'asc' }
+          orderBy: { date: 'asc' },
+          select: {
+            id: true,
+            date: true,
+            locked: true,
+            _count: {
+              select: {
+                attendance: true,
+                matches: true,
+                holeScores: true,
+                handicapRecords: true
+              }
+            }
+          }
         }
       },
       orderBy: { startDate: 'asc' }
@@ -53,6 +66,17 @@ export async function getRosterPageData() {
       cellPhone: player.cellPhone,
       active: player.active,
       seedHandicap: player.seedHandicap,
+      importedHandicapRounds: player.handicapRecords
+        .filter((record) => record.isImported && record.weekId === null)
+        .sort((a, b) => a.date.getTime() - b.date.getTime())
+        .map((record) => ({
+          date: record.date.toISOString().slice(0, 10),
+          grossScore: record.grossScore,
+          adjustedGrossScore: record.adjustedGrossScore,
+          courseRating: record.courseRating,
+          slopeRating: record.slopeRating,
+          coursePar: record.coursePar
+        })),
       handicap: getPlayerDisplay(player)
     })),
     seasons: seasons.map((season) => ({
@@ -61,7 +85,17 @@ export async function getRosterPageData() {
       type: season.type,
       weekCount: season.weeks.length,
       startDate: season.startDate.toISOString().slice(0, 10),
-      endDate: season.endDate.toISOString().slice(0, 10)
+      endDate: season.endDate.toISOString().slice(0, 10),
+      weekDates: season.weeks.map((week) => week.date.toISOString().slice(0, 10)),
+      archivedAt: season.archivedAt?.toISOString() ?? null,
+      hasWeekActivity: season.weeks.some(
+        (week) =>
+          week.locked ||
+          week._count.attendance > 0 ||
+          week._count.matches > 0 ||
+          week._count.holeScores > 0 ||
+          week._count.handicapRecords > 0
+      )
     }))
   }
 }

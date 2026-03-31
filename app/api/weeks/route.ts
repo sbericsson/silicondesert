@@ -17,7 +17,15 @@ export async function GET(request: NextRequest) {
   const seasonId = request.nextUrl.searchParams.get('seasonId')
 
   const weeks = await prisma.week.findMany({
-    where: seasonId ? { seasonId } : {},
+    where: seasonId
+      ? { seasonId }
+      : {
+          season: {
+            is: {
+              archivedAt: null
+            }
+          }
+        },
     include: {
       season: true,
       course: true

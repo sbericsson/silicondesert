@@ -6,7 +6,7 @@ import {
   scoreDifferential,
   strokesReceivedOnHole
 } from '@/lib/handicap'
-import { calculateMatchPoints } from '@/lib/scoring'
+import { calculateMatchPlayResult, calculateMatchPoints } from '@/lib/scoring'
 import { recomputeUsedInIndex } from '@/lib/handicap-records'
 import { writeAuditLog } from '@/lib/audit'
 
@@ -149,6 +149,7 @@ export async function getMatchScorePageData(weekId: string, matchId: string) {
       courseName: match.week.course.name,
       ctpHoleNumber: match.week.ctpHoleNumber,
       locked: match.locked,
+      seasonArchived: Boolean(match.week.season.archivedAt),
       player2ScorecardOnly: match.player2ScorecardOnly,
       matchPlayLeadBy: match.matchPlayLeadBy,
       matchPlayHolesRemaining: match.matchPlayHolesRemaining,
@@ -196,9 +197,6 @@ export async function submitMatchScores(input: {
   matchId: string
   player1Scores: Array<{ holeNumber: number; grossScore: number }>
   player2Scores: Array<{ holeNumber: number; grossScore: number }>
-  matchPlayLeadBy: number
-  matchPlayHolesRemaining: number
-  matchPlayWinnerId: string | null
 }) {
   const player1Scores = normalizeScores(input.player1Scores)
   const player2Scores = normalizeScores(input.player2Scores)
@@ -218,7 +216,8 @@ export async function submitMatchScores(input: {
               }
             }
           },
-          attendance: true
+          attendance: true,
+          season: true
         }
       },
       player1: {
@@ -242,6 +241,10 @@ export async function submitMatchScores(input: {
 
   if (!match || !match.week.course) {
     throw new Error('Match not found')
+  }
+
+  if (match.week.season.archivedAt) {
+    throw new Error('Archived seasons cannot be edited')
   }
 
   const course = match.week.course
@@ -312,6 +315,14 @@ export async function submitMatchScores(input: {
   const player2AdjustedGross = sum(processedP2.map((score) => score.adjustedScore))
   const player1Gross = sum(processedP1.map((score) => score.grossScore))
   const player2Gross = sum(processedP2.map((score) => score.grossScore))
+  const matchPlayResult = calculateMatchPlayResult(
+    processedP1.map((score, index) => ({
+      player1Net: score.netScore,
+      player2Net: processedP2[index]?.netScore ?? null
+    })),
+    match.player1Id,
+    match.player2Id
+  )
 
   const strokeWinnerId = match.player2ScorecardOnly
     ? match.player1Id
@@ -396,9 +407,9 @@ export async function submitMatchScores(input: {
       where: { id: input.matchId },
       data: {
         strokeWinnerId,
-        matchPlayLeadBy: input.matchPlayLeadBy,
-        matchPlayHolesRemaining: input.matchPlayHolesRemaining,
-        matchPlayWinnerId: input.matchPlayWinnerId
+        matchPlayLeadBy: matchPlayResult?.matchPlayLeadBy ?? null,
+        matchPlayHolesRemaining: matchPlayResult?.matchPlayHolesRemaining ?? null,
+        matchPlayWinnerId: matchPlayResult?.matchPlayWinnerId ?? null
       }
     })
 
@@ -413,9 +424,9 @@ export async function submitMatchScores(input: {
         player2Gross,
         player1AdjustedGross,
         player2AdjustedGross,
-        matchPlayLeadBy: input.matchPlayLeadBy,
-        matchPlayHolesRemaining: input.matchPlayHolesRemaining,
-        matchPlayWinnerId: input.matchPlayWinnerId
+        matchPlayLeadBy: matchPlayResult?.matchPlayLeadBy ?? null,
+        matchPlayHolesRemaining: matchPlayResult?.matchPlayHolesRemaining ?? null,
+        matchPlayWinnerId: matchPlayResult?.matchPlayWinnerId ?? null
       })
     })
 
@@ -503,8 +514,8 @@ export async function submitMatchScores(input: {
       player2Id: match.player2Id,
       player1NetScore: player1NetTotal,
       player2NetScore: player2NetTotal,
-      matchPlayWinnerId: input.matchPlayWinnerId,
-      matchPlayLeadBy: input.matchPlayLeadBy,
+      matchPlayWinnerId: matchPlayResult?.matchPlayWinnerId ?? null,
+      matchPlayLeadBy: matchPlayResult?.matchPlayLeadBy ?? null,
       player2ScorecardOnly: match.player2ScorecardOnly
     },
     attendanceMap.get(match.player1Id) ?? false,
@@ -515,9 +526,9 @@ export async function submitMatchScores(input: {
     match: {
       id: match.id,
       strokeWinnerId,
-      matchPlayLeadBy: input.matchPlayLeadBy,
-      matchPlayHolesRemaining: input.matchPlayHolesRemaining,
-      matchPlayWinnerId: input.matchPlayWinnerId
+      matchPlayLeadBy: matchPlayResult?.matchPlayLeadBy ?? null,
+      matchPlayHolesRemaining: matchPlayResult?.matchPlayHolesRemaining ?? null,
+      matchPlayWinnerId: matchPlayResult?.matchPlayWinnerId ?? null
     },
     pointsSummary
   }

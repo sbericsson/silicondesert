@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { getApiSession, unauthorizedResponse } from '@/lib/api-auth'
+import { normalizeUsPhoneNumber } from '@/lib/phone'
 
 export async function GET(request: NextRequest) {
   const session = await getApiSession()
@@ -28,10 +29,8 @@ export async function POST(request: NextRequest) {
   const name = typeof body.name === 'string' ? body.name.trim() : ''
   const email =
     typeof body.email === 'string' && body.email.trim().length > 0 ? body.email.trim() : null
-  const cellPhone =
-    typeof body.cellPhone === 'string' && body.cellPhone.trim().length > 0
-      ? body.cellPhone.trim()
-      : null
+  const rawCellPhone = typeof body.cellPhone === 'string' ? body.cellPhone.trim() : ''
+  const cellPhone = normalizeUsPhoneNumber(rawCellPhone)
   const seedHandicap =
     body.seedHandicap === null || body.seedHandicap === undefined || body.seedHandicap === ''
       ? null
@@ -43,6 +42,13 @@ export async function POST(request: NextRequest) {
 
   if (seedHandicap !== null && Number.isNaN(seedHandicap)) {
     return NextResponse.json({ error: 'Seed handicap must be numeric' }, { status: 400 })
+  }
+
+  if (rawCellPhone && !cellPhone) {
+    return NextResponse.json(
+      { error: 'Cell phone must be a valid 10-digit US number' },
+      { status: 400 }
+    )
   }
 
   const player = await prisma.player.create({

@@ -1,15 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { getApiSession, unauthorizedResponse } from '@/lib/api-auth'
-
-function parseDate(value: unknown) {
-  if (typeof value !== 'string') {
-    return null
-  }
-
-  const date = new Date(`${value}T00:00:00-07:00`)
-  return Number.isNaN(date.getTime()) ? null : date
-}
+import { parsePhoenixDate, sortUniqueWeekDates } from '@/lib/seasons'
 
 export async function GET() {
   const session = await getApiSession()
@@ -38,8 +30,8 @@ export async function POST(request: NextRequest) {
   const body = await request.json()
   const name = typeof body.name === 'string' ? body.name.trim() : ''
   const type = body.type === 'spring' || body.type === 'summer' ? body.type : null
-  const startDate = parseDate(body.startDate)
-  const weekDates = Array.isArray(body.weekDates) ? body.weekDates.map(parseDate).filter(Boolean) : []
+  const startDate = parsePhoenixDate(body.startDate)
+  const weekDates = Array.isArray(body.weekDates) ? sortUniqueWeekDates(body.weekDates) : []
 
   if (!name || !type || !startDate || weekDates.length === 0) {
     return NextResponse.json(

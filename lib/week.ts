@@ -52,6 +52,11 @@ export async function getCurrentWeekRecord() {
 
   return prisma.week.findFirst({
     where: {
+      season: {
+        is: {
+          archivedAt: null
+        }
+      },
       date: {
         gte: phoenixStartOfDay(isoDate),
         lte: phoenixEndOfDay(isoDate)
@@ -107,6 +112,11 @@ export async function getNextScheduledWeekRecord() {
 
   return prisma.week.findFirst({
     where: {
+      season: {
+        is: {
+          archivedAt: null
+        }
+      },
       date: {
         gt: phoenixEndOfDay(isoDate)
       }

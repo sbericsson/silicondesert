@@ -35,10 +35,7 @@ export async function POST(
       weekId: params.id,
       matchId: params.matchId,
       player1Scores: body.player1Scores ?? [],
-      player2Scores: body.player2Scores ?? [],
-      matchPlayLeadBy: body.matchPlayLeadBy,
-      matchPlayHolesRemaining: body.matchPlayHolesRemaining,
-      matchPlayWinnerId: body.matchPlayWinnerId ?? null
+      player2Scores: body.player2Scores ?? []
     })
 
     return NextResponse.json(result)

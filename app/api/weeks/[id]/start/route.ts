@@ -28,6 +28,11 @@ export async function POST(
   const [existingCurrentWeek, targetWeek] = await Promise.all([
     prisma.week.findFirst({
       where: {
+        season: {
+          is: {
+            archivedAt: null
+          }
+        },
         date: {
           gte: startOfToday,
           lte: endOfToday
@@ -35,12 +40,23 @@ export async function POST(
       }
     }),
     prisma.week.findUnique({
-      where: { id: params.id }
+      where: { id: params.id },
+      include: {
+        season: {
+          select: {
+            archivedAt: true
+          }
+        }
+      }
     })
   ])
 
   if (!targetWeek) {
     return NextResponse.json({ error: 'Week not found' }, { status: 404 })
+  }
+
+  if (targetWeek.season.archivedAt) {
+    return NextResponse.json({ error: 'Archived seasons cannot be edited' }, { status: 409 })
   }
 
   if (existingCurrentWeek && existingCurrentWeek.id !== params.id) {

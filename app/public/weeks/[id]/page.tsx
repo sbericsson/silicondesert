@@ -1,0 +1,200 @@
+import type { Metadata } from 'next'
+import { notFound } from 'next/navigation'
+import { getPublicWeekData } from '@/lib/public-week'
+
+export const revalidate = 60
+
+function getStatusBanner(data: NonNullable<Awaited<ReturnType<typeof getPublicWeekData>>>) {
+  if (!data.locked) {
+    return {
+      className: 'border-surface-border bg-surface-elevated text-text-secondary',
+      text: `Pairings for Week ${data.weekNumber} will be available after check-in.`
+    }
+  }
+
+  if (!data.allScoresComplete) {
+    return {
+      className: 'border-warning bg-warning-dim text-warning-text',
+      text: `Scores in progress - ${data.scoredMatchCount} of ${data.matchCount} matches complete.`
+    }
+  }
+
+  return {
+    className: 'border-accent bg-accent-dim text-accent-text',
+    text: `All ${data.matchCount} matches scored.`
+  }
+}
+
+export async function generateMetadata({
+  params
+}: {
+  params: { id: string }
+}): Promise<Metadata> {
+  const data = await getPublicWeekData(params.id)
+
+  if (!data) {
+    return {
+      title: 'Week Results - Silicon Desert Golf League'
+    }
+  }
+
+  return {
+    title: `Week ${data.weekNumber} Results - Silicon Desert Golf`,
+    description: `${data.courseName} - ${data.dateLabel}`,
+    openGraph: {
+      title: `Week ${data.weekNumber} Results - Silicon Desert Golf`,
+      description:
+        data.allScoresComplete && data.ctpWinnerName
+          ? `${data.matchCount} matches played at ${data.courseName} - CTP: ${data.ctpWinnerName}`
+          : `${data.courseName} - ${data.dateLabel}`,
+      type: 'website'
+    }
+  }
+}
+
+export default async function PublicWeekDetailPage({
+  params
+}: {
+  params: { id: string }
+}) {
+  const data = await getPublicWeekData(params.id)
+
+  if (!data) {
+    notFound()
+  }
+
+  const statusBanner = getStatusBanner(data)
+
+  return (
+    <section className="space-y-4">
+      <div className={`rounded-2xl border px-4 py-3 text-sm font-medium shadow-sm ${statusBanner.className}`}>
+        {statusBanner.text}
+      </div>
+
+      <div className="overflow-hidden rounded-3xl border border-surface-border bg-surface-elevated p-6 shadow-sm">
+        <p className="text-xs font-semibold uppercase tracking-[0.08em] text-accent-text">
+          Week {data.weekNumber}
+        </p>
+        <h2 className="mt-2 text-2xl font-semibold text-text-primary">{data.seasonName}</h2>
+        <p className="mt-2 text-sm text-text-secondary">
+          {data.courseName} · {data.dateLabel}
+        </p>
+        <div className="mt-4 grid gap-3 sm:grid-cols-3">
+          <div className="rounded-2xl border border-surface-border bg-surface-base p-4">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-text-muted">
+              Matches
+            </p>
+            <p className="mt-2 text-2xl font-semibold text-text-primary">{data.matchCount}</p>
+          </div>
+          <div className="rounded-2xl border border-surface-border bg-surface-base p-4">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-text-muted">
+              Scores In
+            </p>
+            <p className="mt-2 text-2xl font-semibold text-text-primary">{data.scoredMatchCount}</p>
+          </div>
+          <div className="rounded-2xl border border-surface-border bg-surface-base p-4">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-text-muted">
+              Status
+            </p>
+            <p className="mt-2 text-sm font-semibold text-text-primary">
+              {data.allScoresComplete ? 'Final' : data.locked ? 'In Progress' : 'Not Public'}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {data.resultsVisible && (data.ctpWinnerName || data.longestPuttWinnerName) ? (
+        <section className="rounded-2xl border border-accent bg-accent-dim p-5">
+          <p className="text-xs font-semibold uppercase tracking-[0.06em] text-accent-text">
+            Side Games
+          </p>
+          <div className="mt-3 grid gap-3 sm:grid-cols-2">
+            <div className="rounded-xl border border-surface-border bg-surface-base p-4">
+              <p className="text-xs font-semibold uppercase tracking-[0.06em] text-text-muted">
+                Closest To Pin
+              </p>
+              <p className="mt-2 text-sm font-medium text-text-primary">
+                {data.ctpWinnerName
+                  ? `${data.ctpWinnerName}${data.ctpHoleNumber ? ` · Hole ${data.ctpHoleNumber}` : ''}`
+                  : 'Not recorded'}
+              </p>
+            </div>
+            <div className="rounded-xl border border-surface-border bg-surface-base p-4">
+              <p className="text-xs font-semibold uppercase tracking-[0.06em] text-text-muted">
+                Longest Putt
+              </p>
+              <p className="mt-2 text-sm font-medium text-text-primary">
+                {data.longestPuttWinnerName
+                  ? `${data.longestPuttWinnerName}${data.longestPuttHoleNumber ? ` · Hole ${data.longestPuttHoleNumber}` : ''}`
+                  : 'Not recorded'}
+              </p>
+            </div>
+          </div>
+        </section>
+      ) : null}
+
+      <section className="space-y-3">
+        {data.matches.map((match) => (
+          <article
+            key={match.id}
+            className="rounded-3xl border border-surface-border bg-surface-elevated p-5 shadow-sm"
+          >
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-xs font-semibold uppercase tracking-[0.06em] text-text-muted">
+                {match.label}
+              </p>
+              {match.isThreesome ? (
+                <span className="rounded-full bg-surface-sunken px-2 py-1 text-[11px] font-semibold uppercase tracking-[0.06em] text-text-secondary">
+                  Threesome
+                </span>
+              ) : null}
+            </div>
+
+            <div className="mt-4 grid gap-3">
+              <div className="flex items-center justify-between gap-3 rounded-2xl border border-surface-border bg-surface-base px-4 py-3">
+                <div>
+                  <p className="text-[15px] font-medium text-text-primary">{match.player1Name}</p>
+                  <p className="mt-1 text-xs text-text-secondary">
+                    Handicap {match.player1HandicapIndex.toFixed(1)}
+                  </p>
+                </div>
+                {data.resultsVisible ? (
+                  <p className="text-[15px] font-bold text-text-primary">{match.player1Points} pts</p>
+                ) : null}
+              </div>
+              <p className="text-center text-xs font-semibold uppercase tracking-[0.08em] text-text-muted">
+                vs
+              </p>
+              <div className="flex items-center justify-between gap-3 rounded-2xl border border-surface-border bg-surface-base px-4 py-3">
+                <div>
+                  <p className="text-[15px] font-medium text-text-primary">{match.player2Name}</p>
+                  <p className="mt-1 text-xs text-text-secondary">
+                    Handicap {match.player2HandicapIndex.toFixed(1)}
+                  </p>
+                </div>
+                {data.resultsVisible ? (
+                  <p className="text-[15px] font-bold text-text-primary">{match.player2Points} pts</p>
+                ) : null}
+              </div>
+            </div>
+
+            {data.resultsVisible ? (
+              <div className="mt-4 rounded-2xl border border-surface-border bg-surface-base px-4 py-3 text-sm text-text-secondary">
+                <p>Stroke: {match.strokeSummary}</p>
+                <p className="mt-1">Match: {match.matchPlaySummary}</p>
+              </div>
+            ) : data.pairingsVisible ? (
+              <p className="mt-4 text-sm text-text-secondary">
+                Pairings are locked. Scores will appear here after all matches are submitted.
+              </p>
+            ) : (
+              <p className="mt-4 text-sm text-text-secondary">
+                Pairings are not public yet.
+              </p>
+            )}
+          </article>
+        ))}
+      </section>
+    </section>
+  )
+}

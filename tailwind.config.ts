@@ -9,36 +9,36 @@ const config: Config = {
       },
       colors: {
         surface: {
-          base: '#0f1117',
-          elevated: '#1a1f2e',
-          sunken: '#131720',
-          border: '#2a3040'
+          base: 'var(--surface-base)',
+          elevated: 'var(--surface-elevated)',
+          sunken: 'var(--surface-sunken)',
+          border: 'var(--surface-border)'
         },
         text: {
-          primary: '#f0f0f0',
-          secondary: '#9ca3af',
-          muted: '#4b5563',
-          disabled: '#3a4050'
+          primary: 'var(--text-primary)',
+          secondary: 'var(--text-secondary)',
+          muted: 'var(--text-muted)',
+          disabled: 'var(--text-disabled)'
         },
         accent: {
-          DEFAULT: '#4b9e6f',
-          hover: '#3d8a5e',
-          dim: '#1a2818',
-          text: '#6fcf97'
+          DEFAULT: 'var(--accent)',
+          hover: 'var(--accent-hover)',
+          dim: 'var(--accent-dim)',
+          text: 'var(--accent-text)'
         },
         warning: {
-          DEFAULT: '#f59e0b',
-          dim: '#2d1f0e',
-          text: '#fcd34d'
+          DEFAULT: 'var(--warning)',
+          dim: 'var(--warning-dim)',
+          text: 'var(--warning-text)'
         },
         danger: {
-          DEFAULT: '#ef4444',
-          dim: '#2d1010',
-          text: '#fca5a5'
+          DEFAULT: 'var(--danger)',
+          dim: 'var(--danger-dim)',
+          text: 'var(--danger-text)'
         },
         info: {
-          dim: '#1e3a5f',
-          text: '#93c5fd'
+          dim: 'var(--info-dim)',
+          text: 'var(--info-text)'
         }
       }
     }

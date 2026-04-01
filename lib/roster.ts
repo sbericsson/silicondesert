@@ -20,13 +20,16 @@ function getPlayerDisplay(player: {
 export async function getRosterPageData() {
   if (!process.env.DATABASE_URL) {
     return {
+      settings: {
+        publicRosterEnabled: false
+      },
       players: [],
       courses: [],
       seasons: []
     }
   }
 
-  const [players, seasons, courses] = await Promise.all([
+  const [players, seasons, courses, commissioner] = await Promise.all([
     prisma.player.findMany({
       include: {
         handicapRecords: {
@@ -65,10 +68,18 @@ export async function getRosterPageData() {
         }
       },
       orderBy: { name: 'asc' }
+    }),
+    prisma.commissioner.findFirst({
+      select: {
+        publicRosterEnabled: true
+      }
     })
   ])
 
   return {
+    settings: {
+      publicRosterEnabled: commissioner?.publicRosterEnabled ?? false
+    },
     players: players.map((player) => ({
       id: player.id,
       name: player.name,

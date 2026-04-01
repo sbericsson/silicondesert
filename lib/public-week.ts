@@ -1,0 +1,181 @@
+import { prisma } from '@/lib/db'
+import { handicapIndex } from '@/lib/handicap'
+import { applyStoredMatchResult } from '@/lib/points'
+
+function formatDate(date: Date) {
+  return new Intl.DateTimeFormat('en-US', {
+    timeZone: 'America/Phoenix',
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric'
+  }).format(date)
+}
+
+function getDisplayHandicapIndex(player: {
+  seedHandicap: number | null
+  handicapRecords: Array<{ courseDifferential: number }>
+}, snapshot: number | null) {
+  if (snapshot !== null) {
+    return snapshot
+  }
+
+  return handicapIndex(player.handicapRecords.map((record) => record.courseDifferential)) ?? player.seedHandicap ?? 0
+}
+
+function formatMatchPlaySummary(input: {
+  matchPlayWinnerId: string | null
+  matchPlayLeadBy: number | null
+  player1Id: string
+  player1Name: string
+  player2Id: string
+  player2Name: string
+}) {
+  if (input.matchPlayLeadBy === null) {
+    return 'Pending'
+  }
+
+  if (input.matchPlayWinnerId === input.player1Id) {
+    return `${input.player1Name} (${input.matchPlayLeadBy} up)`
+  }
+
+  if (input.matchPlayWinnerId === input.player2Id) {
+    return `${input.player2Name} (${input.matchPlayLeadBy} up)`
+  }
+
+  return input.matchPlayLeadBy === 0 ? 'Halved' : 'All square'
+}
+
+export async function getLatestPublishedWeekId() {
+  if (!process.env.DATABASE_URL) {
+    return null
+  }
+
+  const week = await prisma.week.findFirst({
+    where: {
+      locked: true,
+      season: {
+        archivedAt: null
+      }
+    },
+    orderBy: [{ date: 'desc' }]
+  })
+
+  return week?.id ?? null
+}
+
+export async function getPublicWeekData(weekId: string) {
+  if (!process.env.DATABASE_URL) {
+    return null
+  }
+
+  const week = await prisma.week.findUnique({
+    where: { id: weekId },
+    include: {
+      season: true,
+      course: true,
+      ctpWinner: {
+        select: { name: true }
+      },
+      longestPuttWinner: {
+        select: { name: true }
+      },
+      attendance: {
+        select: {
+          playerId: true,
+          present: true
+        }
+      },
+      matches: {
+        include: {
+          player1: {
+            include: {
+              handicapRecords: {
+                orderBy: { date: 'asc' },
+                take: 20
+              }
+            }
+          },
+          player2: {
+            include: {
+              handicapRecords: {
+                orderBy: { date: 'asc' },
+                take: 20
+              }
+            }
+          }
+        },
+        orderBy: { createdAt: 'asc' }
+      }
+    }
+  })
+
+  if (!week) {
+    return null
+  }
+
+  const attendanceMap = new Map(week.attendance.map((entry) => [entry.playerId, entry.present]))
+  const scoredMatchCount = week.matches.filter((match) => match.matchPlayLeadBy !== null).length
+  const allScoresComplete = week.matches.length > 0 && scoredMatchCount === week.matches.length
+  const pairingsVisible = week.locked
+  const resultsVisible = allScoresComplete
+
+  return {
+    id: week.id,
+    weekNumber: week.weekNumber,
+    seasonName: week.season.name,
+    dateLabel: formatDate(week.date),
+    courseName: week.course?.name ?? 'Course not selected',
+    locked: week.locked,
+    scoredMatchCount,
+    matchCount: week.matches.length,
+    allScoresComplete,
+    pairingsVisible,
+    resultsVisible,
+    ctpHoleNumber: week.ctpHoleNumber,
+    ctpWinnerName: week.ctpWinner?.name ?? null,
+    longestPuttHoleNumber: week.longestPuttHoleNumber,
+    longestPuttWinnerName: week.longestPuttWinner?.name ?? null,
+    matches: week.matches.map((match, index) => {
+      const points = match.matchPlayLeadBy === null
+        ? null
+        : applyStoredMatchResult({
+            player1Id: match.player1Id,
+            player2Id: match.player2Id,
+            strokeWinnerId: match.strokeWinnerId,
+            matchPlayWinnerId: match.matchPlayWinnerId,
+            matchPlayLeadBy: match.matchPlayLeadBy,
+            player2ScorecardOnly: match.player2ScorecardOnly,
+            player1Present: attendanceMap.get(match.player1Id) ?? false,
+            player2Present: attendanceMap.get(match.player2Id) ?? false
+          })
+
+      return {
+        id: match.id,
+        label: `Match ${index + 1}`,
+        isThreesome: match.player2ScorecardOnly,
+        player1Name: match.player1.name,
+        player2Name: match.player2.name,
+        player1HandicapIndex: getDisplayHandicapIndex(match.player1, match.player1HandicapIndex),
+        player2HandicapIndex: getDisplayHandicapIndex(match.player2, match.player2HandicapIndex),
+        player1Points: points?.player1.totalPoints ?? null,
+        player2Points: points?.player2.totalPoints ?? null,
+        strokeSummary:
+          match.matchPlayLeadBy === null
+            ? 'Pending'
+            : match.strokeWinnerId === match.player1Id
+              ? match.player1.name
+              : match.strokeWinnerId === match.player2Id
+                ? match.player2.name
+                : 'Halved',
+        matchPlaySummary: formatMatchPlaySummary({
+          matchPlayWinnerId: match.matchPlayWinnerId,
+          matchPlayLeadBy: match.matchPlayLeadBy,
+          player1Id: match.player1Id,
+          player1Name: match.player1.name,
+          player2Id: match.player2Id,
+          player2Name: match.player2.name
+        })
+      }
+    })
+  }
+}

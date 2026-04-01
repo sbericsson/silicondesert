@@ -4,7 +4,7 @@ import '@/app/globals.css'
 
 export const metadata: Metadata = {
   title: 'Silicon Desert Golf League',
-  description: 'Commissioner workspace for the Silicon Desert Golf League.'
+  description: 'Commissioner workspace and public league updates for the Silicon Desert Golf League.'
 }
 
 export default function RootLayout({
@@ -14,7 +14,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className="bg-surface-base font-sans text-text-primary antialiased">
+      <body className="font-sans antialiased">
         {children}
       </body>
     </html>

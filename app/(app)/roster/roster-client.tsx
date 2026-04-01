@@ -25,6 +25,9 @@ type ImportedRoundEditor = {
 }
 
 type RosterPageData = {
+  settings: {
+    publicRosterEnabled: boolean
+  }
   players: Array<{
     id: string
     name: string
@@ -182,6 +185,30 @@ export function RosterClient({ initialData }: RosterClientProps) {
     startTransition(() => {
       router.refresh()
     })
+  }
+
+  async function handlePublicRosterToggle(publicRosterEnabled: boolean) {
+    setIsSubmitting(true)
+    setError(null)
+    setMessage(null)
+
+    const response = await fetch('/api/commissioner/settings', {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ publicRosterEnabled })
+    })
+
+    if (!response.ok) {
+      const payload = await response.json().catch(() => null)
+      setError(payload?.error ?? 'Unable to update commissioner settings')
+      setIsSubmitting(false)
+      return
+    }
+
+    setIsSubmitting(false)
+    await refreshPage(publicRosterEnabled ? 'Public roster enabled.' : 'Public roster hidden.')
   }
 
   async function handleCreatePlayer(event: FormEvent<HTMLFormElement>) {
@@ -698,6 +725,31 @@ export function RosterClient({ initialData }: RosterClientProps) {
           {error}
         </div>
       ) : null}
+
+      <section className="rounded-xl border border-surface-border bg-surface-elevated p-4">
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.06em] text-text-muted">
+              Public Roster
+            </p>
+            <p className="mt-2 text-sm text-text-secondary">
+              Control whether `/public/roster` is visible to league members and website visitors.
+            </p>
+          </div>
+          <button
+            type="button"
+            className={`rounded-lg px-4 py-3 text-sm font-semibold ${
+              data.settings.publicRosterEnabled
+                ? 'bg-accent text-white'
+                : 'bg-surface-sunken text-text-primary'
+            } disabled:cursor-not-allowed disabled:opacity-70`}
+            onClick={() => handlePublicRosterToggle(!data.settings.publicRosterEnabled)}
+            disabled={isSubmitting}
+          >
+            {data.settings.publicRosterEnabled ? 'Disable Public Roster' : 'Enable Public Roster'}
+          </button>
+        </div>
+      </section>
 
       <section className="grid gap-4 lg:grid-cols-2">
         <form

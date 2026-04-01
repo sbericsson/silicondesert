@@ -217,8 +217,9 @@ model AuditLog {
 }
 
 model Commissioner {
-  id           String   @id @default(cuid())
-  username     String   @unique
-  passwordHash String
-  createdAt    DateTime @default(now())
+  id                 String   @id @default(cuid())
+  username           String   @unique
+  passwordHash       String
+  publicRosterEnabled Boolean @default(false)
+  createdAt          DateTime @default(now())
 }

@@ -1,42 +1,84 @@
 import { prisma } from '@/lib/db'
 import { applyStoredMatchResult } from '@/lib/points'
 
-export async function getStandingsPageData() {
+function formatTimestamp(date: Date) {
+  return new Intl.DateTimeFormat('en-US', {
+    timeZone: 'America/Phoenix',
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit'
+  }).format(date)
+}
+
+export async function getPublicStandingsData(selectedView?: string) {
   if (!process.env.DATABASE_URL) {
     return {
-      seasons: [],
-      selectedSeasonId: null,
-      selectedSeasonName: null,
-      standings: []
+      tabs: [],
+      selectedView: null,
+      selectedLabel: null,
+      standings: [],
+      lastUpdatedLabel: formatTimestamp(new Date())
     }
   }
 
   const seasons = await prisma.season.findMany({
-    orderBy: [{ startDate: 'asc' }]
+    include: {
+      weeks: {
+        include: {
+          attendance: {
+            select: {
+              playerId: true,
+              present: true
+            }
+          },
+          matches: true
+        },
+        orderBy: { date: 'asc' }
+      }
+    },
+    orderBy: { startDate: 'asc' }
   })
 
-  const selectedSeason = seasons.at(-1) ?? null
+  const seasonsWithResults = seasons.filter((season) =>
+    season.weeks.some((week) => week.matches.some((match) => match.matchPlayLeadBy !== null))
+  )
 
-  if (!selectedSeason) {
+  const tabs = seasonsWithResults.map((season) => ({
+    id: season.id,
+    label: season.name
+  }))
+
+  if (seasonsWithResults.length > 1) {
+    tabs.push({
+      id: 'overall',
+      label: 'Overall'
+    })
+  }
+
+  const selectedResolved =
+    tabs.find((tab) => tab.id === selectedView)?.id ??
+    seasonsWithResults.at(-1)?.id ??
+    tabs[0]?.id ??
+    null
+
+  if (!selectedResolved) {
     return {
-      seasons: [],
-      selectedSeasonId: null,
-      selectedSeasonName: null,
-      standings: []
+      tabs,
+      selectedView: null,
+      selectedLabel: null,
+      standings: [],
+      lastUpdatedLabel: formatTimestamp(new Date())
     }
   }
 
-  const weeks = await prisma.week.findMany({
-    where: { seasonId: selectedSeason.id },
-    include: {
-      attendance: true,
-      matches: true
-    },
-    orderBy: { date: 'asc' }
-  })
+  const weeks =
+    selectedResolved === 'overall'
+      ? seasonsWithResults.flatMap((season) => season.weeks)
+      : seasonsWithResults.find((season) => season.id === selectedResolved)?.weeks ?? []
 
   const players = await prisma.player.findMany({
-    where: { active: true },
     orderBy: { name: 'asc' }
   })
 
@@ -46,6 +88,7 @@ export async function getStandingsPageData() {
       {
         playerId: player.id,
         name: player.name,
+        active: player.active,
         totalPoints: 0,
         strokeWins: 0,
         matchPlayWins: 0,
@@ -107,19 +150,29 @@ export async function getStandingsPageData() {
     }
   }
 
-  return {
-    seasons: seasons.map((season) => ({
-      id: season.id,
-      name: season.name
-    })),
-    selectedSeasonId: selectedSeason.id,
-    selectedSeasonName: selectedSeason.name,
-    standings: [...totals.values()].sort((a, b) => {
+  const standings = [...totals.values()]
+    .filter(
+      (row) =>
+        row.active ||
+        row.totalPoints > 0 ||
+        row.strokeWins > 0 ||
+        row.matchPlayWins > 0 ||
+        row.ctpWins > 0 ||
+        row.lpWins > 0
+    )
+    .sort((a, b) => {
       if (b.totalPoints !== a.totalPoints) {
         return b.totalPoints - a.totalPoints
       }
 
       return a.name.localeCompare(b.name)
     })
+
+  return {
+    tabs,
+    selectedView: selectedResolved,
+    selectedLabel: tabs.find((tab) => tab.id === selectedResolved)?.label ?? null,
+    standings,
+    lastUpdatedLabel: formatTimestamp(new Date())
   }
 }

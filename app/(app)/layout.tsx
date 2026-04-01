@@ -22,7 +22,8 @@ export default async function AppLayout({
   }
 
   return (
-    <div className="mx-auto min-h-screen max-w-5xl pb-24">
+    <div className="min-h-screen bg-surface-base text-text-primary">
+      <div className="mx-auto min-h-screen max-w-5xl pb-24">
       <header className="border-b border-surface-border bg-surface-elevated px-4 py-4">
         <p className="text-xs font-semibold uppercase tracking-[0.06em] text-text-muted">
           Silicon Desert Golf League
@@ -43,6 +44,7 @@ export default async function AppLayout({
           ))}
         </div>
       </nav>
+      </div>
     </div>
   )
 }

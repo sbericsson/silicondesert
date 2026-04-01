@@ -65,6 +65,16 @@ export async function getCurrentWeekRecord() {
     },
     include: {
       season: true,
+      ctpWinner: {
+        select: {
+          name: true
+        }
+      },
+      longestPuttWinner: {
+        select: {
+          name: true
+        }
+      },
       course: {
         include: {
           tees: true
@@ -203,7 +213,9 @@ export async function getCurrentWeekPageData() {
           ctpHoleNumber: currentWeek.ctpHoleNumber,
           longestPuttHoleNumber: currentWeek.longestPuttHoleNumber,
           ctpWinnerId: currentWeek.ctpWinnerId,
+          ctpWinnerName: currentWeek.ctpWinner?.name ?? null,
           longestPuttWinnerId: currentWeek.longestPuttWinnerId,
+          longestPuttWinnerName: currentWeek.longestPuttWinner?.name ?? null,
           locked: currentWeek.locked,
           matchCount: currentWeek.matches.length,
           matches: currentWeek.matches.map((match) => {

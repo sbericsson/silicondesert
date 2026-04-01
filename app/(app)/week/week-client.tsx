@@ -4,6 +4,7 @@ import type { TeeColor } from '@prisma/client'
 import { startTransition, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { buildPublicUrl } from '@/lib/public-url'
 
 type WeekPageData = {
   currentWeek: {
@@ -16,7 +17,9 @@ type WeekPageData = {
     ctpHoleNumber: number | null
     longestPuttHoleNumber: number | null
     ctpWinnerId: string | null
+    ctpWinnerName: string | null
     longestPuttWinnerId: string | null
+    longestPuttWinnerName: string | null
     locked: boolean
     matchCount: number
     matches: Array<{
@@ -74,6 +77,7 @@ export function WeekClient({ initialData }: WeekClientProps) {
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [copyMessage, setCopyMessage] = useState<string | null>(null)
 
   useEffect(() => {
     setData(initialData)
@@ -83,6 +87,7 @@ export function WeekClient({ initialData }: WeekClientProps) {
     setIsRefreshing(true)
     setError(null)
     setMessage(null)
+    setCopyMessage(null)
 
     try {
       await action()
@@ -201,6 +206,74 @@ export function WeekClient({ initialData }: WeekClientProps) {
     })
   }
 
+  async function copyToClipboard(text: string) {
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(text)
+      return
+    }
+
+    const textArea = document.createElement('textarea')
+    textArea.value = text
+    textArea.setAttribute('readonly', 'true')
+    textArea.style.position = 'absolute'
+    textArea.style.left = '-9999px'
+    document.body.appendChild(textArea)
+    textArea.select()
+    document.execCommand('copy')
+    document.body.removeChild(textArea)
+  }
+
+  async function copyPairingsLink() {
+    if (!data.currentWeek) {
+      return
+    }
+
+    const url = buildPublicUrl(`/public/weeks/${data.currentWeek.id}`, window.location.origin)
+    await copyToClipboard(url)
+    setCopyMessage('Copied pairings link.')
+  }
+
+  async function copyResultsShareText() {
+    if (!data.currentWeek) {
+      return
+    }
+
+    const resultsUrl = buildPublicUrl(`/public/weeks/${data.currentWeek.id}`, window.location.origin)
+    const standingsUrl = buildPublicUrl('/public/standings', window.location.origin)
+    const lines = [
+      `Silicon Desert Golf League - Week ${data.currentWeek.weekNumber}`,
+      `${data.currentWeek.courseName ?? 'Course TBD'} · ${data.currentWeek.dateLabel}`,
+      '',
+      `Results: ${resultsUrl}`,
+      `Standings: ${standingsUrl}`
+    ]
+
+    if (data.currentWeek.ctpWinnerName && data.currentWeek.ctpHoleNumber) {
+      lines.push('', `CTP: ${data.currentWeek.ctpWinnerName} (Hole ${data.currentWeek.ctpHoleNumber})`)
+    }
+
+    if (data.currentWeek.longestPuttWinnerName && data.currentWeek.longestPuttHoleNumber) {
+      if (!(data.currentWeek.ctpWinnerName && data.currentWeek.ctpHoleNumber)) {
+        lines.push('')
+      }
+
+      lines.push(
+        `LP: ${data.currentWeek.longestPuttWinnerName} (Hole ${data.currentWeek.longestPuttHoleNumber})`
+      )
+    }
+
+    const normalizedLines = lines.filter((line, index, array) => {
+      if (line !== '') {
+        return true
+      }
+
+      return array[index - 1] !== ''
+    })
+
+    await copyToClipboard(normalizedLines.join('\n'))
+    setCopyMessage('Copied results share text.')
+  }
+
   if (!data.currentWeek) {
     return (
       <section className="px-4 py-6">
@@ -239,6 +312,7 @@ export function WeekClient({ initialData }: WeekClientProps) {
 
   const canGeneratePairings =
     data.presentCount >= 2 && !!data.currentWeek.courseId && !!data.currentWeek.ctpHoleNumber && !data.currentWeek.locked
+  const allScoresComplete = data.currentWeek.matches.length > 0 && data.currentWeek.matches.every((match) => match.scoreComplete)
 
   return (
     <section className="space-y-4 px-4 py-6">
@@ -265,6 +339,10 @@ export function WeekClient({ initialData }: WeekClientProps) {
           {error}
         </div>
       ) : null}
+
+      <p className="sr-only" aria-live="polite">
+        {copyMessage ?? ''}
+      </p>
 
       <div className="rounded-md border-l-[3px] border-accent bg-accent-dim px-4 py-3 text-sm text-accent-text">
         {data.presentCount} players checked in
@@ -455,6 +533,30 @@ export function WeekClient({ initialData }: WeekClientProps) {
             ) : null}
           </div>
         </div>
+
+        {data.currentWeek.locked ? (
+          <div className="mt-4 flex flex-wrap gap-2">
+            <button
+              type="button"
+              className="rounded-lg border border-surface-border bg-surface-base px-4 py-3 text-sm font-semibold text-text-primary"
+              onClick={copyPairingsLink}
+            >
+              Copy Pairings Link
+            </button>
+            {allScoresComplete ? (
+              <button
+                type="button"
+                className="rounded-lg bg-accent px-4 py-3 text-sm font-semibold text-white"
+                onClick={copyResultsShareText}
+              >
+                Share Results
+              </button>
+            ) : null}
+            {copyMessage ? (
+              <span className="self-center text-sm text-accent-text">{copyMessage}</span>
+            ) : null}
+          </div>
+        ) : null}
 
         {data.currentWeek.matches.length > 0 ? (
           <div className="mt-4 space-y-3">

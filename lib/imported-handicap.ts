@@ -1,3 +1,4 @@
+import type { Gender, TeeColor } from '@prisma/client'
 import { scoreDifferential } from '@/lib/handicap'
 
 export interface ImportedHandicapRoundInput {
@@ -11,6 +12,23 @@ export interface ImportedHandicapRoundInput {
 
 export interface ImportedHandicapRoundRecord extends ImportedHandicapRoundInput {
   courseDifferential: number
+}
+
+export interface ImportedHandicapCourseOption {
+  id: string
+  name: string
+  tees: Array<{
+    color: TeeColor
+    gender: Gender
+    nineHolePar: number
+    nineHoleRating: number
+    nineHoleSlope: number
+  }>
+}
+
+export interface ImportedHandicapRoundMatch {
+  courseId: string
+  teeColor: TeeColor
 }
 
 function parseNumber(value: string) {
@@ -237,4 +255,67 @@ export function formatImportedHandicapRoundsText(rounds: ImportedHandicapRoundIn
         `${round.date}, ${round.grossScore}, ${round.adjustedGrossScore}, ${round.courseRating}, ${round.slopeRating}, ${round.coursePar}`
     )
     .join('\n')
+}
+
+export function getImportedHandicapCourseTee(
+  courses: ImportedHandicapCourseOption[],
+  courseId: string,
+  teeColor: TeeColor,
+  gender: Gender
+) {
+  const course = courses.find((candidate) => candidate.id === courseId)
+  if (!course) {
+    return null
+  }
+
+  const tee =
+    course.tees.find((candidate) => candidate.color === teeColor && candidate.gender === gender) ??
+    course.tees.find((candidate) => candidate.color === 'white' && candidate.gender === gender) ??
+    course.tees.find((candidate) => candidate.color === teeColor && candidate.gender === 'man') ??
+    course.tees.find((candidate) => candidate.color === 'white' && candidate.gender === 'man') ??
+    course.tees[0]
+
+  if (!tee) {
+    return null
+  }
+
+  return {
+    courseId: course.id,
+    courseName: course.name,
+    teeColor: tee.color,
+    gender: tee.gender,
+    nineHolePar: tee.nineHolePar,
+    nineHoleRating: tee.nineHoleRating,
+    nineHoleSlope: tee.nineHoleSlope
+  }
+}
+
+export function matchImportedHandicapRoundToCourse(
+  round: ImportedHandicapRoundInput,
+  courses: ImportedHandicapCourseOption[]
+): ImportedHandicapRoundMatch | null {
+  const candidates = courses.flatMap((course) =>
+    course.tees
+      .filter(
+        (tee) =>
+          tee.nineHolePar === round.coursePar &&
+          tee.nineHoleSlope === round.slopeRating &&
+          Math.abs(tee.nineHoleRating - round.courseRating) <= 0.05
+      )
+      .map((tee) => ({
+        courseId: course.id,
+        teeColor: tee.color,
+        ratingDelta: Math.abs(tee.nineHoleRating - round.courseRating)
+      }))
+  )
+
+  if (candidates.length === 0) {
+    return null
+  }
+
+  candidates.sort((left, right) => left.ratingDelta - right.ratingDelta)
+  return {
+    courseId: candidates[0].courseId,
+    teeColor: candidates[0].teeColor
+  }
 }

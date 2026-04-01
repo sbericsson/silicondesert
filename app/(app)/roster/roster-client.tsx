@@ -3,17 +3,32 @@
 import type { FormEvent } from 'react'
 import { startTransition, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import type { TeeColor } from '@prisma/client'
+import type { Gender, TeeColor } from '@prisma/client'
 import { formatUsPhoneInput, formatUsPhoneNumber } from '@/lib/phone'
 import {
-  formatImportedHandicapRoundsText,
-  parseImportedHandicapRoundsText
+  getImportedHandicapCourseTee,
+  matchImportedHandicapRoundToCourse
 } from '@/lib/imported-handicap'
+
+const CUSTOM_COURSE_ID = '__custom__'
+
+type ImportedRoundEditor = {
+  id: string
+  date: string
+  courseId: string
+  teeColor: TeeColor
+  grossScore: string
+  adjustedGrossScore: string
+  courseRating: string
+  slopeRating: string
+  coursePar: string
+}
 
 type RosterPageData = {
   players: Array<{
     id: string
     name: string
+    gender: Gender
     email: string | null
     cellPhone: string | null
     active: boolean
@@ -35,6 +50,17 @@ type RosterPageData = {
       value: string | null
     }
   }>
+  courses: Array<{
+    id: string
+    name: string
+    tees: Array<{
+      color: TeeColor
+      gender: Gender
+      nineHolePar: number
+      nineHoleRating: number
+      nineHoleSlope: number
+    }>
+  }>
   seasons: Array<{
     id: string
     name: string
@@ -52,19 +78,81 @@ interface RosterClientProps {
   initialData: RosterPageData
 }
 
+function createEditorRoundId() {
+  return `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
+}
+
+function createBlankImportedRound(
+  courses: RosterPageData['courses'],
+  gender: Gender
+): ImportedRoundEditor {
+  const defaultCourse = courses[0]
+  const defaultTee =
+    defaultCourse?.tees.find((tee) => tee.color === 'white' && tee.gender === gender) ??
+    defaultCourse?.tees.find((tee) => tee.gender === gender) ??
+    defaultCourse?.tees.find((tee) => tee.color === 'white') ??
+    defaultCourse?.tees[0]
+
+  return {
+    id: createEditorRoundId(),
+    date: '',
+    courseId: defaultCourse?.id ?? CUSTOM_COURSE_ID,
+    teeColor: defaultTee?.color ?? 'white',
+    grossScore: '',
+    adjustedGrossScore: '',
+    courseRating: '',
+    slopeRating: '',
+    coursePar: ''
+  }
+}
+
+function importedRoundToEditorRound(
+  round: RosterPageData['players'][number]['importedHandicapRounds'][number],
+  courses: RosterPageData['courses']
+): ImportedRoundEditor {
+  const match = matchImportedHandicapRoundToCourse(round, courses)
+
+  return {
+    id: createEditorRoundId(),
+    date: round.date,
+    courseId: match?.courseId ?? CUSTOM_COURSE_ID,
+    teeColor: match?.teeColor ?? 'white',
+    grossScore: String(round.grossScore),
+    adjustedGrossScore:
+      round.adjustedGrossScore === round.grossScore ? '' : String(round.adjustedGrossScore),
+    courseRating: match ? '' : String(round.courseRating),
+    slopeRating: match ? '' : String(round.slopeRating),
+    coursePar: match ? '' : String(round.coursePar)
+  }
+}
+
+function isBlankImportedRound(round: ImportedRoundEditor) {
+  return (
+    !round.date.trim() &&
+    !round.grossScore.trim() &&
+    !round.adjustedGrossScore.trim() &&
+    (round.courseId !== CUSTOM_COURSE_ID ||
+      (!round.courseRating.trim() && !round.slopeRating.trim() && !round.coursePar.trim()))
+  )
+}
+
 export function RosterClient({ initialData }: RosterClientProps) {
   const router = useRouter()
   const [data, setData] = useState(initialData)
   const [playerName, setPlayerName] = useState('')
+  const [playerGender, setPlayerGender] = useState<Gender>('man')
   const [playerEmail, setPlayerEmail] = useState('')
   const [playerCellPhone, setPlayerCellPhone] = useState('')
   const [playerSeedHandicap, setPlayerSeedHandicap] = useState('')
   const [editingPlayerId, setEditingPlayerId] = useState<string | null>(null)
   const [editingPlayerName, setEditingPlayerName] = useState('')
+  const [editingPlayerGender, setEditingPlayerGender] = useState<Gender>('man')
   const [editingPlayerEmail, setEditingPlayerEmail] = useState('')
   const [editingPlayerCellPhone, setEditingPlayerCellPhone] = useState('')
   const [editingPlayerSeedHandicap, setEditingPlayerSeedHandicap] = useState('')
-  const [editingPlayerImportedRoundsText, setEditingPlayerImportedRoundsText] = useState('')
+  const [editingPlayerImportedRounds, setEditingPlayerImportedRounds] = useState<
+    ImportedRoundEditor[]
+  >([])
   const [editingPlayerSeasonTeeChoices, setEditingPlayerSeasonTeeChoices] = useState<
     Record<string, TeeColor>
   >({})
@@ -109,6 +197,7 @@ export function RosterClient({ initialData }: RosterClientProps) {
       },
       body: JSON.stringify({
         name: playerName,
+        gender: playerGender,
         email: playerEmail,
         cellPhone: playerCellPhone,
         seedHandicap: playerSeedHandicap
@@ -123,6 +212,7 @@ export function RosterClient({ initialData }: RosterClientProps) {
     }
 
     setPlayerName('')
+    setPlayerGender('man')
     setPlayerEmail('')
     setPlayerCellPhone('')
     setPlayerSeedHandicap('')
@@ -160,9 +250,99 @@ export function RosterClient({ initialData }: RosterClientProps) {
       return
     }
 
-    const parsedImportedRounds = parseImportedHandicapRoundsText(editingPlayerImportedRoundsText)
-    if (parsedImportedRounds.error) {
-      setError(parsedImportedRounds.error)
+    setError(null)
+    setMessage(null)
+
+    const normalizedImportedRounds: Array<{
+      date: string
+      grossScore: number
+      adjustedGrossScore: number
+      courseRating: number
+      slopeRating: number
+      coursePar: number
+    }> = []
+
+    for (const [index, round] of editingPlayerImportedRounds
+      .filter((candidate) => !isBlankImportedRound(candidate))
+      .entries()) {
+      if (!round.date) {
+        setError(`Prior round ${index + 1} needs a date.`)
+        return
+      }
+
+      const grossScore = Number(round.grossScore)
+      const adjustedGrossScore = round.adjustedGrossScore ? Number(round.adjustedGrossScore) : grossScore
+
+      if (!Number.isInteger(grossScore) || grossScore < 1) {
+        setError(`Prior round ${index + 1} needs a whole-number gross score.`)
+        return
+      }
+
+      if (!Number.isInteger(adjustedGrossScore) || adjustedGrossScore < 1) {
+        setError(`Prior round ${index + 1} needs a whole-number adjusted score.`)
+        return
+      }
+
+      if (adjustedGrossScore > grossScore) {
+        setError(`Prior round ${index + 1} cannot have adjusted gross higher than gross.`)
+        return
+      }
+
+      if (round.courseId !== CUSTOM_COURSE_ID) {
+        const selectedTee = getImportedHandicapCourseTee(
+          data.courses,
+          round.courseId,
+          round.teeColor,
+          editingPlayerGender
+        )
+
+        if (!selectedTee) {
+          setError(`Prior round ${index + 1} has an invalid course or tee.`)
+          return
+        }
+
+        normalizedImportedRounds.push({
+          date: round.date,
+          grossScore,
+          adjustedGrossScore,
+          courseRating: selectedTee.nineHoleRating,
+          slopeRating: selectedTee.nineHoleSlope,
+          coursePar: selectedTee.nineHolePar
+        })
+        continue
+      }
+
+      const courseRating = Number(round.courseRating)
+      const slopeRating = Number(round.slopeRating)
+      const coursePar = Number(round.coursePar)
+
+      if (!Number.isFinite(courseRating)) {
+        setError(`Prior round ${index + 1} needs a numeric course rating.`)
+        return
+      }
+
+      if (!Number.isInteger(slopeRating) || slopeRating < 1) {
+        setError(`Prior round ${index + 1} needs a whole-number slope.`)
+        return
+      }
+
+      if (!Number.isInteger(coursePar) || coursePar < 1) {
+        setError(`Prior round ${index + 1} needs a whole-number par.`)
+        return
+      }
+
+      normalizedImportedRounds.push({
+        date: round.date,
+        grossScore,
+        adjustedGrossScore,
+        courseRating,
+        slopeRating,
+        coursePar
+      })
+    }
+
+    if (normalizedImportedRounds.length > 20) {
+      setError('Enter at most 20 prior handicap rounds.')
       return
     }
 
@@ -177,10 +357,11 @@ export function RosterClient({ initialData }: RosterClientProps) {
       },
       body: JSON.stringify({
         name: editingPlayerName,
+        gender: editingPlayerGender,
         email: editingPlayerEmail,
         cellPhone: editingPlayerCellPhone,
         seedHandicap: editingPlayerSeedHandicap,
-        importedHandicapRounds: parsedImportedRounds.rounds,
+        importedHandicapRounds: normalizedImportedRounds,
         seasonTeeChoices: Object.entries(editingPlayerSeasonTeeChoices).map(([seasonId, teeColor]) => ({
           seasonId,
           teeColor
@@ -197,10 +378,11 @@ export function RosterClient({ initialData }: RosterClientProps) {
 
     setEditingPlayerId(null)
     setEditingPlayerName('')
+    setEditingPlayerGender('man')
     setEditingPlayerEmail('')
     setEditingPlayerCellPhone('')
     setEditingPlayerSeedHandicap('')
-    setEditingPlayerImportedRoundsText('')
+    setEditingPlayerImportedRounds([])
     setEditingPlayerSeasonTeeChoices({})
     setIsSubmitting(false)
     await refreshPage('Player updated.')
@@ -209,14 +391,37 @@ export function RosterClient({ initialData }: RosterClientProps) {
   function beginEditingPlayer(player: RosterPageData['players'][number]) {
     setEditingPlayerId(player.id)
     setEditingPlayerName(player.name)
+    setEditingPlayerGender(player.gender)
     setEditingPlayerEmail(player.email ?? '')
     setEditingPlayerCellPhone(formatUsPhoneNumber(player.cellPhone) ?? '')
     setEditingPlayerSeedHandicap(player.seedHandicap?.toString() ?? '')
-    setEditingPlayerImportedRoundsText(formatImportedHandicapRoundsText(player.importedHandicapRounds))
+    setEditingPlayerImportedRounds(
+      player.importedHandicapRounds.map((round) => importedRoundToEditorRound(round, data.courses))
+    )
     setEditingPlayerSeasonTeeChoices(
       Object.fromEntries(
         player.seasonTeeChoices.map((choice) => [choice.seasonId, choice.teeColor])
       )
+    )
+  }
+
+  function addEditingPlayerImportedRound() {
+    setEditingPlayerImportedRounds((current) => [
+      ...current,
+      createBlankImportedRound(data.courses, editingPlayerGender)
+    ])
+  }
+
+  function removeEditingPlayerImportedRound(roundId: string) {
+    setEditingPlayerImportedRounds((current) => current.filter((round) => round.id !== roundId))
+  }
+
+  function updateEditingPlayerImportedRound(
+    roundId: string,
+    updates: Partial<ImportedRoundEditor>
+  ) {
+    setEditingPlayerImportedRounds((current) =>
+      current.map((round) => (round.id === roundId ? { ...round, ...updates } : round))
     )
   }
 
@@ -509,6 +714,14 @@ export function RosterClient({ initialData }: RosterClientProps) {
               value={playerName}
               onChange={(event) => setPlayerName(event.target.value)}
             />
+            <select
+              className="w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
+              value={playerGender}
+              onChange={(event) => setPlayerGender(event.target.value as Gender)}
+            >
+              <option value="man">Man</option>
+              <option value="woman">Woman</option>
+            </select>
             <input
               className="w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
               placeholder="Email (optional)"
@@ -644,7 +857,12 @@ export function RosterClient({ initialData }: RosterClientProps) {
           {data.players.map((player) => (
             <div key={player.id} className="flex items-center gap-3 px-4 py-3">
               <div className="flex-1">
-                <p className="text-sm font-medium text-text-primary">{player.name}</p>
+                <div className="flex flex-wrap items-center gap-2">
+                  <p className="text-sm font-medium text-text-primary">{player.name}</p>
+                  <span className="rounded bg-surface-sunken px-2 py-0.5 text-[11px] font-semibold uppercase tracking-[0.06em] text-text-secondary">
+                    {player.gender === 'man' ? 'Man' : 'Woman'}
+                  </span>
+                </div>
                 <p className="mt-1 text-xs text-text-secondary">
                   {player.email ?? 'No email'} · {formatUsPhoneNumber(player.cellPhone) ?? 'No cell'}{' '}
                   ·{' '}
@@ -712,6 +930,14 @@ export function RosterClient({ initialData }: RosterClientProps) {
               value={editingPlayerName}
               onChange={(event) => setEditingPlayerName(event.target.value)}
             />
+            <select
+              className="w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
+              value={editingPlayerGender}
+              onChange={(event) => setEditingPlayerGender(event.target.value as Gender)}
+            >
+              <option value="man">Man</option>
+              <option value="woman">Woman</option>
+            </select>
             <input
               className="w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
               placeholder="Email"
@@ -757,6 +983,7 @@ export function RosterClient({ initialData }: RosterClientProps) {
                       <option value="blue">Blue</option>
                       <option value="white">White</option>
                       <option value="yellow">Yellow</option>
+                      <option value="silver">Silver</option>
                     </select>
                   </div>
                 ))
@@ -768,27 +995,218 @@ export function RosterClient({ initialData }: RosterClientProps) {
             </div>
           </div>
           <div className="mt-4 rounded-lg border border-surface-border bg-surface-sunken p-3">
-            <p className="text-xs font-semibold uppercase tracking-[0.06em] text-text-muted">
-              Prior Handicap Rounds
-            </p>
-            <p className="mt-2 text-xs text-text-secondary">
-              Paste up to 20 lines in this format:
-              {' '}
-              <code>YYYY-MM-DD, gross, adjusted, rating, slope, par</code>
-            </p>
-            <p className="mt-1 text-xs text-text-secondary">
-              You can also omit adjusted and use
-              {' '}
-              <code>YYYY-MM-DD, gross, rating, slope, par</code>
-              {' '}
-              when gross and adjusted are the same.
-            </p>
-            <textarea
-              className="mt-3 min-h-48 w-full rounded-md border border-surface-border bg-surface-elevated px-3 py-2.5 text-sm text-text-primary"
-              placeholder={'2025-10-03, 41, 39, 34.9, 119, 36\n2025-10-10, 43, 43, 35.4, 123, 36'}
-              value={editingPlayerImportedRoundsText}
-              onChange={(event) => setEditingPlayerImportedRoundsText(event.target.value)}
-            />
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.06em] text-text-muted">
+                  Prior Handicap Rounds
+                </p>
+                <p className="mt-2 text-xs text-text-secondary">
+                  Add up to 20 prior 9-hole rounds with the date picker, course, tee, and gross score.
+                </p>
+                <p className="mt-1 text-xs text-text-secondary">
+                  Leave adjusted blank when gross and adjusted are the same. Choose custom only when the round does not match one of the configured courses.
+                </p>
+              </div>
+              <button
+                type="button"
+                className="rounded-lg border border-surface-border bg-surface-elevated px-3 py-2 text-sm font-semibold text-text-primary"
+                onClick={addEditingPlayerImportedRound}
+                disabled={isSubmitting || editingPlayerImportedRounds.length >= 20}
+              >
+                Add Round
+              </button>
+            </div>
+            <div className="mt-4 space-y-3">
+              {editingPlayerImportedRounds.length > 0 ? (
+                editingPlayerImportedRounds.map((round, index) => {
+                  const selectedTee =
+                    round.courseId !== CUSTOM_COURSE_ID
+                      ? getImportedHandicapCourseTee(
+                          data.courses,
+                          round.courseId,
+                          round.teeColor,
+                          editingPlayerGender
+                        )
+                      : null
+
+                  return (
+                    <div
+                      key={round.id}
+                      className="rounded-lg border border-surface-border bg-surface-elevated p-3"
+                    >
+                      <div className="flex items-center justify-between gap-3">
+                        <p className="text-sm font-semibold text-text-primary">
+                          Round {index + 1}
+                        </p>
+                        <button
+                          type="button"
+                          className="text-sm text-danger-text"
+                          onClick={() => removeEditingPlayerImportedRound(round.id)}
+                        >
+                          Remove
+                        </button>
+                      </div>
+                      <div className="mt-3 grid gap-3 md:grid-cols-2 xl:grid-cols-5">
+                        <label className="space-y-1">
+                          <span className="text-xs font-semibold uppercase tracking-[0.06em] text-text-muted">
+                            Date
+                          </span>
+                          <input
+                            className="w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
+                            type="date"
+                            value={round.date}
+                            onChange={(event) =>
+                              updateEditingPlayerImportedRound(round.id, {
+                                date: event.target.value
+                              })
+                            }
+                          />
+                        </label>
+                        <label className="space-y-1 xl:col-span-2">
+                          <span className="text-xs font-semibold uppercase tracking-[0.06em] text-text-muted">
+                            Course
+                          </span>
+                          <select
+                            className="w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
+                            value={round.courseId}
+                            onChange={(event) =>
+                              updateEditingPlayerImportedRound(round.id, {
+                                courseId: event.target.value
+                              })
+                            }
+                          >
+                            {data.courses.map((course) => (
+                              <option key={course.id} value={course.id}>
+                                {course.name}
+                              </option>
+                            ))}
+                            <option value={CUSTOM_COURSE_ID}>Custom course values</option>
+                          </select>
+                        </label>
+                        <label className="space-y-1">
+                          <span className="text-xs font-semibold uppercase tracking-[0.06em] text-text-muted">
+                            Tee
+                          </span>
+                          <select
+                            className="w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary disabled:text-text-disabled"
+                            value={round.teeColor}
+                            onChange={(event) =>
+                              updateEditingPlayerImportedRound(round.id, {
+                                teeColor: event.target.value as TeeColor
+                              })
+                            }
+                            disabled={round.courseId === CUSTOM_COURSE_ID}
+                          >
+                            <option value="blue">Blue</option>
+                            <option value="white">White</option>
+                            <option value="yellow">Yellow</option>
+                            <option value="silver">Silver</option>
+                          </select>
+                        </label>
+                        <label className="space-y-1">
+                          <span className="text-xs font-semibold uppercase tracking-[0.06em] text-text-muted">
+                            Gross
+                          </span>
+                          <input
+                            className="w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
+                            inputMode="numeric"
+                            value={round.grossScore}
+                            onChange={(event) =>
+                              updateEditingPlayerImportedRound(round.id, {
+                                grossScore: event.target.value
+                              })
+                            }
+                          />
+                        </label>
+                      </div>
+                      <div className="mt-3 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+                        <label className="space-y-1">
+                          <span className="text-xs font-semibold uppercase tracking-[0.06em] text-text-muted">
+                            Adjusted
+                          </span>
+                          <input
+                            className="w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
+                            inputMode="numeric"
+                            placeholder="Same as gross"
+                            value={round.adjustedGrossScore}
+                            onChange={(event) =>
+                              updateEditingPlayerImportedRound(round.id, {
+                                adjustedGrossScore: event.target.value
+                              })
+                            }
+                          />
+                        </label>
+                        {round.courseId === CUSTOM_COURSE_ID ? (
+                          <>
+                            <label className="space-y-1">
+                              <span className="text-xs font-semibold uppercase tracking-[0.06em] text-text-muted">
+                                Rating
+                              </span>
+                              <input
+                                className="w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
+                                inputMode="decimal"
+                                value={round.courseRating}
+                                onChange={(event) =>
+                                  updateEditingPlayerImportedRound(round.id, {
+                                    courseRating: event.target.value
+                                  })
+                                }
+                              />
+                            </label>
+                            <label className="space-y-1">
+                              <span className="text-xs font-semibold uppercase tracking-[0.06em] text-text-muted">
+                                Slope
+                              </span>
+                              <input
+                                className="w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
+                                inputMode="numeric"
+                                value={round.slopeRating}
+                                onChange={(event) =>
+                                  updateEditingPlayerImportedRound(round.id, {
+                                    slopeRating: event.target.value
+                                  })
+                                }
+                              />
+                            </label>
+                            <label className="space-y-1">
+                              <span className="text-xs font-semibold uppercase tracking-[0.06em] text-text-muted">
+                                Par
+                              </span>
+                              <input
+                                className="w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
+                                inputMode="numeric"
+                                value={round.coursePar}
+                                onChange={(event) =>
+                                  updateEditingPlayerImportedRound(round.id, {
+                                    coursePar: event.target.value
+                                  })
+                                }
+                              />
+                            </label>
+                          </>
+                        ) : (
+                          <div className="xl:col-span-3 rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-secondary">
+                            {selectedTee ? (
+                              <>
+                                Uses {selectedTee.courseName} {selectedTee.teeColor} tee values:
+                                {' '}
+                                {selectedTee.nineHoleRating.toFixed(1)} / {selectedTee.nineHoleSlope} / Par {selectedTee.nineHolePar}
+                              </>
+                            ) : (
+                              'This course does not have tee values configured yet.'
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )
+                })
+              ) : (
+                <div className="rounded-lg border border-dashed border-surface-border px-4 py-6 text-sm text-text-secondary">
+                  No prior handicap rounds added yet.
+                </div>
+              )}
+            </div>
           </div>
           <button
             type="submit"

@@ -216,16 +216,18 @@ export async function getCurrentWeekPageData() {
               currentWeek.seasonId
             )
             const player1Tee = currentWeek.course
-              ? getCourseTee(currentWeek.course.tees, player1TeeColor, {
+              ? getCourseTee(currentWeek.course.tees, player1TeeColor, match.player1.gender, {
                   color: 'white',
+                  gender: 'man',
                   nineHolePar: currentWeek.course.nineHolePar,
                   nineHoleRating: currentWeek.course.nineHoleRating,
                   nineHoleSlope: currentWeek.course.nineHoleSlope
                 })
               : null
             const player2Tee = currentWeek.course
-              ? getCourseTee(currentWeek.course.tees, player2TeeColor, {
+              ? getCourseTee(currentWeek.course.tees, player2TeeColor, match.player2.gender, {
                   color: 'white',
+                  gender: 'man',
                   nineHolePar: currentWeek.course.nineHolePar,
                   nineHoleRating: currentWeek.course.nineHoleRating,
                   nineHoleSlope: currentWeek.course.nineHoleSlope

@@ -1,5 +1,6 @@
 'use client'
 
+import type { TeeColor } from '@prisma/client'
 import { startTransition, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -22,8 +23,8 @@ type WeekPageData = {
       id: string
       player1Name: string
       player2Name: string
-      player1TeeColor: 'blue' | 'white' | 'yellow'
-      player2TeeColor: 'blue' | 'white' | 'yellow'
+      player1TeeColor: TeeColor
+      player2TeeColor: TeeColor
       player1Handicap: number
       player2Handicap: number
       player2ScorecardOnly: boolean
@@ -42,7 +43,7 @@ type WeekPageData = {
     name: string
     present: boolean
     checkedInAt: string | null
-    teeColor: 'blue' | 'white' | 'yellow'
+    teeColor: TeeColor
     handicap: {
       kind: 'HCP' | 'PRO' | 'EST'
       value: string | null
@@ -52,7 +53,7 @@ type WeekPageData = {
     id: string
     name: string
     tees: Array<{
-      color: 'blue' | 'white' | 'yellow'
+      color: TeeColor
       rating: number
       slope: number
     }>

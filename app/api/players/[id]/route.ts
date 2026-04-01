@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import type { TeeColor } from '@prisma/client'
+import type { Gender, TeeColor } from '@prisma/client'
 import { prisma } from '@/lib/db'
 import { getApiSession, unauthorizedResponse } from '@/lib/api-auth'
 import { normalizeUsPhoneNumber } from '@/lib/phone'
@@ -21,6 +21,7 @@ export async function PATCH(
   const body = await request.json()
   const updates: {
     name?: string
+    gender?: Gender
     email?: string | null
     cellPhone?: string | null
     active?: boolean
@@ -38,6 +39,14 @@ export async function PATCH(
 
   if ('name' in body && typeof body.name === 'string') {
     updates.name = body.name.trim()
+  }
+
+  if ('gender' in body) {
+    if (body.gender !== 'man' && body.gender !== 'woman') {
+      return NextResponse.json({ error: 'Gender must be man or woman' }, { status: 400 })
+    }
+
+    updates.gender = body.gender
   }
 
   if ('email' in body) {
@@ -105,7 +114,13 @@ export async function PATCH(
         : null
       const teeColor = (choice as { teeColor?: unknown }).teeColor
 
-      if (!seasonId || (teeColor !== 'blue' && teeColor !== 'white' && teeColor !== 'yellow')) {
+      if (
+        !seasonId ||
+        (teeColor !== 'blue' &&
+          teeColor !== 'white' &&
+          teeColor !== 'yellow' &&
+          teeColor !== 'silver')
+      ) {
         return []
       }
 

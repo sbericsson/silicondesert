@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import type { Gender } from '@prisma/client'
 import { prisma } from '@/lib/db'
 import { getApiSession, unauthorizedResponse } from '@/lib/api-auth'
 import { normalizeUsPhoneNumber } from '@/lib/phone'
@@ -27,6 +28,7 @@ export async function POST(request: NextRequest) {
 
   const body = await request.json()
   const name = typeof body.name === 'string' ? body.name.trim() : ''
+  const gender: Gender = body.gender === 'woman' ? 'woman' : 'man'
   const email =
     typeof body.email === 'string' && body.email.trim().length > 0 ? body.email.trim() : null
   const rawCellPhone = typeof body.cellPhone === 'string' ? body.cellPhone.trim() : ''
@@ -54,6 +56,7 @@ export async function POST(request: NextRequest) {
   const player = await prisma.player.create({
     data: {
       name,
+      gender,
       email,
       cellPhone,
       seedHandicap

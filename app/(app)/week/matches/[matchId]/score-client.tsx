@@ -1,5 +1,6 @@
 'use client'
 
+import type { TeeColor } from '@prisma/client'
 import Link from 'next/link'
 import { useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
@@ -22,7 +23,7 @@ type MatchScorePageData = {
     player1: {
       id: string
       name: string
-      teeColor: 'blue' | 'white' | 'yellow'
+      teeColor: TeeColor
       handicapIndex: number
       courseHandicap: number
       present: boolean
@@ -30,7 +31,7 @@ type MatchScorePageData = {
     player2: {
       id: string
       name: string
-      teeColor: 'blue' | 'white' | 'yellow'
+      teeColor: TeeColor
       handicapIndex: number
       courseHandicap: number
       present: boolean

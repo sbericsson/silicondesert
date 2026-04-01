@@ -23,18 +23,25 @@ model CourseTee {
   id             String   @id @default(cuid())
   courseId       String
   color          TeeColor
+  gender         Gender   @default(man)
   nineHolePar    Int
   nineHoleRating Float
   nineHoleSlope  Int
   course         Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
 
-  @@unique([courseId, color])
+  @@unique([courseId, color, gender])
 }
 
 enum TeeColor {
   blue
+  silver
   white
   yellow
+}
+
+enum Gender {
+  man
+  woman
 }
 
 model CourseHole {
@@ -51,6 +58,7 @@ model CourseHole {
 model Player {
   id              String           @id @default(cuid())
   name            String
+  gender          Gender           @default(man)
   email           String?
   cellPhone       String?
   active          Boolean          @default(true)

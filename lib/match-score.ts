@@ -108,14 +108,16 @@ export async function getMatchScorePageData(weekId: string, matchId: string) {
   const player2Index = getEffectiveHandicapIndex(match.player2, match.player2HandicapIndex)
   const player1TeeColor = getPlayerSeasonTeeColor(match.player1.seasonTeeChoices, match.week.season.id)
   const player2TeeColor = getPlayerSeasonTeeColor(match.player2.seasonTeeChoices, match.week.season.id)
-  const player1Tee = getCourseTee(match.week.course.tees, player1TeeColor, {
+  const player1Tee = getCourseTee(match.week.course.tees, player1TeeColor, match.player1.gender, {
     color: 'white',
+    gender: 'man',
     nineHolePar: match.week.course.nineHolePar,
     nineHoleRating: match.week.course.nineHoleRating,
     nineHoleSlope: match.week.course.nineHoleSlope
   })
-  const player2Tee = getCourseTee(match.week.course.tees, player2TeeColor, {
+  const player2Tee = getCourseTee(match.week.course.tees, player2TeeColor, match.player2.gender, {
     color: 'white',
+    gender: 'man',
     nineHolePar: match.week.course.nineHolePar,
     nineHoleRating: match.week.course.nineHoleRating,
     nineHoleSlope: match.week.course.nineHoleSlope
@@ -285,14 +287,16 @@ export async function submitMatchScores(input: {
   const player2Index = getEffectiveHandicapIndex(match.player2, match.player2HandicapIndex)
   const player1TeeColor = getPlayerSeasonTeeColor(match.player1.seasonTeeChoices, match.week.season.id)
   const player2TeeColor = getPlayerSeasonTeeColor(match.player2.seasonTeeChoices, match.week.season.id)
-  const player1Tee = getCourseTee(course.tees, player1TeeColor, {
+  const player1Tee = getCourseTee(course.tees, player1TeeColor, match.player1.gender, {
     color: 'white',
+    gender: 'man',
     nineHolePar: course.nineHolePar,
     nineHoleRating: course.nineHoleRating,
     nineHoleSlope: course.nineHoleSlope
   })
-  const player2Tee = getCourseTee(course.tees, player2TeeColor, {
+  const player2Tee = getCourseTee(course.tees, player2TeeColor, match.player2.gender, {
     color: 'white',
+    gender: 'man',
     nineHolePar: course.nineHolePar,
     nineHoleRating: course.nineHoleRating,
     nineHoleSlope: course.nineHoleSlope

@@ -21,11 +21,12 @@ export async function getRosterPageData() {
   if (!process.env.DATABASE_URL) {
     return {
       players: [],
+      courses: [],
       seasons: []
     }
   }
 
-  const [players, seasons] = await Promise.all([
+  const [players, seasons, courses] = await Promise.all([
     prisma.player.findMany({
       include: {
         handicapRecords: {
@@ -56,6 +57,14 @@ export async function getRosterPageData() {
         }
       },
       orderBy: { startDate: 'asc' }
+    }),
+    prisma.course.findMany({
+      include: {
+        tees: {
+          orderBy: { color: 'asc' }
+        }
+      },
+      orderBy: { name: 'asc' }
     })
   ])
 
@@ -63,6 +72,7 @@ export async function getRosterPageData() {
     players: players.map((player) => ({
       id: player.id,
       name: player.name,
+      gender: player.gender,
       email: player.email,
       cellPhone: player.cellPhone,
       active: player.active,
@@ -81,8 +91,19 @@ export async function getRosterPageData() {
           courseRating: record.courseRating,
           slopeRating: record.slopeRating,
           coursePar: record.coursePar
-        })),
+      })),
       handicap: getPlayerDisplay(player)
+    })),
+    courses: courses.map((course) => ({
+      id: course.id,
+      name: course.name,
+      tees: course.tees.map((tee) => ({
+        color: tee.color,
+        gender: tee.gender,
+        nineHolePar: tee.nineHolePar,
+        nineHoleRating: tee.nineHoleRating,
+        nineHoleSlope: tee.nineHoleSlope
+      }))
     })),
     seasons: seasons.map((season) => ({
       id: season.id,

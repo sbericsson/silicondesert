@@ -80,10 +80,10 @@ export default async function PublicSchedulePage() {
   return (
     <section className="space-y-4">
       <div className="rounded-2xl border border-surface-border bg-surface-elevated p-6 shadow-sm">
-        <p className="text-xs font-semibold uppercase tracking-[0.06em] text-text-muted">
+        <p className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
           Schedule
         </p>
-        <h2 className="mt-2 text-2xl font-semibold text-text-primary">{season.name}</h2>
+        <h2 className="font-condensed mt-2 text-2xl font-bold uppercase tracking-wide text-text-primary">{season.name}</h2>
         <p className="mt-2 text-sm text-text-secondary">
           {formatDate(season.startDate)} - {formatDate(season.endDate)}
         </p>
@@ -118,15 +118,15 @@ export default async function PublicSchedulePage() {
             <div className={`rounded-2xl border p-5 shadow-sm ${cardClass}`}>
               <div className="flex items-center justify-between gap-3">
                 <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.06em] text-text-muted">
+                  <p className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
                     Week {week.weekNumber}
                   </p>
-                  <h3 className="mt-1 text-lg font-semibold text-text-primary">{formatDate(week.date)}</h3>
+                  <h3 className="font-condensed mt-1 text-xl font-bold uppercase tracking-wide text-text-primary">{formatDate(week.date)}</h3>
                   <p className="mt-1 text-sm text-text-secondary">
                     {week.course?.name ?? 'Course not selected'}
                   </p>
                 </div>
-                <span className={`rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.06em] ${getStatusStyles(status)}`}>
+                <span className={`font-condensed rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-widest ${getStatusStyles(status)}`}>
                   {status}
                 </span>
               </div>

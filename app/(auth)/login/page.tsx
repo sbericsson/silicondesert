@@ -37,10 +37,10 @@ export default function LoginPage() {
   return (
     <main className="mx-auto flex min-h-screen max-w-md items-center px-4 py-10">
       <section className="w-full rounded-xl border border-surface-border bg-surface-elevated p-6">
-        <p className="text-xs font-semibold uppercase tracking-[0.06em] text-text-muted">
+        <p className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
           Silicon Desert Golf League
         </p>
-        <h1 className="mt-2 text-xl font-bold text-text-primary">Commissioner Login</h1>
+        <h1 className="font-condensed mt-2 text-2xl font-bold uppercase tracking-wide text-text-primary">Commissioner Login</h1>
         <p className="mt-2 text-sm text-text-secondary">
           Sign in with the commissioner credentials seeded into the database.
         </p>
@@ -73,7 +73,7 @@ export default function LoginPage() {
             </p>
           ) : null}
           <button
-            className="w-full rounded-lg bg-accent px-4 py-3 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-70"
+            className="font-condensed w-full rounded-lg bg-accent px-4 py-3 text-sm font-bold uppercase tracking-wide text-white disabled:cursor-not-allowed disabled:opacity-70"
             type="submit"
             disabled={isSubmitting}
           >

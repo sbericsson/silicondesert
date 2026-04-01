@@ -14,10 +14,10 @@ export default async function MatchPage({ params }: MatchPageProps) {
     return (
       <section className="px-4 py-6">
         <div className="rounded-xl border border-danger bg-danger-dim p-4">
-          <p className="text-xs font-semibold uppercase tracking-[0.06em] text-danger-text">
+          <p className="font-condensed text-xs font-semibold uppercase tracking-widest text-danger-text">
             Score Entry
           </p>
-          <h2 className="mt-2 text-xl font-bold text-text-primary">Match unavailable</h2>
+          <h2 className="font-condensed mt-2 text-2xl font-bold uppercase tracking-wide text-text-primary">Match unavailable</h2>
           <p className="mt-2 text-sm text-danger-text">
             This match could not be loaded. Check the database setup and lock state first.
           </p>

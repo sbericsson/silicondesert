@@ -6,10 +6,10 @@ export default async function HistoryPage() {
   return (
     <section className="space-y-4 px-4 py-6">
       <div className="rounded-xl border border-surface-border bg-surface-elevated p-4">
-        <p className="text-xs font-semibold uppercase tracking-[0.06em] text-text-muted">
+        <p className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
           History
         </p>
-        <h2 className="mt-2 text-xl font-bold text-text-primary">Season Schedule</h2>
+        <h2 className="font-condensed mt-2 text-2xl font-bold uppercase tracking-wide text-text-primary">Season Schedule</h2>
         <p className="mt-2 text-sm text-text-secondary">
           All scheduled weeks, match summaries, and results for the season.
         </p>
@@ -22,10 +22,10 @@ export default async function HistoryPage() {
             className="overflow-hidden rounded-xl border border-surface-border bg-surface-elevated"
           >
             <div className="border-b border-surface-border bg-surface-sunken px-4 py-3">
-              <p className="text-xs font-semibold uppercase tracking-[0.06em] text-text-muted">
+              <p className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
                 {week.seasonName}
               </p>
-              <h3 className="mt-1 text-lg font-semibold text-text-primary">
+              <h3 className="font-condensed mt-1 text-xl font-bold uppercase tracking-wide text-text-primary">
                 Week {week.weekNumber} · {week.dateLabel}
               </h3>
               <p className="mt-1 text-sm text-text-secondary">
@@ -42,7 +42,7 @@ export default async function HistoryPage() {
             <div className="divide-y divide-surface-border">
               {week.matches.map((match, index) => (
                 <div key={match.id} className="px-4 py-3">
-                  <p className="text-xs font-semibold uppercase tracking-[0.06em] text-text-muted">
+                  <p className="font-condensed text-xs font-bold uppercase tracking-widest text-text-muted">
                     Match {index + 1}
                   </p>
                   <p className="mt-1 text-sm text-text-primary">

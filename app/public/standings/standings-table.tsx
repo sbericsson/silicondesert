@@ -76,7 +76,7 @@ export function PublicStandingsTable({
     <div className="overflow-x-auto rounded-2xl border border-surface-border bg-surface-elevated shadow-sm">
       <table className="min-w-[680px] table-auto border-collapse">
         <thead>
-          <tr className="border-b border-surface-border bg-surface-sunken text-[11px] font-semibold uppercase tracking-[0.06em] text-text-muted">
+          <tr className="border-b border-surface-border bg-surface-sunken font-condensed text-[11px] font-bold uppercase tracking-widest text-text-muted">
             <th className="px-4 py-3 text-left">#</th>
             {columns.map((column) => (
               <th

@@ -72,28 +72,28 @@ export default async function PublicWeekDetailPage({
       </div>
 
       <div className="overflow-hidden rounded-3xl border border-surface-border bg-surface-elevated p-6 shadow-sm">
-        <p className="text-xs font-semibold uppercase tracking-[0.08em] text-accent-text">
+        <p className="font-condensed text-xs font-bold uppercase tracking-widest text-accent-text">
           Week {data.weekNumber}
         </p>
-        <h2 className="mt-2 text-2xl font-semibold text-text-primary">{data.seasonName}</h2>
+        <h2 className="font-condensed mt-2 text-2xl font-bold uppercase tracking-wide text-text-primary">{data.seasonName}</h2>
         <p className="mt-2 text-sm text-text-secondary">
           {data.courseName} · {data.dateLabel}
         </p>
         <div className="mt-4 grid gap-3 sm:grid-cols-3">
           <div className="rounded-2xl border border-surface-border bg-surface-base p-4">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-text-muted">
+            <p className="font-condensed text-[11px] font-bold uppercase tracking-widest text-text-muted">
               Matches
             </p>
-            <p className="mt-2 text-2xl font-semibold text-text-primary">{data.matchCount}</p>
+            <p className="font-condensed mt-2 text-2xl font-bold tabular-nums text-text-primary">{data.matchCount}</p>
           </div>
           <div className="rounded-2xl border border-surface-border bg-surface-base p-4">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-text-muted">
+            <p className="font-condensed text-[11px] font-bold uppercase tracking-widest text-text-muted">
               Scores In
             </p>
-            <p className="mt-2 text-2xl font-semibold text-text-primary">{data.scoredMatchCount}</p>
+            <p className="font-condensed mt-2 text-2xl font-bold tabular-nums text-text-primary">{data.scoredMatchCount}</p>
           </div>
           <div className="rounded-2xl border border-surface-border bg-surface-base p-4">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-text-muted">
+            <p className="font-condensed text-[11px] font-bold uppercase tracking-widest text-text-muted">
               Status
             </p>
             <p className="mt-2 text-sm font-semibold text-text-primary">
@@ -105,12 +105,12 @@ export default async function PublicWeekDetailPage({
 
       {data.resultsVisible && (data.ctpWinnerName || data.longestPuttWinnerName) ? (
         <section className="rounded-2xl border border-accent bg-accent-dim p-5">
-          <p className="text-xs font-semibold uppercase tracking-[0.06em] text-accent-text">
+          <p className="font-condensed text-xs font-semibold uppercase tracking-widest text-accent-text">
             Side Games
           </p>
           <div className="mt-3 grid gap-3 sm:grid-cols-2">
             <div className="rounded-xl border border-surface-border bg-surface-base p-4">
-              <p className="text-xs font-semibold uppercase tracking-[0.06em] text-text-muted">
+              <p className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
                 Closest To Pin
               </p>
               <p className="mt-2 text-sm font-medium text-text-primary">
@@ -120,7 +120,7 @@ export default async function PublicWeekDetailPage({
               </p>
             </div>
             <div className="rounded-xl border border-surface-border bg-surface-base p-4">
-              <p className="text-xs font-semibold uppercase tracking-[0.06em] text-text-muted">
+              <p className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
                 Longest Putt
               </p>
               <p className="mt-2 text-sm font-medium text-text-primary">
@@ -140,11 +140,11 @@ export default async function PublicWeekDetailPage({
             className="rounded-3xl border border-surface-border bg-surface-elevated p-5 shadow-sm"
           >
             <div className="flex items-center justify-between gap-3">
-              <p className="text-xs font-semibold uppercase tracking-[0.06em] text-text-muted">
+              <p className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
                 {match.label}
               </p>
               {match.isThreesome ? (
-                <span className="rounded-full bg-surface-sunken px-2 py-1 text-[11px] font-semibold uppercase tracking-[0.06em] text-text-secondary">
+                <span className="rounded-full bg-surface-sunken px-2 py-1 font-condensed text-[11px] font-semibold uppercase tracking-widest text-text-secondary">
                   Threesome
                 </span>
               ) : null}
@@ -153,7 +153,7 @@ export default async function PublicWeekDetailPage({
             <div className="mt-4 grid gap-3">
               <div className="flex items-center justify-between gap-3 rounded-2xl border border-surface-border bg-surface-base px-4 py-3">
                 <div>
-                  <p className="text-[15px] font-medium text-text-primary">{match.player1Name}</p>
+                  <p className="font-condensed text-[15px] font-semibold uppercase text-text-primary">{match.player1Name}</p>
                   <p className="mt-1 text-xs text-text-secondary">
                     Handicap {match.player1HandicapIndex.toFixed(1)}
                   </p>
@@ -162,12 +162,12 @@ export default async function PublicWeekDetailPage({
                   <p className="text-[15px] font-bold text-text-primary">{match.player1Points} pts</p>
                 ) : null}
               </div>
-              <p className="text-center text-xs font-semibold uppercase tracking-[0.08em] text-text-muted">
+              <p className="font-condensed text-center text-xs font-bold uppercase tracking-widest text-text-muted">
                 vs
               </p>
               <div className="flex items-center justify-between gap-3 rounded-2xl border border-surface-border bg-surface-base px-4 py-3">
                 <div>
-                  <p className="text-[15px] font-medium text-text-primary">{match.player2Name}</p>
+                  <p className="font-condensed text-[15px] font-semibold uppercase text-text-primary">{match.player2Name}</p>
                   <p className="mt-1 text-xs text-text-secondary">
                     Handicap {match.player2HandicapIndex.toFixed(1)}
                   </p>

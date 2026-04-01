@@ -705,10 +705,10 @@ export function RosterClient({ initialData }: RosterClientProps) {
   return (
     <section className="space-y-4 px-4 py-6">
       <div className="rounded-xl border border-surface-border bg-surface-elevated p-4">
-        <p className="text-xs font-semibold uppercase tracking-[0.06em] text-text-muted">
+        <p className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
           Roster
         </p>
-        <h2 className="mt-2 text-xl font-bold text-text-primary">Players and Admin</h2>
+        <h2 className="font-condensed mt-2 text-2xl font-bold uppercase tracking-wide text-text-primary">Players and Admin</h2>
         <p className="mt-2 text-sm text-text-secondary">
           Add players, manage contact info, and create or maintain seasons with prebuilt Friday weeks.
         </p>
@@ -729,7 +729,7 @@ export function RosterClient({ initialData }: RosterClientProps) {
       <section className="rounded-xl border border-surface-border bg-surface-elevated p-4">
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.06em] text-text-muted">
+            <p className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
               Public Roster
             </p>
             <p className="mt-2 text-sm text-text-secondary">
@@ -756,7 +756,7 @@ export function RosterClient({ initialData }: RosterClientProps) {
           className="rounded-xl border border-surface-border bg-surface-elevated p-4"
           onSubmit={handleCreatePlayer}
         >
-          <p className="text-xs font-semibold uppercase tracking-[0.06em] text-text-muted">
+          <p className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
             Add Player
           </p>
           <div className="mt-4 space-y-3">
@@ -796,7 +796,7 @@ export function RosterClient({ initialData }: RosterClientProps) {
             />
             <button
               type="submit"
-              className="w-full rounded-lg bg-accent px-4 py-3 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:bg-surface-sunken disabled:text-text-disabled"
+              className="font-condensed w-full rounded-lg bg-accent px-4 py-3 text-sm font-bold uppercase tracking-wide text-white disabled:cursor-not-allowed disabled:bg-surface-sunken disabled:text-text-disabled"
               disabled={isSubmitting}
             >
               Add Player
@@ -808,7 +808,7 @@ export function RosterClient({ initialData }: RosterClientProps) {
           className="rounded-xl border border-surface-border bg-surface-elevated p-4"
           onSubmit={handleCreateSeason}
         >
-          <p className="text-xs font-semibold uppercase tracking-[0.06em] text-text-muted">
+          <p className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
             Create Season
           </p>
           <div className="mt-4 space-y-3">
@@ -827,7 +827,7 @@ export function RosterClient({ initialData }: RosterClientProps) {
               <option value="summer">Summer</option>
             </select>
             <div>
-              <p className="mb-1.5 text-xs font-semibold uppercase tracking-[0.06em] text-text-muted">
+              <p className="mb-1.5 font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
                 Start Date
               </p>
               <input
@@ -868,7 +868,7 @@ export function RosterClient({ initialData }: RosterClientProps) {
               </button>
             </div>
             <div className="rounded-lg border border-surface-border bg-surface-sunken p-3">
-              <p className="text-xs font-semibold uppercase tracking-[0.06em] text-text-muted">
+              <p className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
                 Selected Week Dates
               </p>
               <div className="mt-3 flex flex-wrap gap-2">
@@ -890,7 +890,7 @@ export function RosterClient({ initialData }: RosterClientProps) {
             </div>
             <button
               type="submit"
-              className="w-full rounded-lg bg-accent px-4 py-3 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:bg-surface-sunken disabled:text-text-disabled"
+              className="font-condensed w-full rounded-lg bg-accent px-4 py-3 text-sm font-bold uppercase tracking-wide text-white disabled:cursor-not-allowed disabled:bg-surface-sunken disabled:text-text-disabled"
               disabled={isSubmitting}
             >
               Create Season
@@ -901,7 +901,7 @@ export function RosterClient({ initialData }: RosterClientProps) {
 
       <section className="rounded-xl border border-surface-border bg-surface-elevated">
         <div className="border-b border-surface-border px-4 py-3">
-          <p className="text-xs font-semibold uppercase tracking-[0.06em] text-text-muted">
+          <p className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
             Players ({data.players.length})
           </p>
         </div>
@@ -911,7 +911,7 @@ export function RosterClient({ initialData }: RosterClientProps) {
               <div className="flex-1">
                 <div className="flex flex-wrap items-center gap-2">
                   <p className="text-sm font-medium text-text-primary">{player.name}</p>
-                  <span className="rounded bg-surface-sunken px-2 py-0.5 text-[11px] font-semibold uppercase tracking-[0.06em] text-text-secondary">
+                  <span className="rounded bg-surface-sunken px-2 py-0.5 font-condensed text-[11px] font-semibold uppercase tracking-widest text-text-secondary">
                     {player.gender === 'man' ? 'Man' : 'Woman'}
                   </span>
                 </div>
@@ -960,7 +960,7 @@ export function RosterClient({ initialData }: RosterClientProps) {
         >
           <div className="flex items-center justify-between gap-3">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.06em] text-text-muted">
+              <p className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
                 Edit Player
               </p>
               <p className="mt-1 text-sm text-text-secondary">
@@ -1012,7 +1012,7 @@ export function RosterClient({ initialData }: RosterClientProps) {
             />
           </div>
           <div className="mt-4 rounded-lg border border-surface-border bg-surface-sunken p-3">
-            <p className="text-xs font-semibold uppercase tracking-[0.06em] text-text-muted">
+            <p className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
               Season Tee Choice
             </p>
             <div className="mt-3 space-y-3">
@@ -1049,7 +1049,7 @@ export function RosterClient({ initialData }: RosterClientProps) {
           <div className="mt-4 rounded-lg border border-surface-border bg-surface-sunken p-3">
             <div className="flex items-center justify-between gap-3">
               <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.06em] text-text-muted">
+                <p className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
                   Prior Handicap Rounds
                 </p>
                 <p className="mt-2 text-xs text-text-secondary">
@@ -1100,7 +1100,7 @@ export function RosterClient({ initialData }: RosterClientProps) {
                       </div>
                       <div className="mt-3 grid gap-3 md:grid-cols-2 xl:grid-cols-5">
                         <label className="space-y-1">
-                          <span className="text-xs font-semibold uppercase tracking-[0.06em] text-text-muted">
+                          <span className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
                             Date
                           </span>
                           <input
@@ -1115,7 +1115,7 @@ export function RosterClient({ initialData }: RosterClientProps) {
                           />
                         </label>
                         <label className="space-y-1 xl:col-span-2">
-                          <span className="text-xs font-semibold uppercase tracking-[0.06em] text-text-muted">
+                          <span className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
                             Course
                           </span>
                           <select
@@ -1136,7 +1136,7 @@ export function RosterClient({ initialData }: RosterClientProps) {
                           </select>
                         </label>
                         <label className="space-y-1">
-                          <span className="text-xs font-semibold uppercase tracking-[0.06em] text-text-muted">
+                          <span className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
                             Tee
                           </span>
                           <select
@@ -1156,7 +1156,7 @@ export function RosterClient({ initialData }: RosterClientProps) {
                           </select>
                         </label>
                         <label className="space-y-1">
-                          <span className="text-xs font-semibold uppercase tracking-[0.06em] text-text-muted">
+                          <span className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
                             Gross
                           </span>
                           <input
@@ -1173,7 +1173,7 @@ export function RosterClient({ initialData }: RosterClientProps) {
                       </div>
                       <div className="mt-3 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
                         <label className="space-y-1">
-                          <span className="text-xs font-semibold uppercase tracking-[0.06em] text-text-muted">
+                          <span className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
                             Adjusted
                           </span>
                           <input
@@ -1191,7 +1191,7 @@ export function RosterClient({ initialData }: RosterClientProps) {
                         {round.courseId === CUSTOM_COURSE_ID ? (
                           <>
                             <label className="space-y-1">
-                              <span className="text-xs font-semibold uppercase tracking-[0.06em] text-text-muted">
+                              <span className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
                                 Rating
                               </span>
                               <input
@@ -1206,7 +1206,7 @@ export function RosterClient({ initialData }: RosterClientProps) {
                               />
                             </label>
                             <label className="space-y-1">
-                              <span className="text-xs font-semibold uppercase tracking-[0.06em] text-text-muted">
+                              <span className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
                                 Slope
                               </span>
                               <input
@@ -1221,7 +1221,7 @@ export function RosterClient({ initialData }: RosterClientProps) {
                               />
                             </label>
                             <label className="space-y-1">
-                              <span className="text-xs font-semibold uppercase tracking-[0.06em] text-text-muted">
+                              <span className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
                                 Par
                               </span>
                               <input
@@ -1262,7 +1262,7 @@ export function RosterClient({ initialData }: RosterClientProps) {
           </div>
           <button
             type="submit"
-            className="mt-4 w-full rounded-lg bg-accent px-4 py-3 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:bg-surface-sunken disabled:text-text-disabled"
+            className="mt-4 font-condensed w-full rounded-lg bg-accent px-4 py-3 text-sm font-bold uppercase tracking-wide text-white disabled:cursor-not-allowed disabled:bg-surface-sunken disabled:text-text-disabled"
             disabled={isSubmitting}
           >
             Save Player
@@ -1272,7 +1272,7 @@ export function RosterClient({ initialData }: RosterClientProps) {
 
       <section className="rounded-xl border border-surface-border bg-surface-elevated">
         <div className="border-b border-surface-border px-4 py-3">
-          <p className="text-xs font-semibold uppercase tracking-[0.06em] text-text-muted">
+          <p className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
             Seasons ({data.seasons.length})
           </p>
         </div>
@@ -1284,7 +1284,7 @@ export function RosterClient({ initialData }: RosterClientProps) {
                   <div className="flex flex-wrap items-center gap-2">
                     <p className="text-sm font-medium text-text-primary">{season.name}</p>
                     <span
-                      className={`rounded px-2 py-0.5 text-[11px] font-semibold uppercase tracking-[0.06em] ${
+                      className={`rounded px-2 py-0.5 font-condensed text-[11px] font-semibold uppercase tracking-widest ${
                         season.archivedAt
                           ? 'bg-surface-sunken text-text-secondary'
                           : 'bg-accent-dim text-accent-text'
@@ -1343,7 +1343,7 @@ export function RosterClient({ initialData }: RosterClientProps) {
         >
           <div className="flex items-center justify-between gap-3">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.06em] text-text-muted">
+              <p className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
                 Edit Season
               </p>
               <p className="mt-1 text-sm text-text-secondary">
@@ -1374,7 +1374,7 @@ export function RosterClient({ initialData }: RosterClientProps) {
               <option value="summer">Summer</option>
             </select>
             <div>
-              <p className="mb-1.5 text-xs font-semibold uppercase tracking-[0.06em] text-text-muted">
+              <p className="mb-1.5 font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
                 Start Date
               </p>
               <input
@@ -1420,7 +1420,7 @@ export function RosterClient({ initialData }: RosterClientProps) {
               </button>
             </div>
             <div className="rounded-lg border border-surface-border bg-surface-sunken p-3">
-              <p className="text-xs font-semibold uppercase tracking-[0.06em] text-text-muted">
+              <p className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
                 Scheduled Week Dates
               </p>
               {editingSeason?.hasWeekActivity ? (
@@ -1448,7 +1448,7 @@ export function RosterClient({ initialData }: RosterClientProps) {
             </div>
             <button
               type="submit"
-              className="w-full rounded-lg bg-accent px-4 py-3 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:bg-surface-sunken disabled:text-text-disabled"
+              className="font-condensed w-full rounded-lg bg-accent px-4 py-3 text-sm font-bold uppercase tracking-wide text-white disabled:cursor-not-allowed disabled:bg-surface-sunken disabled:text-text-disabled"
               disabled={isSubmitting}
             >
               Save Season

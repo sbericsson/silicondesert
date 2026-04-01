@@ -16,10 +16,10 @@ export default async function PublicStandingsPage({
   return (
     <section className="space-y-4">
       <div className="rounded-2xl border border-surface-border bg-surface-elevated p-6 shadow-sm">
-        <p className="text-xs font-semibold uppercase tracking-[0.06em] text-text-muted">
+        <p className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
           Standings
         </p>
-        <h2 className="mt-2 text-2xl font-semibold text-text-primary">
+        <h2 className="font-condensed mt-2 text-2xl font-bold uppercase tracking-wide text-text-primary">
           {data.selectedLabel ?? 'Season Standings'}
         </h2>
         <p className="mt-2 text-sm text-text-secondary">
@@ -27,7 +27,7 @@ export default async function PublicStandingsPage({
         </p>
         {data.standings[0] ? (
           <div className="mt-4 rounded-2xl border border-accent/20 bg-accent-dim px-4 py-3">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-accent-text">
+            <p className="font-condensed text-[11px] font-semibold uppercase tracking-widest text-accent-text">
               Current Leader
             </p>
             <p className="mt-1 text-sm font-medium text-text-primary">
@@ -43,7 +43,7 @@ export default async function PublicStandingsPage({
             <Link
               key={tab.id}
               href={`/public/standings?view=${tab.id}`}
-              className={`rounded-full px-4 py-2 text-sm font-medium ${
+              className={`font-condensed rounded-full px-4 py-2 text-sm font-semibold uppercase tracking-wide ${
                 data.selectedView === tab.id
                   ? 'bg-accent text-white shadow-sm'
                   : 'border border-surface-border bg-surface-elevated text-text-secondary hover:border-accent hover:text-accent-text'

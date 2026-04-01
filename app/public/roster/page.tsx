@@ -16,10 +16,10 @@ export default async function PublicRosterPage() {
   return (
     <section className="space-y-4">
       <div className="rounded-2xl border border-surface-border bg-surface-elevated p-6 shadow-sm">
-        <p className="text-xs font-semibold uppercase tracking-[0.06em] text-text-muted">
+        <p className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
           Roster
         </p>
-        <h2 className="mt-2 text-2xl font-semibold text-text-primary">League Players</h2>
+        <h2 className="font-condensed mt-2 text-2xl font-bold uppercase tracking-wide text-text-primary">League Players</h2>
         <p className="mt-2 text-sm text-text-secondary">
           Active player names and current handicap display.
         </p>

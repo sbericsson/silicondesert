@@ -3,50 +3,27 @@
 @tailwind utilities;
 
 :root {
-  --surface-base: #0f1117;
-  --surface-elevated: #1a1f2e;
-  --surface-sunken: #131720;
-  --surface-border: #2a3040;
-  --text-primary: #f0f0f0;
-  --text-secondary: #9ca3af;
-  --text-muted: #4b5563;
-  --text-disabled: #3a4050;
-  --accent: #4b9e6f;
-  --accent-hover: #3d8a5e;
-  --accent-dim: #1a2818;
-  --accent-text: #6fcf97;
-  --warning: #f59e0b;
-  --warning-dim: #2d1f0e;
-  --warning-text: #fcd34d;
-  --danger: #ef4444;
-  --danger-dim: #2d1010;
-  --danger-text: #fca5a5;
-  --info-dim: #1e3a5f;
-  --info-text: #93c5fd;
-  color-scheme: dark;
-}
-
-.theme-light {
-  --surface-base: #ffffff;
-  --surface-elevated: #f9fafb;
-  --surface-sunken: #f3f4f6;
-  --surface-border: #e5e7eb;
-  --text-primary: #111827;
-  --text-secondary: #6b7280;
-  --text-muted: #9ca3af;
-  --text-disabled: #c7cdd8;
-  --accent: #4b9e6f;
-  --accent-hover: #3d8a5e;
-  --accent-dim: #ecfdf5;
-  --accent-text: #166534;
-  --warning: #d97706;
-  --warning-dim: #fffbeb;
-  --warning-text: #92400e;
-  --danger: #dc2626;
-  --danger-dim: #fef2f2;
-  --danger-text: #991b1b;
-  --info-dim: #eff6ff;
-  --info-text: #1d4ed8;
+  --surface-base:     #ffffff;
+  --surface-elevated: #f8fafc;
+  --surface-sunken:   #f1f5f9;
+  --surface-border:   #e2e8f0;
+  --text-primary:     #0f172a;
+  --text-secondary:   #475569;
+  --text-muted:       #94a3b8;
+  --text-disabled:    #cbd5e1;
+  --accent:           #16a34a;
+  --accent-hover:     #15803d;
+  --accent-bright:    #22c55e;
+  --accent-dim:       #dcfce7;
+  --accent-text:      #166534;
+  --warning:          #d97706;
+  --warning-dim:      #fef3c7;
+  --warning-text:     #92400e;
+  --danger:           #dc2626;
+  --danger-dim:       #fee2e2;
+  --danger-text:      #991b1b;
+  --info-dim:         #dbeafe;
+  --info-text:        #1e40af;
   color-scheme: light;
 }
 

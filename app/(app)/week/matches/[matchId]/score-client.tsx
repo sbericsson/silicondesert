@@ -223,10 +223,10 @@ export function MatchScoreClient({ initialData }: MatchScoreClientProps) {
       <div className="rounded-xl border border-surface-border bg-surface-elevated p-4">
         <div className="flex items-center justify-between gap-3">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.06em] text-text-muted">
+            <p className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
               Score Entry
             </p>
-            <h2 className="mt-2 text-xl font-bold text-text-primary">{initialData.match.weekLabel}</h2>
+            <h2 className="font-condensed mt-2 text-2xl font-bold uppercase tracking-wide text-text-primary">{initialData.match.weekLabel}</h2>
             <p className="mt-2 text-sm text-text-secondary">
               {initialData.match.courseName} · {initialData.match.player1.teeColor.toUpperCase()} / {initialData.match.player2.teeColor.toUpperCase()}
             </p>
@@ -254,7 +254,7 @@ export function MatchScoreClient({ initialData }: MatchScoreClientProps) {
       </div>
 
       <section className="overflow-hidden rounded-xl border border-surface-border bg-surface-elevated">
-        <div className="grid grid-cols-[60px_60px_60px_1fr_1fr] gap-2 border-b border-surface-border bg-surface-sunken px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.06em] text-text-muted">
+        <div className="grid grid-cols-[60px_60px_60px_1fr_1fr] gap-2 border-b border-surface-border bg-surface-sunken px-3 py-2 font-condensed text-[11px] font-bold uppercase tracking-widest text-text-muted">
           <span>Hole</span>
           <span>Par</span>
           <span>SI</span>
@@ -303,7 +303,7 @@ export function MatchScoreClient({ initialData }: MatchScoreClientProps) {
 
       <section className="grid gap-3 md:grid-cols-2">
         <div className="rounded-xl border border-surface-border bg-surface-elevated p-4">
-          <p className="text-xs font-semibold uppercase tracking-[0.06em] text-text-muted">
+          <p className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
             Totals
           </p>
           <div className="mt-3 space-y-2 text-sm text-text-secondary">
@@ -317,7 +317,7 @@ export function MatchScoreClient({ initialData }: MatchScoreClientProps) {
         </div>
 
         <div className="rounded-xl border border-surface-border bg-surface-elevated p-4">
-          <p className="text-xs font-semibold uppercase tracking-[0.06em] text-text-muted">
+          <p className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
             Match Play
           </p>
           <p className="mt-3 text-base font-semibold text-text-primary">
@@ -335,7 +335,7 @@ export function MatchScoreClient({ initialData }: MatchScoreClientProps) {
 
       {pointsPreview ? (
         <section className="rounded-xl border border-surface-border bg-accent-dim p-4">
-          <p className="text-xs font-semibold uppercase tracking-[0.06em] text-text-muted">
+          <p className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
             Points Preview
           </p>
           <div className="mt-3 space-y-2 text-sm text-accent-text">
@@ -351,7 +351,7 @@ export function MatchScoreClient({ initialData }: MatchScoreClientProps) {
 
       <button
         type="button"
-        className="w-full rounded-lg bg-accent px-4 py-4 text-base font-semibold text-white disabled:cursor-not-allowed disabled:bg-surface-sunken disabled:text-text-disabled"
+        className="font-condensed w-full rounded-lg bg-accent px-4 py-4 text-base font-bold uppercase tracking-wide text-white disabled:cursor-not-allowed disabled:bg-surface-sunken disabled:text-text-disabled"
         disabled={!isComplete || isSubmitting || initialData.match.seasonArchived}
         onClick={handleSubmit}
       >

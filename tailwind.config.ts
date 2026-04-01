@@ -5,7 +5,8 @@ const config: Config = {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['Inter', 'system-ui', 'sans-serif']
+        sans: ['var(--font-barlow)', 'system-ui', 'sans-serif'],
+        condensed: ['var(--font-barlow-condensed)', 'system-ui', 'sans-serif']
       },
       colors: {
         surface: {
@@ -23,6 +24,7 @@ const config: Config = {
         accent: {
           DEFAULT: 'var(--accent)',
           hover: 'var(--accent-hover)',
+          bright: 'var(--accent-bright)',
           dim: 'var(--accent-dim)',
           text: 'var(--accent-text)'
         },

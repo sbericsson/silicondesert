@@ -278,10 +278,10 @@ export function WeekClient({ initialData }: WeekClientProps) {
     return (
       <section className="px-4 py-6">
         <div className="rounded-xl border border-surface-border bg-surface-elevated p-4">
-          <p className="text-xs font-semibold uppercase tracking-[0.06em] text-text-muted">
+          <p className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
             Week
           </p>
-          <h2 className="mt-2 text-xl font-bold text-text-primary">
+          <h2 className="font-condensed mt-2 text-2xl font-bold uppercase tracking-wide text-text-primary">
             {data.upcomingWeek
               ? `Week ${data.upcomingWeek.weekNumber} - ${data.upcomingWeek.seasonName}`
               : 'No current week'}
@@ -298,7 +298,7 @@ export function WeekClient({ initialData }: WeekClientProps) {
           {data.upcomingWeek ? (
             <button
               type="button"
-              className="mt-4 w-full rounded-lg bg-accent px-4 py-3 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:bg-surface-sunken disabled:text-text-disabled"
+              className="font-condensed mt-4 w-full rounded-lg bg-accent px-4 py-3 text-sm font-bold uppercase tracking-wide text-white disabled:cursor-not-allowed disabled:bg-surface-sunken disabled:text-text-disabled"
               onClick={startUpcomingWeek}
               disabled={isRefreshing}
             >
@@ -317,11 +317,11 @@ export function WeekClient({ initialData }: WeekClientProps) {
   return (
     <section className="space-y-4 px-4 py-6">
       <header className="rounded-xl border border-surface-border bg-surface-elevated p-4">
-        <p className="text-xs font-semibold uppercase tracking-[0.06em] text-text-muted">
+        <p className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
           Silicon Desert Golf League
         </p>
-        <h2 className="mt-2 text-xl font-bold text-text-primary">
-          Week {data.currentWeek.weekNumber} - {data.currentWeek.seasonName}
+        <h2 className="font-condensed mt-2 text-2xl font-bold uppercase tracking-wide text-text-primary">
+          Week {data.currentWeek.weekNumber} — {data.currentWeek.seasonName}
         </h2>
         <p className="mt-2 text-sm text-accent-text">
           {data.currentWeek.courseName ?? 'Course not selected'} - {data.currentWeek.dateLabel}
@@ -352,7 +352,7 @@ export function WeekClient({ initialData }: WeekClientProps) {
 
       <section className="grid gap-3 md:grid-cols-3">
         <label className="rounded-xl border border-surface-border bg-surface-elevated p-4">
-          <p className="text-xs font-semibold uppercase tracking-[0.06em] text-text-muted">Course</p>
+          <p className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">Course</p>
           <select
             className="mt-2 w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
             value={data.currentWeek.courseId ?? ''}
@@ -369,7 +369,7 @@ export function WeekClient({ initialData }: WeekClientProps) {
         </label>
 
         <label className="rounded-xl border border-surface-border bg-surface-elevated p-4">
-          <p className="text-xs font-semibold uppercase tracking-[0.06em] text-text-muted">
+          <p className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
             Closest To Pin
           </p>
           <select
@@ -388,7 +388,7 @@ export function WeekClient({ initialData }: WeekClientProps) {
         </label>
 
         <label className="rounded-xl border border-surface-border bg-surface-elevated p-4">
-          <p className="text-xs font-semibold uppercase tracking-[0.06em] text-text-muted">
+          <p className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
             Longest Putt
           </p>
           <select
@@ -410,7 +410,7 @@ export function WeekClient({ initialData }: WeekClientProps) {
       {data.currentWeek.locked ? (
         <section className="grid gap-3 md:grid-cols-2">
           <label className="rounded-xl border border-surface-border bg-surface-elevated p-4">
-            <p className="text-xs font-semibold uppercase tracking-[0.06em] text-text-muted">
+            <p className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
               CTP Winner · Hole {data.currentWeek.ctpHoleNumber ?? '—'}
             </p>
             <select
@@ -429,7 +429,7 @@ export function WeekClient({ initialData }: WeekClientProps) {
           </label>
 
           <label className="rounded-xl border border-surface-border bg-surface-elevated p-4">
-            <p className="text-xs font-semibold uppercase tracking-[0.06em] text-text-muted">
+            <p className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
               LP Winner · Hole {data.currentWeek.longestPuttHoleNumber ?? '—'}
             </p>
             <select
@@ -451,10 +451,10 @@ export function WeekClient({ initialData }: WeekClientProps) {
 
       <section className="rounded-xl border border-surface-border bg-surface-elevated">
         <div className="flex items-center justify-between border-b border-surface-border px-4 py-3">
-          <p className="text-xs font-semibold uppercase tracking-[0.06em] text-text-muted">
+          <p className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
             Attendance
           </p>
-          <span className="rounded bg-accent px-2 py-1 text-[11px] font-semibold text-white">
+          <span className="rounded bg-accent px-2 py-1 font-condensed text-[11px] font-semibold text-white">
             {data.presentCount} / {data.totalPlayers}
           </span>
         </div>
@@ -468,8 +468,8 @@ export function WeekClient({ initialData }: WeekClientProps) {
               disabled={isRefreshing || data.currentWeek?.locked}
             >
               <span
-                className={`h-4 w-4 rounded-full border ${
-                  player.present ? 'border-accent bg-accent' : 'border-text-disabled bg-transparent'
+                className={`h-4 w-4 rounded-full border-2 ${
+                  player.present ? 'border-transparent bg-accent-bright' : 'border-surface-border bg-transparent'
                 }`}
               />
               <span
@@ -499,7 +499,7 @@ export function WeekClient({ initialData }: WeekClientProps) {
       <section className="rounded-xl border border-surface-border bg-surface-elevated p-4">
         <div className="flex items-center justify-between gap-3">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.06em] text-text-muted">
+            <p className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
               Pairings
             </p>
             <p className="mt-2 text-sm text-text-secondary">
@@ -511,7 +511,7 @@ export function WeekClient({ initialData }: WeekClientProps) {
           <div className="flex gap-2">
             <button
               type="button"
-              className="rounded-lg bg-accent px-4 py-3 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:bg-surface-sunken disabled:text-text-disabled"
+              className="font-condensed rounded-lg bg-accent px-4 py-3 text-sm font-bold uppercase tracking-wide text-white disabled:cursor-not-allowed disabled:bg-surface-sunken disabled:text-text-disabled"
               onClick={generatePairings}
               disabled={!canGeneratePairings || isRefreshing}
             >
@@ -520,7 +520,7 @@ export function WeekClient({ initialData }: WeekClientProps) {
             {data.currentWeek.matchCount > 0 ? (
               <button
                 type="button"
-                className={`rounded-lg px-4 py-3 text-sm font-semibold ${
+                className={`font-condensed rounded-lg px-4 py-3 text-sm font-bold uppercase tracking-wide ${
                   data.currentWeek.locked
                     ? 'bg-danger-dim text-danger-text'
                     : 'bg-surface-sunken text-text-primary'
@@ -538,7 +538,7 @@ export function WeekClient({ initialData }: WeekClientProps) {
           <div className="mt-4 flex flex-wrap gap-2">
             <button
               type="button"
-              className="rounded-lg border border-surface-border bg-surface-base px-4 py-3 text-sm font-semibold text-text-primary"
+              className="font-condensed rounded-lg border border-surface-border bg-surface-base px-4 py-3 text-sm font-bold uppercase tracking-wide text-text-primary"
               onClick={copyPairingsLink}
             >
               Copy Pairings Link
@@ -546,7 +546,7 @@ export function WeekClient({ initialData }: WeekClientProps) {
             {allScoresComplete ? (
               <button
                 type="button"
-                className="rounded-lg bg-accent px-4 py-3 text-sm font-semibold text-white"
+                className="font-condensed rounded-lg bg-accent px-4 py-3 text-sm font-bold uppercase tracking-wide text-white"
                 onClick={copyResultsShareText}
               >
                 Share Results
@@ -562,7 +562,7 @@ export function WeekClient({ initialData }: WeekClientProps) {
           <div className="mt-4 space-y-3">
             {data.currentWeek.matches.map((match, index) => (
               <div key={match.id} className="rounded-lg border border-surface-border bg-surface-sunken p-3">
-                <p className="text-xs font-semibold uppercase tracking-[0.06em] text-text-muted">
+                <p className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
                   Match {index + 1}
                 </p>
                 <p
@@ -578,7 +578,7 @@ export function WeekClient({ initialData }: WeekClientProps) {
                   </span>
                   <span className="text-text-secondary">HCP {match.player1Handicap}</span>
                 </div>
-                <div className="mt-1 text-center text-xs uppercase tracking-[0.06em] text-text-muted">vs</div>
+                <div className="font-condensed mt-1 text-center text-xs font-bold uppercase tracking-widest text-text-muted">vs</div>
                 <div className="mt-1 flex items-center justify-between text-sm text-text-primary">
                   <span>
                     {match.player2Name} ({match.player2TeeColor.toUpperCase()})

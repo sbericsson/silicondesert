@@ -3,8 +3,8 @@ import '@fontsource/inter/index.css'
 import '@/app/globals.css'
 
 export const metadata: Metadata = {
-  title: 'Silicone Desert Golf League',
-  description: 'Commissioner workspace for the Silicone Desert Golf League.'
+  title: 'Silicon Desert Golf League',
+  description: 'Commissioner workspace for the Silicon Desert Golf League.'
 }
 
 export default function RootLayout({

@@ -1,4 +1,4 @@
-# CODEX.md — Silicone Desert Golf League Commissioner App
+# CODEX.md — Silicon Desert Golf League Commissioner App
 # Implementation spec for Codex. Every decision is made. Build exactly this.
 
 ## Overview

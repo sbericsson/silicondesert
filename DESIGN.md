@@ -1,4 +1,4 @@
-# DESIGN.md — Silicone Desert Golf League Commissioner App
+# DESIGN.md — Silicon Desert Golf League Commissioner App
 
 Generated from `/plan-design-review` on 2026-03-29. This is the design source of truth.
 All implementation decisions calibrate against this file.
@@ -148,7 +148,7 @@ Consistent scale — not uniform bubbly on everything:
 
 **Header:**
 ```
-Silicone Desert Golf League          (11px, muted, uppercase)
+Silicon Desert Golf League           (11px, muted, uppercase)
 Week 4 — Spring 2026                 (20px, bold, primary)
 Oakwood CC · Course A · Today        (12px, accent.text)
 ```

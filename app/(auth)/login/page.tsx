@@ -38,7 +38,7 @@ export default function LoginPage() {
     <main className="mx-auto flex min-h-screen max-w-md items-center px-4 py-10">
       <section className="w-full rounded-xl border border-surface-border bg-surface-elevated p-6">
         <p className="text-xs font-semibold uppercase tracking-[0.06em] text-text-muted">
-          Silicone Desert Golf League
+          Silicon Desert Golf League
         </p>
         <h1 className="mt-2 text-xl font-bold text-text-primary">Commissioner Login</h1>
         <p className="mt-2 text-sm text-text-secondary">

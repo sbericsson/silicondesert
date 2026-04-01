@@ -1,4 +1,4 @@
-# TODOS — Silicone Desert Golf League App
+# TODOS — Silicon Desert Golf League App
 
 ## v2: Hole-by-hole match play tracking
 **What:** Allow score entry to record which player won each hole (W/L/H per hole) instead of just the final result.

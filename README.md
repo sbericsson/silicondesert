@@ -1,4 +1,4 @@
-# Silicone Desert Golf League
+# Silicon Desert Golf League
 
 Commissioner web app for running a 9-hole Friday golf league.
 

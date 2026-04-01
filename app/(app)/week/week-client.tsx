@@ -244,7 +244,7 @@ export function WeekClient({ initialData }: WeekClientProps) {
     <section className="space-y-4 px-4 py-6">
       <header className="rounded-xl border border-surface-border bg-surface-elevated p-4">
         <p className="text-xs font-semibold uppercase tracking-[0.06em] text-text-muted">
-          Silicone Desert Golf League
+          Silicon Desert Golf League
         </p>
         <h2 className="mt-2 text-xl font-bold text-text-primary">
           Week {data.currentWeek.weekNumber} - {data.currentWeek.seasonName}

@@ -25,7 +25,7 @@ export default async function AppLayout({
     <div className="mx-auto min-h-screen max-w-5xl pb-24">
       <header className="border-b border-surface-border bg-surface-elevated px-4 py-4">
         <p className="text-xs font-semibold uppercase tracking-[0.06em] text-text-muted">
-          Silicone Desert Golf League
+          Silicon Desert Golf League
         </p>
         <h1 className="mt-1 text-xl font-bold text-text-primary">Commissioner Workspace</h1>
       </header>

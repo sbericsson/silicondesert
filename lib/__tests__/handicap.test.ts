@@ -23,7 +23,13 @@ describe('handicap helpers', () => {
   })
 
   it('computes handicap index from recent rounds', () => {
-    expect(handicapIndex([5.0, 8.0, 6.0])).toBe(5.3)
+    // 3 scores: lowest 1 differential, -2.0 adjustment (WHS Rule 5.2a)
+    expect(handicapIndex([5.0, 8.0, 6.0])).toBe(3.0)
+    // 6 scores: average of lowest 2, -1.0 adjustment
+    expect(handicapIndex([5.0, 8.0, 6.0, 7.0, 9.0, 4.0])).toBe(3.5)
+    // fewer than 3 scores: no index
+    expect(handicapIndex([5.0, 8.0])).toBeNull()
+    expect(handicapIndex([])).toBeNull()
   })
 
   it('computes nine-hole course handicap', () => {

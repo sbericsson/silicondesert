@@ -26,40 +26,35 @@ export function scoreDifferential(
   return roundToTenth(raw)
 }
 
-const WHS_LOOKUP: Record<number, number> = {
-  1: 1,
-  2: 1,
-  3: 2,
-  4: 2,
-  5: 2,
-  6: 2,
-  7: 3,
-  8: 3,
-  9: 4,
-  10: 4,
-  11: 4,
-  12: 5,
-  13: 5,
-  14: 5,
-  15: 6,
-  16: 6,
-  17: 7,
-  18: 7,
-  19: 8,
-  20: 8
-}
+// WHS Rule 5.2a table: [max score count, differentials to use, adjustment]
+const WHS_TABLE: Array<[number, number, number]> = [
+  [3, 1, -2.0],
+  [4, 1, -1.0],
+  [5, 1, 0],
+  [6, 2, -1.0],
+  [8, 2, 0],
+  [11, 3, 0],
+  [14, 4, 0],
+  [16, 5, 0],
+  [18, 6, 0],
+  [19, 7, 0],
+  [20, 8, 0],
+]
 
 export function handicapIndex(differentials: number[]) {
-  if (differentials.length === 0) {
+  if (differentials.length < 3) {
     return null
   }
 
   const recent = differentials.slice(-20)
-  const useCount = WHS_LOOKUP[Math.min(recent.length, 20)]
+  const row = WHS_TABLE.find(([maxCount]) => recent.length <= maxCount)
+  if (!row) return null
+
+  const [, useCount, adjustment] = row
   const best = [...recent].sort((a, b) => a - b).slice(0, useCount)
   const average = best.reduce((sum, value) => sum + value, 0) / best.length
 
-  return roundToTenth(average * 0.96)
+  return roundToTenth(average + adjustment)
 }
 
 export function courseHandicap(

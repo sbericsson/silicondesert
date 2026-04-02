@@ -65,6 +65,9 @@ export async function getRosterPageData() {
       include: {
         tees: {
           orderBy: { color: 'asc' }
+        },
+        holes: {
+          orderBy: { holeNumber: 'asc' }
         }
       },
       orderBy: { name: 'asc' }
@@ -108,12 +111,20 @@ export async function getRosterPageData() {
     courses: courses.map((course) => ({
       id: course.id,
       name: course.name,
+      nineHolePar: course.nineHolePar,
+      nineHoleRating: course.nineHoleRating,
+      nineHoleSlope: course.nineHoleSlope,
       tees: course.tees.map((tee) => ({
         color: tee.color,
         gender: tee.gender,
         nineHolePar: tee.nineHolePar,
         nineHoleRating: tee.nineHoleRating,
         nineHoleSlope: tee.nineHoleSlope
+      })),
+      holes: course.holes.map((hole) => ({
+        holeNumber: hole.holeNumber,
+        par: hole.par,
+        strokeIndex: hole.strokeIndex
       }))
     })),
     seasons: seasons.map((season) => ({

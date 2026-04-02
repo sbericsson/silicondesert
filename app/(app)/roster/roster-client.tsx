@@ -56,12 +56,20 @@ type RosterPageData = {
   courses: Array<{
     id: string
     name: string
+    nineHolePar: number
+    nineHoleRating: number
+    nineHoleSlope: number
     tees: Array<{
       color: TeeColor
       gender: Gender
       nineHolePar: number
       nineHoleRating: number
       nineHoleSlope: number
+    }>
+    holes: Array<{
+      holeNumber: number
+      par: number
+      strokeIndex: number
     }>
   }>
   seasons: Array<{
@@ -176,6 +184,20 @@ export function RosterClient({ initialData }: RosterClientProps) {
   const [error, setError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
+  // Course editor state
+  type CourseEditorTee = { _key: string; color: TeeColor; gender: Gender; nineHolePar: string; nineHoleRating: string; nineHoleSlope: string }
+  type CourseEditorHole = { holeNumber: number; par: string; strokeIndex: string }
+  const [editingCourseId, setEditingCourseId] = useState<string | 'new' | null>(null)
+  const [courseName, setCourseName] = useState('')
+  const [courseNineHolePar, setCourseNineHolePar] = useState('36')
+  const [courseNineHoleRating, setCourseNineHoleRating] = useState('')
+  const [courseNineHoleSlope, setCourseNineHoleSlope] = useState('')
+  const [courseTees, setCourseTees] = useState<CourseEditorTee[]>([])
+  const [courseHoles, setCourseHoles] = useState<CourseEditorHole[]>(
+    Array.from({ length: 9 }, (_, i) => ({ holeNumber: i + 1, par: '4', strokeIndex: String(i + 1) }))
+  )
+  const [confirmDeleteCourse, setConfirmDeleteCourse] = useState(false)
+
   useEffect(() => {
     setData(initialData)
   }, [initialData])
@@ -185,6 +207,123 @@ export function RosterClient({ initialData }: RosterClientProps) {
     startTransition(() => {
       router.refresh()
     })
+  }
+
+  function openCourseEditor(course?: RosterPageData['courses'][0]) {
+    setConfirmDeleteCourse(false)
+    setError(null)
+    setMessage(null)
+    if (!course) {
+      setEditingCourseId('new')
+      setCourseName('')
+      setCourseNineHolePar('36')
+      setCourseNineHoleRating('')
+      setCourseNineHoleSlope('')
+      setCourseTees([])
+      setCourseHoles(Array.from({ length: 9 }, (_, i) => ({ holeNumber: i + 1, par: '4', strokeIndex: String(i + 1) })))
+    } else {
+      setEditingCourseId(course.id)
+      setCourseName(course.name)
+      setCourseNineHolePar(String(course.nineHolePar))
+      setCourseNineHoleRating(String(course.nineHoleRating))
+      setCourseNineHoleSlope(String(course.nineHoleSlope))
+      setCourseTees(course.tees.map((tee) => ({
+        _key: `${tee.color}-${tee.gender}`,
+        color: tee.color,
+        gender: tee.gender,
+        nineHolePar: String(tee.nineHolePar),
+        nineHoleRating: String(tee.nineHoleRating),
+        nineHoleSlope: String(tee.nineHoleSlope)
+      })))
+      setCourseHoles(
+        course.holes.length > 0
+          ? course.holes.map((h) => ({ holeNumber: h.holeNumber, par: String(h.par), strokeIndex: String(h.strokeIndex) }))
+          : Array.from({ length: 9 }, (_, i) => ({ holeNumber: i + 1, par: '4', strokeIndex: String(i + 1) }))
+      )
+    }
+  }
+
+  function addCourseTee() {
+    const usedKeys = new Set(courseTees.map((t) => `${t.color}-${t.gender}`))
+    const teeOptions: Array<{ color: TeeColor; gender: Gender }> = [
+      { color: 'blue', gender: 'man' }, { color: 'blue', gender: 'woman' },
+      { color: 'silver', gender: 'man' }, { color: 'silver', gender: 'woman' },
+      { color: 'white', gender: 'man' }, { color: 'white', gender: 'woman' },
+      { color: 'yellow', gender: 'man' }, { color: 'yellow', gender: 'woman' }
+    ]
+    const next = teeOptions.find((o) => !usedKeys.has(`${o.color}-${o.gender}`))
+    if (!next) return
+    setCourseTees((prev) => [...prev, { _key: `${next.color}-${next.gender}`, color: next.color, gender: next.gender, nineHolePar: '36', nineHoleRating: '', nineHoleSlope: '' }])
+  }
+
+  function updateCourseTee(index: number, field: string, value: string) {
+    setCourseTees((prev) => {
+      const next = [...prev]
+      next[index] = { ...next[index], [field]: value }
+      if (field === 'color' || field === 'gender') {
+        next[index]._key = `${next[index].color}-${next[index].gender}`
+      }
+      return next
+    })
+  }
+
+  function removeCourseTee(index: number) {
+    setCourseTees((prev) => prev.filter((_, i) => i !== index))
+  }
+
+  function updateCourseHole(holeNumber: number, field: 'par' | 'strokeIndex', value: string) {
+    setCourseHoles((prev) => prev.map((h) => h.holeNumber === holeNumber ? { ...h, [field]: value } : h))
+  }
+
+  async function saveCourse() {
+    if (!editingCourseId) return
+    setIsSubmitting(true)
+    setError(null)
+    setMessage(null)
+
+    const payload = {
+      name: courseName,
+      nineHolePar: Number(courseNineHolePar) || 36,
+      nineHoleRating: Number(courseNineHoleRating) || 36.0,
+      nineHoleSlope: Number(courseNineHoleSlope) || 113,
+      tees: courseTees.map((t) => ({ color: t.color, gender: t.gender, nineHolePar: Number(t.nineHolePar), nineHoleRating: Number(t.nineHoleRating), nineHoleSlope: Number(t.nineHoleSlope) })),
+      holes: courseHoles.map((h) => ({ holeNumber: h.holeNumber, par: Number(h.par) || 4, strokeIndex: Number(h.strokeIndex) || h.holeNumber }))
+    }
+
+    const url = editingCourseId === 'new' ? '/api/courses' : `/api/courses/${editingCourseId}`
+    const method = editingCourseId === 'new' ? 'POST' : 'PUT'
+
+    const response = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
+    if (!response.ok) {
+      const payload2 = await response.json().catch(() => null)
+      setError(payload2?.error ?? 'Failed to save course')
+      setIsSubmitting(false)
+      return
+    }
+
+    setIsSubmitting(false)
+    setEditingCourseId(null)
+    await refreshPage(editingCourseId === 'new' ? 'Course created.' : 'Course updated.')
+  }
+
+  async function deleteCourse() {
+    if (!editingCourseId || editingCourseId === 'new') return
+    setIsSubmitting(true)
+    setError(null)
+    setMessage(null)
+
+    const response = await fetch(`/api/courses/${editingCourseId}`, { method: 'DELETE' })
+    if (!response.ok) {
+      const payload = await response.json().catch(() => null)
+      setError(payload?.error ?? 'Failed to delete course')
+      setIsSubmitting(false)
+      return
+    }
+
+    setIsSubmitting(false)
+    setEditingCourseId(null)
+    setConfirmDeleteCourse(false)
+    await refreshPage('Course deleted.')
   }
 
   async function handlePublicRosterToggle(publicRosterEnabled: boolean) {
@@ -1455,6 +1594,255 @@ export function RosterClient({ initialData }: RosterClientProps) {
             </button>
           </div>
         </form>
+      ) : null}
+
+      <section className="rounded-xl border border-surface-border bg-surface-elevated">
+        <div className="border-b border-surface-border px-4 py-3">
+          <p className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
+            Courses ({data.courses.length})
+          </p>
+        </div>
+        <div className="divide-y divide-surface-border">
+          {data.courses.length > 0 ? (
+            data.courses.map((course) => (
+              <div key={course.id} className="flex items-start gap-3 px-4 py-3">
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-text-primary">{course.name}</p>
+                  <p className="mt-1 text-xs text-text-secondary">
+                    {course.tees.length} tee{course.tees.length !== 1 ? 's' : ''} · {course.holes.length} hole{course.holes.length !== 1 ? 's' : ''}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  className="rounded-lg bg-surface-sunken px-3 py-2 text-sm font-semibold text-text-primary disabled:cursor-not-allowed disabled:text-text-disabled"
+                  onClick={() => openCourseEditor(course)}
+                  disabled={isSubmitting}
+                >
+                  Edit
+                </button>
+              </div>
+            ))
+          ) : (
+            <div className="px-4 py-3 text-sm text-text-secondary">No courses added yet.</div>
+          )}
+        </div>
+        <div className="border-t border-surface-border px-4 py-3">
+          <button
+            type="button"
+            className="font-condensed rounded-lg bg-accent px-4 py-2.5 text-sm font-bold uppercase tracking-wide text-white disabled:cursor-not-allowed disabled:bg-surface-sunken disabled:text-text-disabled"
+            onClick={() => openCourseEditor()}
+            disabled={isSubmitting}
+          >
+            Add Course
+          </button>
+        </div>
+      </section>
+
+      {editingCourseId ? (
+        <div className="rounded-xl border border-surface-border bg-surface-elevated p-4 space-y-4">
+          <div className="flex items-center justify-between gap-3">
+            <p className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
+              {editingCourseId === 'new' ? 'New Course' : 'Edit Course'}
+            </p>
+            <button
+              type="button"
+              className="text-sm text-text-secondary"
+              onClick={() => setEditingCourseId(null)}
+            >
+              Close
+            </button>
+          </div>
+
+          <label className="block space-y-1.5">
+            <span className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">Course Name</span>
+            <input
+              className="w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
+              placeholder="Course name"
+              value={courseName}
+              onChange={(e) => setCourseName(e.target.value)}
+            />
+          </label>
+
+          <div>
+            <p className="mb-2 font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
+              Default (fallback when no tee selected)
+            </p>
+            <div className="grid gap-3 sm:grid-cols-3">
+              <label className="space-y-1">
+                <span className="font-condensed text-[10px] font-semibold uppercase tracking-widest text-text-muted">9-Hole Par</span>
+                <input
+                  className="w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
+                  inputMode="numeric"
+                  value={courseNineHolePar}
+                  onChange={(e) => setCourseNineHolePar(e.target.value)}
+                />
+              </label>
+              <label className="space-y-1">
+                <span className="font-condensed text-[10px] font-semibold uppercase tracking-widest text-text-muted">9-Hole Rating</span>
+                <input
+                  className="w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
+                  inputMode="decimal"
+                  value={courseNineHoleRating}
+                  onChange={(e) => setCourseNineHoleRating(e.target.value)}
+                />
+              </label>
+              <label className="space-y-1">
+                <span className="font-condensed text-[10px] font-semibold uppercase tracking-widest text-text-muted">9-Hole Slope</span>
+                <input
+                  className="w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
+                  inputMode="numeric"
+                  value={courseNineHoleSlope}
+                  onChange={(e) => setCourseNineHoleSlope(e.target.value)}
+                />
+              </label>
+            </div>
+          </div>
+
+          <div>
+            <div className="mb-2 flex items-center justify-between gap-3">
+              <p className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">Tees</p>
+              <button
+                type="button"
+                className="rounded bg-surface-sunken px-3 py-1 text-xs font-semibold text-text-primary hover:bg-surface-border"
+                onClick={addCourseTee}
+              >
+                + Add Tee
+              </button>
+            </div>
+            {courseTees.length > 0 ? (
+              <div className="space-y-2">
+                <div className="grid grid-cols-[1fr_1fr_64px_80px_80px_32px] gap-2">
+                  <p className="font-condensed text-[10px] font-semibold uppercase tracking-widest text-text-muted">Color</p>
+                  <p className="font-condensed text-[10px] font-semibold uppercase tracking-widest text-text-muted">Gender</p>
+                  <p className="font-condensed text-[10px] font-semibold uppercase tracking-widest text-text-muted">Par</p>
+                  <p className="font-condensed text-[10px] font-semibold uppercase tracking-widest text-text-muted">Rating</p>
+                  <p className="font-condensed text-[10px] font-semibold uppercase tracking-widest text-text-muted">Slope</p>
+                  <span />
+                </div>
+                {courseTees.map((tee, index) => (
+                  <div key={tee._key} className="grid grid-cols-[1fr_1fr_64px_80px_80px_32px] gap-2 items-center">
+                    <select
+                      className="w-full rounded-md border border-surface-border bg-surface-sunken px-2 py-2 text-sm text-text-primary"
+                      value={tee.color}
+                      onChange={(e) => updateCourseTee(index, 'color', e.target.value)}
+                    >
+                      <option value="blue">Blue</option>
+                      <option value="silver">Silver</option>
+                      <option value="white">White</option>
+                      <option value="yellow">Yellow</option>
+                    </select>
+                    <select
+                      className="w-full rounded-md border border-surface-border bg-surface-sunken px-2 py-2 text-sm text-text-primary"
+                      value={tee.gender}
+                      onChange={(e) => updateCourseTee(index, 'gender', e.target.value)}
+                    >
+                      <option value="man">Men</option>
+                      <option value="woman">Women</option>
+                    </select>
+                    <input
+                      className="w-full rounded-md border border-surface-border bg-surface-sunken px-2 py-2 text-sm text-text-primary"
+                      inputMode="numeric"
+                      value={tee.nineHolePar}
+                      onChange={(e) => updateCourseTee(index, 'nineHolePar', e.target.value)}
+                    />
+                    <input
+                      className="w-full rounded-md border border-surface-border bg-surface-sunken px-2 py-2 text-sm text-text-primary"
+                      inputMode="decimal"
+                      value={tee.nineHoleRating}
+                      onChange={(e) => updateCourseTee(index, 'nineHoleRating', e.target.value)}
+                    />
+                    <input
+                      className="w-full rounded-md border border-surface-border bg-surface-sunken px-2 py-2 text-sm text-text-primary"
+                      inputMode="numeric"
+                      value={tee.nineHoleSlope}
+                      onChange={(e) => updateCourseTee(index, 'nineHoleSlope', e.target.value)}
+                    />
+                    <button
+                      type="button"
+                      className="flex h-8 w-8 items-center justify-center rounded text-danger-text hover:bg-danger-dim"
+                      onClick={() => removeCourseTee(index)}
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="rounded-lg border border-dashed border-surface-border px-4 py-4 text-sm text-text-secondary">
+                No tees configured. Add a tee to set rating/slope per tee color.
+              </div>
+            )}
+          </div>
+
+          <div>
+            <p className="mb-2 font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">Holes</p>
+            <div className="grid grid-cols-[40px_1fr_1fr] gap-2 mb-1.5 px-1">
+              <p className="font-condensed text-[10px] font-semibold uppercase tracking-widest text-text-muted">#</p>
+              <p className="font-condensed text-[10px] font-semibold uppercase tracking-widest text-text-muted">Par</p>
+              <p className="font-condensed text-[10px] font-semibold uppercase tracking-widest text-text-muted">Stroke Index</p>
+            </div>
+            <div className="space-y-1.5">
+              {courseHoles.map((hole) => (
+                <div key={hole.holeNumber} className="grid grid-cols-[40px_1fr_1fr] gap-2 items-center">
+                  <span className="font-condensed pl-1 text-xs font-semibold text-text-muted">{hole.holeNumber}</span>
+                  <input
+                    className="w-full rounded-md border border-surface-border bg-surface-sunken px-2 py-2 text-sm text-text-primary"
+                    inputMode="numeric"
+                    value={hole.par}
+                    onChange={(e) => updateCourseHole(hole.holeNumber, 'par', e.target.value)}
+                  />
+                  <input
+                    className="w-full rounded-md border border-surface-border bg-surface-sunken px-2 py-2 text-sm text-text-primary"
+                    inputMode="numeric"
+                    value={hole.strokeIndex}
+                    onChange={(e) => updateCourseHole(hole.holeNumber, 'strokeIndex', e.target.value)}
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <button
+              type="button"
+              className="font-condensed w-full rounded-lg bg-accent px-4 py-3 text-sm font-bold uppercase tracking-wide text-white disabled:cursor-not-allowed disabled:bg-surface-sunken disabled:text-text-disabled"
+              onClick={saveCourse}
+              disabled={isSubmitting}
+            >
+              {editingCourseId === 'new' ? 'Create Course' : 'Save Course'}
+            </button>
+            {editingCourseId !== 'new' ? (
+              confirmDeleteCourse ? (
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    className="font-condensed flex-1 rounded-lg bg-danger-dim px-4 py-3 text-sm font-bold uppercase tracking-wide text-danger-text disabled:cursor-not-allowed"
+                    onClick={deleteCourse}
+                    disabled={isSubmitting}
+                  >
+                    Confirm Delete
+                  </button>
+                  <button
+                    type="button"
+                    className="rounded-lg bg-surface-sunken px-4 py-3 text-sm font-semibold text-text-secondary"
+                    onClick={() => setConfirmDeleteCourse(false)}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  className="font-condensed w-full rounded-lg bg-surface-sunken px-4 py-3 text-sm font-semibold text-danger-text disabled:cursor-not-allowed"
+                  onClick={() => setConfirmDeleteCourse(true)}
+                  disabled={isSubmitting}
+                >
+                  Delete Course
+                </button>
+              )
+            ) : null}
+          </div>
+        </div>
       ) : null}
     </section>
   )

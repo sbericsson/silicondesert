@@ -609,6 +609,12 @@ export function RosterClient({ initialData }: RosterClientProps) {
       return
     }
 
+    closeEditingPlayer()
+    setIsSubmitting(false)
+    await refreshPage('Player updated.')
+  }
+
+  function closeEditingPlayer() {
     setEditingPlayerId(null)
     setEditingPlayerName('')
     setEditingPlayerGender('man')
@@ -617,8 +623,6 @@ export function RosterClient({ initialData }: RosterClientProps) {
     setEditingPlayerSeedHandicap('')
     setEditingPlayerImportedRounds([])
     setEditingPlayerSeasonTeeChoices({})
-    setIsSubmitting(false)
-    await refreshPage('Player updated.')
   }
 
   function beginEditingPlayer(player: RosterPageData['players'][number]) {
@@ -1116,386 +1120,387 @@ export function RosterClient({ initialData }: RosterClientProps) {
         </div>
         <div className="divide-y divide-surface-border">
           {data.players.map((player) => (
-            <div
-              key={player.id}
-              className={`flex items-center gap-3 px-4 py-3 ${
-                player.active ? '' : 'bg-surface-sunken/30'
-              }`}
-            >
-              <div className="flex-1">
-                <div className="flex flex-wrap items-center gap-2">
-                  <p className="text-sm font-medium text-text-primary">{player.name}</p>
-                  <span className="rounded bg-surface-sunken px-2 py-0.5 font-condensed text-[11px] font-semibold uppercase tracking-widest text-text-secondary">
-                    {player.gender === 'man' ? 'Man' : 'Woman'}
-                  </span>
-                  {!player.active ? (
-                    <span className="rounded bg-warning-dim px-2 py-0.5 font-condensed text-[11px] font-semibold uppercase tracking-widest text-warning-text">
-                      Inactive
+            <div key={player.id}>
+              <div
+                className={`flex items-center gap-3 px-4 py-3 ${
+                  player.active ? '' : 'bg-surface-sunken/30'
+                }`}
+              >
+                <div className="flex-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <p className="text-sm font-medium text-text-primary">{player.name}</p>
+                    <span className="rounded bg-surface-sunken px-2 py-0.5 font-condensed text-[11px] font-semibold uppercase tracking-widest text-text-secondary">
+                      {player.gender === 'man' ? 'Man' : 'Woman'}
                     </span>
-                  ) : null}
+                    {!player.active ? (
+                      <span className="rounded bg-warning-dim px-2 py-0.5 font-condensed text-[11px] font-semibold uppercase tracking-widest text-warning-text">
+                        Inactive
+                      </span>
+                    ) : null}
+                  </div>
+                  <p className="mt-1 text-xs text-text-secondary">
+                    {player.email ?? 'No email'} · {formatUsPhoneNumber(player.cellPhone) ?? 'No cell'}{' '}
+                    ·{' '}
+                    {player.handicap.kind === 'HCP' ? player.handicap.value : player.handicap.kind}
+                  </p>
+                  <p className="mt-1 text-[11px] text-text-secondary">
+                    {player.importedHandicapRounds.length > 0
+                      ? `${player.importedHandicapRounds.length} imported handicap round${player.importedHandicapRounds.length === 1 ? '' : 's'}`
+                      : 'No imported handicap history'}
+                  </p>
                 </div>
-                <p className="mt-1 text-xs text-text-secondary">
-                  {player.email ?? 'No email'} · {formatUsPhoneNumber(player.cellPhone) ?? 'No cell'}{' '}
-                  ·{' '}
-                  {player.handicap.kind === 'HCP' ? player.handicap.value : player.handicap.kind}
-                </p>
-                <p className="mt-1 text-[11px] text-text-secondary">
-                  {player.importedHandicapRounds.length > 0
-                    ? `${player.importedHandicapRounds.length} imported handicap round${player.importedHandicapRounds.length === 1 ? '' : 's'}`
-                    : 'No imported handicap history'}
-                </p>
+                <div className="flex flex-wrap justify-end gap-2">
+                  <button
+                    type="button"
+                    className="rounded-lg bg-surface-sunken px-3 py-2 text-sm font-semibold text-text-primary"
+                    onClick={() => beginEditingPlayer(player)}
+                    disabled={isSubmitting}
+                  >
+                    Edit
+                  </button>
+                  <button
+                    type="button"
+                    className={`rounded-lg px-3 py-2 text-sm font-semibold ${
+                      player.active
+                        ? 'bg-surface-sunken text-text-primary'
+                        : 'bg-accent-dim text-accent-text'
+                    }`}
+                    onClick={() => handleTogglePlayer(player.id, !player.active)}
+                    disabled={isSubmitting}
+                  >
+                    {player.active ? 'Deactivate' : 'Activate'}
+                  </button>
+                  <button
+                    type="button"
+                    className="rounded-lg bg-danger-dim px-3 py-2 text-sm font-semibold text-danger-text"
+                    onClick={() => handleDeletePlayer(player)}
+                    disabled={isSubmitting}
+                  >
+                    Delete
+                  </button>
+                </div>
               </div>
-              <div className="flex flex-wrap justify-end gap-2">
-                <button
-                  type="button"
-                  className="rounded-lg bg-surface-sunken px-3 py-2 text-sm font-semibold text-text-primary"
-                  onClick={() => beginEditingPlayer(player)}
-                  disabled={isSubmitting}
+
+              {editingPlayerId === player.id ? (
+                <form
+                  className="border-t border-surface-border bg-surface-base px-4 py-4"
+                  onSubmit={handleSavePlayer}
                 >
-                  Edit
-                </button>
-                <button
-                  type="button"
-                  className={`rounded-lg px-3 py-2 text-sm font-semibold ${
-                    player.active
-                      ? 'bg-surface-sunken text-text-primary'
-                      : 'bg-accent-dim text-accent-text'
-                  }`}
-                  onClick={() => handleTogglePlayer(player.id, !player.active)}
-                  disabled={isSubmitting}
-                >
-                  {player.active ? 'Deactivate' : 'Activate'}
-                </button>
-                <button
-                  type="button"
-                  className="rounded-lg bg-danger-dim px-3 py-2 text-sm font-semibold text-danger-text"
-                  onClick={() => handleDeletePlayer(player)}
-                  disabled={isSubmitting}
-                >
-                  Delete
-                </button>
-              </div>
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <p className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
+                        Edit Player
+                      </p>
+                      <p className="mt-1 text-sm text-text-secondary">
+                        Update player profile, contact info, and seeded handicap.
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      className="text-sm text-text-secondary"
+                      onClick={closeEditingPlayer}
+                    >
+                      Close
+                    </button>
+                  </div>
+                  <div className="mt-4 grid gap-3 md:grid-cols-2">
+                    <input
+                      className="w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
+                      placeholder="Name"
+                      value={editingPlayerName}
+                      onChange={(event) => setEditingPlayerName(event.target.value)}
+                    />
+                    <select
+                      className="w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
+                      value={editingPlayerGender}
+                      onChange={(event) => setEditingPlayerGender(event.target.value as Gender)}
+                    >
+                      <option value="man">Man</option>
+                      <option value="woman">Woman</option>
+                    </select>
+                    <input
+                      className="w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
+                      placeholder="Email"
+                      value={editingPlayerEmail}
+                      onChange={(event) => setEditingPlayerEmail(event.target.value)}
+                    />
+                    <input
+                      className="w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
+                      inputMode="tel"
+                      placeholder="Cell phone"
+                      value={editingPlayerCellPhone}
+                      onChange={(event) => handleEditingPlayerCellPhoneChange(event.target.value)}
+                    />
+                    <input
+                      className="w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
+                      inputMode="decimal"
+                      placeholder="Seed handicap"
+                      value={editingPlayerSeedHandicap}
+                      onChange={(event) => setEditingPlayerSeedHandicap(event.target.value)}
+                    />
+                  </div>
+                  <div className="mt-4 rounded-lg border border-surface-border bg-surface-sunken p-3">
+                    <p className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
+                      Season Tee Choice
+                    </p>
+                    <div className="mt-3 space-y-3">
+                      {data.seasons.length > 0 ? (
+                        data.seasons.map((season) => (
+                          <div key={season.id} className="grid gap-2 md:grid-cols-[1fr_140px] md:items-center">
+                            <div>
+                              <p className="text-sm font-medium text-text-primary">{season.name}</p>
+                              <p className="text-xs text-text-secondary">
+                                {season.archivedAt ? 'Archived season' : 'Applies across this season'}
+                              </p>
+                            </div>
+                            <select
+                              className="w-full rounded-md border border-surface-border bg-surface-elevated px-3 py-2.5 text-sm text-text-primary"
+                              value={editingPlayerSeasonTeeChoices[season.id] ?? 'white'}
+                              onChange={(event) =>
+                                updateEditingPlayerSeasonTeeChoice(season.id, event.target.value as TeeColor)
+                              }
+                            >
+                              <option value="blue">Blue</option>
+                              <option value="white">White</option>
+                              <option value="yellow">Yellow</option>
+                              <option value="silver">Silver</option>
+                            </select>
+                          </div>
+                        ))
+                      ) : (
+                        <p className="text-sm text-text-secondary">
+                          Create a season first, then assign each player’s tee color for that season.
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                  <div className="mt-4 rounded-lg border border-surface-border bg-surface-sunken p-3">
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <p className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
+                          Prior Handicap Rounds
+                        </p>
+                        <p className="mt-2 text-xs text-text-secondary">
+                          Add up to 20 prior 9-hole rounds with the date picker, course, tee, and gross score.
+                        </p>
+                        <p className="mt-1 text-xs text-text-secondary">
+                          Leave adjusted blank when gross and adjusted are the same. Choose custom only when the round does not match one of the configured courses.
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        className="rounded-lg border border-surface-border bg-surface-elevated px-3 py-2 text-sm font-semibold text-text-primary"
+                        onClick={addEditingPlayerImportedRound}
+                        disabled={isSubmitting || editingPlayerImportedRounds.length >= 20}
+                      >
+                        Add Round
+                      </button>
+                    </div>
+                    <div className="mt-4 space-y-3">
+                      {editingPlayerImportedRounds.length > 0 ? (
+                        editingPlayerImportedRounds.map((round, index) => {
+                          const selectedTee =
+                            round.courseId !== CUSTOM_COURSE_ID
+                              ? getImportedHandicapCourseTee(
+                                  data.courses,
+                                  round.courseId,
+                                  round.teeColor,
+                                  editingPlayerGender
+                                )
+                              : null
+
+                          return (
+                            <div
+                              key={round.id}
+                              className="rounded-lg border border-surface-border bg-surface-elevated p-3"
+                            >
+                              <div className="flex items-center justify-between gap-3">
+                                <p className="text-sm font-semibold text-text-primary">
+                                  Round {index + 1}
+                                </p>
+                                <button
+                                  type="button"
+                                  className="text-sm text-danger-text"
+                                  onClick={() => removeEditingPlayerImportedRound(round.id)}
+                                >
+                                  Remove
+                                </button>
+                              </div>
+                              <div className="mt-3 grid gap-3 md:grid-cols-2 xl:grid-cols-5">
+                                <label className="space-y-1">
+                                  <span className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
+                                    Date
+                                  </span>
+                                  <input
+                                    className="w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
+                                    type="date"
+                                    value={round.date}
+                                    onChange={(event) =>
+                                      updateEditingPlayerImportedRound(round.id, {
+                                        date: event.target.value
+                                      })
+                                    }
+                                  />
+                                </label>
+                                <label className="space-y-1 xl:col-span-2">
+                                  <span className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
+                                    Course
+                                  </span>
+                                  <select
+                                    className="w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
+                                    value={round.courseId}
+                                    onChange={(event) =>
+                                      updateEditingPlayerImportedRound(round.id, {
+                                        courseId: event.target.value
+                                      })
+                                    }
+                                  >
+                                    {data.courses.map((course) => (
+                                      <option key={course.id} value={course.id}>
+                                        {course.name}
+                                      </option>
+                                    ))}
+                                    <option value={CUSTOM_COURSE_ID}>Custom course values</option>
+                                  </select>
+                                </label>
+                                <label className="space-y-1">
+                                  <span className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
+                                    Tee
+                                  </span>
+                                  <select
+                                    className="w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary disabled:text-text-disabled"
+                                    value={round.teeColor}
+                                    onChange={(event) =>
+                                      updateEditingPlayerImportedRound(round.id, {
+                                        teeColor: event.target.value as TeeColor
+                                      })
+                                    }
+                                    disabled={round.courseId === CUSTOM_COURSE_ID}
+                                  >
+                                    <option value="blue">Blue</option>
+                                    <option value="white">White</option>
+                                    <option value="yellow">Yellow</option>
+                                    <option value="silver">Silver</option>
+                                  </select>
+                                </label>
+                                <label className="space-y-1">
+                                  <span className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
+                                    Gross
+                                  </span>
+                                  <input
+                                    className="w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
+                                    inputMode="numeric"
+                                    value={round.grossScore}
+                                    onChange={(event) =>
+                                      updateEditingPlayerImportedRound(round.id, {
+                                        grossScore: event.target.value
+                                      })
+                                    }
+                                  />
+                                </label>
+                              </div>
+                              <div className="mt-3 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+                                <label className="space-y-1">
+                                  <span className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
+                                    Adjusted
+                                  </span>
+                                  <input
+                                    className="w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
+                                    inputMode="numeric"
+                                    placeholder="Same as gross"
+                                    value={round.adjustedGrossScore}
+                                    onChange={(event) =>
+                                      updateEditingPlayerImportedRound(round.id, {
+                                        adjustedGrossScore: event.target.value
+                                      })
+                                    }
+                                  />
+                                </label>
+                                {round.courseId === CUSTOM_COURSE_ID ? (
+                                  <>
+                                    <label className="space-y-1">
+                                      <span className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
+                                        Rating
+                                      </span>
+                                      <input
+                                        className="w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
+                                        inputMode="decimal"
+                                        value={round.courseRating}
+                                        onChange={(event) =>
+                                          updateEditingPlayerImportedRound(round.id, {
+                                            courseRating: event.target.value
+                                          })
+                                        }
+                                      />
+                                    </label>
+                                    <label className="space-y-1">
+                                      <span className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
+                                        Slope
+                                      </span>
+                                      <input
+                                        className="w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
+                                        inputMode="numeric"
+                                        value={round.slopeRating}
+                                        onChange={(event) =>
+                                          updateEditingPlayerImportedRound(round.id, {
+                                            slopeRating: event.target.value
+                                          })
+                                        }
+                                      />
+                                    </label>
+                                    <label className="space-y-1">
+                                      <span className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
+                                        Par
+                                      </span>
+                                      <input
+                                        className="w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
+                                        inputMode="numeric"
+                                        value={round.coursePar}
+                                        onChange={(event) =>
+                                          updateEditingPlayerImportedRound(round.id, {
+                                            coursePar: event.target.value
+                                          })
+                                        }
+                                      />
+                                    </label>
+                                  </>
+                                ) : (
+                                  <div className="xl:col-span-3 rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-secondary">
+                                    {selectedTee ? (
+                                      <>
+                                        Uses {selectedTee.courseName} {selectedTee.teeColor} tee values:
+                                        {' '}
+                                        {selectedTee.nineHoleRating.toFixed(1)} / {selectedTee.nineHoleSlope} / Par {selectedTee.nineHolePar}
+                                      </>
+                                    ) : (
+                                      'This course does not have tee values configured yet.'
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          )
+                        })
+                      ) : (
+                        <div className="rounded-lg border border-dashed border-surface-border px-4 py-6 text-sm text-text-secondary">
+                          No prior handicap rounds added yet.
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  <button
+                    type="submit"
+                    className="mt-4 font-condensed w-full rounded-lg bg-accent px-4 py-3 text-sm font-bold uppercase tracking-wide text-white disabled:cursor-not-allowed disabled:bg-surface-sunken disabled:text-text-disabled"
+                    disabled={isSubmitting}
+                  >
+                    Save Player
+                  </button>
+                </form>
+              ) : null}
             </div>
           ))}
         </div>
       </section>
-
-      {editingPlayerId ? (
-        <form
-          className="rounded-xl border border-surface-border bg-surface-elevated p-4"
-          onSubmit={handleSavePlayer}
-        >
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <p className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
-                Edit Player
-              </p>
-              <p className="mt-1 text-sm text-text-secondary">
-                Update player profile, contact info, and seeded handicap.
-              </p>
-            </div>
-            <button
-              type="button"
-              className="text-sm text-text-secondary"
-              onClick={() => setEditingPlayerId(null)}
-            >
-              Close
-            </button>
-          </div>
-          <div className="mt-4 grid gap-3 md:grid-cols-2">
-            <input
-              className="w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
-              placeholder="Name"
-              value={editingPlayerName}
-              onChange={(event) => setEditingPlayerName(event.target.value)}
-            />
-            <select
-              className="w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
-              value={editingPlayerGender}
-              onChange={(event) => setEditingPlayerGender(event.target.value as Gender)}
-            >
-              <option value="man">Man</option>
-              <option value="woman">Woman</option>
-            </select>
-            <input
-              className="w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
-              placeholder="Email"
-              value={editingPlayerEmail}
-              onChange={(event) => setEditingPlayerEmail(event.target.value)}
-            />
-            <input
-              className="w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
-              inputMode="tel"
-              placeholder="Cell phone"
-              value={editingPlayerCellPhone}
-              onChange={(event) => handleEditingPlayerCellPhoneChange(event.target.value)}
-            />
-            <input
-              className="w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
-              inputMode="decimal"
-              placeholder="Seed handicap"
-              value={editingPlayerSeedHandicap}
-              onChange={(event) => setEditingPlayerSeedHandicap(event.target.value)}
-            />
-          </div>
-          <div className="mt-4 rounded-lg border border-surface-border bg-surface-sunken p-3">
-            <p className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
-              Season Tee Choice
-            </p>
-            <div className="mt-3 space-y-3">
-              {data.seasons.length > 0 ? (
-                data.seasons.map((season) => (
-                  <div key={season.id} className="grid gap-2 md:grid-cols-[1fr_140px] md:items-center">
-                    <div>
-                      <p className="text-sm font-medium text-text-primary">{season.name}</p>
-                      <p className="text-xs text-text-secondary">
-                        {season.archivedAt ? 'Archived season' : 'Applies across this season'}
-                      </p>
-                    </div>
-                    <select
-                      className="w-full rounded-md border border-surface-border bg-surface-elevated px-3 py-2.5 text-sm text-text-primary"
-                      value={editingPlayerSeasonTeeChoices[season.id] ?? 'white'}
-                      onChange={(event) =>
-                        updateEditingPlayerSeasonTeeChoice(season.id, event.target.value as TeeColor)
-                      }
-                    >
-                      <option value="blue">Blue</option>
-                      <option value="white">White</option>
-                      <option value="yellow">Yellow</option>
-                      <option value="silver">Silver</option>
-                    </select>
-                  </div>
-                ))
-              ) : (
-                <p className="text-sm text-text-secondary">
-                  Create a season first, then assign each player’s tee color for that season.
-                </p>
-              )}
-            </div>
-          </div>
-          <div className="mt-4 rounded-lg border border-surface-border bg-surface-sunken p-3">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <p className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
-                  Prior Handicap Rounds
-                </p>
-                <p className="mt-2 text-xs text-text-secondary">
-                  Add up to 20 prior 9-hole rounds with the date picker, course, tee, and gross score.
-                </p>
-                <p className="mt-1 text-xs text-text-secondary">
-                  Leave adjusted blank when gross and adjusted are the same. Choose custom only when the round does not match one of the configured courses.
-                </p>
-              </div>
-              <button
-                type="button"
-                className="rounded-lg border border-surface-border bg-surface-elevated px-3 py-2 text-sm font-semibold text-text-primary"
-                onClick={addEditingPlayerImportedRound}
-                disabled={isSubmitting || editingPlayerImportedRounds.length >= 20}
-              >
-                Add Round
-              </button>
-            </div>
-            <div className="mt-4 space-y-3">
-              {editingPlayerImportedRounds.length > 0 ? (
-                editingPlayerImportedRounds.map((round, index) => {
-                  const selectedTee =
-                    round.courseId !== CUSTOM_COURSE_ID
-                      ? getImportedHandicapCourseTee(
-                          data.courses,
-                          round.courseId,
-                          round.teeColor,
-                          editingPlayerGender
-                        )
-                      : null
-
-                  return (
-                    <div
-                      key={round.id}
-                      className="rounded-lg border border-surface-border bg-surface-elevated p-3"
-                    >
-                      <div className="flex items-center justify-between gap-3">
-                        <p className="text-sm font-semibold text-text-primary">
-                          Round {index + 1}
-                        </p>
-                        <button
-                          type="button"
-                          className="text-sm text-danger-text"
-                          onClick={() => removeEditingPlayerImportedRound(round.id)}
-                        >
-                          Remove
-                        </button>
-                      </div>
-                      <div className="mt-3 grid gap-3 md:grid-cols-2 xl:grid-cols-5">
-                        <label className="space-y-1">
-                          <span className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
-                            Date
-                          </span>
-                          <input
-                            className="w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
-                            type="date"
-                            value={round.date}
-                            onChange={(event) =>
-                              updateEditingPlayerImportedRound(round.id, {
-                                date: event.target.value
-                              })
-                            }
-                          />
-                        </label>
-                        <label className="space-y-1 xl:col-span-2">
-                          <span className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
-                            Course
-                          </span>
-                          <select
-                            className="w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
-                            value={round.courseId}
-                            onChange={(event) =>
-                              updateEditingPlayerImportedRound(round.id, {
-                                courseId: event.target.value
-                              })
-                            }
-                          >
-                            {data.courses.map((course) => (
-                              <option key={course.id} value={course.id}>
-                                {course.name}
-                              </option>
-                            ))}
-                            <option value={CUSTOM_COURSE_ID}>Custom course values</option>
-                          </select>
-                        </label>
-                        <label className="space-y-1">
-                          <span className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
-                            Tee
-                          </span>
-                          <select
-                            className="w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary disabled:text-text-disabled"
-                            value={round.teeColor}
-                            onChange={(event) =>
-                              updateEditingPlayerImportedRound(round.id, {
-                                teeColor: event.target.value as TeeColor
-                              })
-                            }
-                            disabled={round.courseId === CUSTOM_COURSE_ID}
-                          >
-                            <option value="blue">Blue</option>
-                            <option value="white">White</option>
-                            <option value="yellow">Yellow</option>
-                            <option value="silver">Silver</option>
-                          </select>
-                        </label>
-                        <label className="space-y-1">
-                          <span className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
-                            Gross
-                          </span>
-                          <input
-                            className="w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
-                            inputMode="numeric"
-                            value={round.grossScore}
-                            onChange={(event) =>
-                              updateEditingPlayerImportedRound(round.id, {
-                                grossScore: event.target.value
-                              })
-                            }
-                          />
-                        </label>
-                      </div>
-                      <div className="mt-3 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-                        <label className="space-y-1">
-                          <span className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
-                            Adjusted
-                          </span>
-                          <input
-                            className="w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
-                            inputMode="numeric"
-                            placeholder="Same as gross"
-                            value={round.adjustedGrossScore}
-                            onChange={(event) =>
-                              updateEditingPlayerImportedRound(round.id, {
-                                adjustedGrossScore: event.target.value
-                              })
-                            }
-                          />
-                        </label>
-                        {round.courseId === CUSTOM_COURSE_ID ? (
-                          <>
-                            <label className="space-y-1">
-                              <span className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
-                                Rating
-                              </span>
-                              <input
-                                className="w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
-                                inputMode="decimal"
-                                value={round.courseRating}
-                                onChange={(event) =>
-                                  updateEditingPlayerImportedRound(round.id, {
-                                    courseRating: event.target.value
-                                  })
-                                }
-                              />
-                            </label>
-                            <label className="space-y-1">
-                              <span className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
-                                Slope
-                              </span>
-                              <input
-                                className="w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
-                                inputMode="numeric"
-                                value={round.slopeRating}
-                                onChange={(event) =>
-                                  updateEditingPlayerImportedRound(round.id, {
-                                    slopeRating: event.target.value
-                                  })
-                                }
-                              />
-                            </label>
-                            <label className="space-y-1">
-                              <span className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
-                                Par
-                              </span>
-                              <input
-                                className="w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
-                                inputMode="numeric"
-                                value={round.coursePar}
-                                onChange={(event) =>
-                                  updateEditingPlayerImportedRound(round.id, {
-                                    coursePar: event.target.value
-                                  })
-                                }
-                              />
-                            </label>
-                          </>
-                        ) : (
-                          <div className="xl:col-span-3 rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-secondary">
-                            {selectedTee ? (
-                              <>
-                                Uses {selectedTee.courseName} {selectedTee.teeColor} tee values:
-                                {' '}
-                                {selectedTee.nineHoleRating.toFixed(1)} / {selectedTee.nineHoleSlope} / Par {selectedTee.nineHolePar}
-                              </>
-                            ) : (
-                              'This course does not have tee values configured yet.'
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  )
-                })
-              ) : (
-                <div className="rounded-lg border border-dashed border-surface-border px-4 py-6 text-sm text-text-secondary">
-                  No prior handicap rounds added yet.
-                </div>
-              )}
-            </div>
-          </div>
-          <button
-            type="submit"
-            className="mt-4 font-condensed w-full rounded-lg bg-accent px-4 py-3 text-sm font-bold uppercase tracking-wide text-white disabled:cursor-not-allowed disabled:bg-surface-sunken disabled:text-text-disabled"
-            disabled={isSubmitting}
-          >
-            Save Player
-          </button>
-        </form>
-      ) : null}
 
       <section className="rounded-xl border border-surface-border bg-surface-elevated">
         <div className="border-b border-surface-border px-4 py-3">

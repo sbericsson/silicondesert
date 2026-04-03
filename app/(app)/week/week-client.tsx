@@ -24,12 +24,16 @@ type WeekPageData = {
     matchCount: number
     matches: Array<{
       id: string
+      player1Id: string
+      player2Id: string
       player1Name: string
       player2Name: string
       player1TeeColor: TeeColor
       player2TeeColor: TeeColor
-      player1Handicap: number
-      player2Handicap: number
+      player1DisplayHandicap: number
+      player2DisplayHandicap: number
+      popDifference: number
+      popRecipientId: string | null
       player2ScorecardOnly: boolean
       locked: boolean
       scoreComplete: boolean
@@ -74,6 +78,8 @@ const holeOptions = Array.from({ length: 9 }, (_, index) => index + 1)
 export function WeekClient({ initialData }: WeekClientProps) {
   const router = useRouter()
   const [data, setData] = useState(initialData)
+  const [manualPlayer1Id, setManualPlayer1Id] = useState('')
+  const [manualPlayer2Id, setManualPlayer2Id] = useState('')
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -82,6 +88,35 @@ export function WeekClient({ initialData }: WeekClientProps) {
   useEffect(() => {
     setData(initialData)
   }, [initialData])
+
+  useEffect(() => {
+    if (!data.currentWeek) {
+      setManualPlayer1Id('')
+      setManualPlayer2Id('')
+      return
+    }
+
+    const matchedPlayerIds = new Set(
+      data.currentWeek.matches.flatMap((match) => [match.player1Id, match.player2Id])
+    )
+    const unmatchedPresentPlayers = data.attendance.filter(
+      (player) => player.present && !matchedPlayerIds.has(player.playerId)
+    )
+
+    setManualPlayer1Id((current) =>
+      current && unmatchedPresentPlayers.some((player) => player.playerId === current)
+        ? current
+        : unmatchedPresentPlayers[0]?.playerId ?? ''
+    )
+    setManualPlayer2Id((current) =>
+      current &&
+      current !== unmatchedPresentPlayers[0]?.playerId &&
+      unmatchedPresentPlayers.some((player) => player.playerId === current)
+        ? current
+        : unmatchedPresentPlayers.find((player) => player.playerId !== unmatchedPresentPlayers[0]?.playerId)
+            ?.playerId ?? ''
+    )
+  }, [data])
 
   async function runAction(action: () => Promise<void>) {
     setIsRefreshing(true)
@@ -165,6 +200,51 @@ export function WeekClient({ initialData }: WeekClientProps) {
       }
 
       setMessage('Pairings generated.')
+    })
+  }
+
+  async function createManualPairing() {
+    if (!data.currentWeek || !manualPlayer1Id || !manualPlayer2Id || manualPlayer1Id === manualPlayer2Id) {
+      return
+    }
+
+    await runAction(async () => {
+      const response = await fetch(`/api/weeks/${data.currentWeek?.id}/pairings/manual`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          player1Id: manualPlayer1Id,
+          player2Id: manualPlayer2Id
+        })
+      })
+
+      if (!response.ok) {
+        const payload = await response.json().catch(() => null)
+        throw new Error(payload?.error ?? 'Unable to create manual pairing')
+      }
+
+      setMessage('Manual pairing created.')
+    })
+  }
+
+  async function removePairing(matchId: string) {
+    if (!data.currentWeek) {
+      return
+    }
+
+    await runAction(async () => {
+      const response = await fetch(`/api/weeks/${data.currentWeek?.id}/pairings/${matchId}`, {
+        method: 'DELETE'
+      })
+
+      if (!response.ok) {
+        const payload = await response.json().catch(() => null)
+        throw new Error(payload?.error ?? 'Unable to remove pairing')
+      }
+
+      setMessage('Pairing removed.')
     })
   }
 
@@ -310,9 +390,25 @@ export function WeekClient({ initialData }: WeekClientProps) {
     )
   }
 
+  const matchedPlayerIds = new Set(
+    data.currentWeek.matches.flatMap((match) => [match.player1Id, match.player2Id])
+  )
+  const unmatchedPresentPlayers = data.attendance.filter(
+    (player) => player.present && !matchedPlayerIds.has(player.playerId)
+  )
   const canGeneratePairings =
-    data.presentCount >= 2 && !!data.currentWeek.courseId && !!data.currentWeek.ctpHoleNumber && !data.currentWeek.locked
-  const allScoresComplete = data.currentWeek.matches.length > 0 && data.currentWeek.matches.every((match) => match.scoreComplete)
+    unmatchedPresentPlayers.length >= 2 &&
+    !!data.currentWeek.courseId &&
+    !!data.currentWeek.ctpHoleNumber &&
+    !data.currentWeek.locked
+  const allScoresComplete =
+    data.currentWeek.matches.length > 0 && data.currentWeek.matches.every((match) => match.scoreComplete)
+  const canCreateManualPairing =
+    !data.currentWeek.locked &&
+    unmatchedPresentPlayers.length >= 2 &&
+    manualPlayer1Id.length > 0 &&
+    manualPlayer2Id.length > 0 &&
+    manualPlayer1Id !== manualPlayer2Id
 
   return (
     <section className="space-y-4 px-4 py-6">
@@ -465,7 +561,11 @@ export function WeekClient({ initialData }: WeekClientProps) {
               type="button"
               className="flex w-full items-center gap-3 px-4 py-3 text-left disabled:cursor-not-allowed"
               onClick={() => toggleAttendance(player.playerId, !player.present)}
-              disabled={isRefreshing || data.currentWeek?.locked}
+              disabled={
+                isRefreshing ||
+                data.currentWeek?.locked ||
+                (player.present && matchedPlayerIds.has(player.playerId))
+              }
             >
               <span
                 className={`h-4 w-4 rounded-full border-2 ${
@@ -491,6 +591,11 @@ export function WeekClient({ initialData }: WeekClientProps) {
                 {player.handicap.kind === 'HCP' ? player.handicap.value : player.handicap.kind} ·{' '}
                 {player.teeColor.toUpperCase()}
               </span>
+              {player.present && matchedPlayerIds.has(player.playerId) ? (
+                <span className="rounded bg-surface-sunken px-2 py-1 text-[11px] font-semibold text-text-secondary">
+                  Paired
+                </span>
+              ) : null}
             </button>
           ))}
         </div>
@@ -504,9 +609,16 @@ export function WeekClient({ initialData }: WeekClientProps) {
             </p>
             <p className="mt-2 text-sm text-text-secondary">
               {data.currentWeek.matchCount > 0
-                ? `${data.currentWeek.matchCount} tentative matches created.`
+                ? `${data.currentWeek.matchCount} ${data.currentWeek.locked ? 'locked' : 'tentative'} matches created.`
                 : 'No pairings generated yet.'}
             </p>
+            {!data.currentWeek.locked ? (
+              <p className="mt-1 text-xs text-text-secondary">
+                {unmatchedPresentPlayers.length > 0
+                  ? `${unmatchedPresentPlayers.length} checked-in player${unmatchedPresentPlayers.length === 1 ? '' : 's'} still unpaired.`
+                  : 'All checked-in players are currently assigned to matches.'}
+              </p>
+            ) : null}
           </div>
           <div className="flex gap-2">
             <button
@@ -515,7 +627,7 @@ export function WeekClient({ initialData }: WeekClientProps) {
               onClick={generatePairings}
               disabled={!canGeneratePairings || isRefreshing}
             >
-              {isRefreshing ? 'Working...' : 'Generate Pairings'}
+              {isRefreshing ? 'Working...' : data.currentWeek.matchCount > 0 ? 'Generate Next Pairings' : 'Generate Pairings'}
             </button>
             {data.currentWeek.matchCount > 0 ? (
               <button
@@ -576,7 +688,7 @@ export function WeekClient({ initialData }: WeekClientProps) {
                   <span>
                     {match.player1Name} ({match.player1TeeColor.toUpperCase()})
                   </span>
-                  <span className="text-text-secondary">HCP {match.player1Handicap}</span>
+                  <span className="text-text-secondary">HI {match.player1DisplayHandicap}</span>
                 </div>
                 <div className="font-condensed mt-1 text-center text-xs font-bold uppercase tracking-widest text-text-muted">vs</div>
                 <div className="mt-1 flex items-center justify-between text-sm text-text-primary">
@@ -584,9 +696,16 @@ export function WeekClient({ initialData }: WeekClientProps) {
                     {match.player2Name} ({match.player2TeeColor.toUpperCase()})
                   </span>
                   <span className="text-text-secondary">
-                    {match.player2ScorecardOnly ? 'Reference scorecard' : `HCP ${match.player2Handicap}`}
+                    {match.player2ScorecardOnly ? 'Reference scorecard' : `HI ${match.player2DisplayHandicap}`}
                   </span>
                 </div>
+                {!match.player2ScorecardOnly ? (
+                  <p className="mt-2 text-xs text-text-secondary">
+                    {match.popDifference === 0
+                      ? 'No pops in this match.'
+                      : `${match.popRecipientId === match.player1Id ? match.player1Name : match.player2Name} gets ${match.popDifference} pop${match.popDifference === 1 ? '' : 's'}.`}
+                  </p>
+                ) : null}
                 {data.currentWeek?.locked ? (
                   <div className="mt-3">
                     <Link
@@ -596,9 +715,69 @@ export function WeekClient({ initialData }: WeekClientProps) {
                       Enter Scores
                     </Link>
                   </div>
-                ) : null}
+                ) : (
+                  <div className="mt-3">
+                    <button
+                      type="button"
+                      className="text-sm font-semibold text-danger-text"
+                      onClick={() => removePairing(match.id)}
+                      disabled={isRefreshing}
+                    >
+                      Remove Pairing
+                    </button>
+                  </div>
+                )}
               </div>
             ))}
+          </div>
+        ) : null}
+
+        {!data.currentWeek.locked ? (
+          <div className="mt-4 rounded-lg border border-dashed border-surface-border bg-surface-base p-4">
+            <p className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
+              Manual Pairing
+            </p>
+            <p className="mt-2 text-sm text-text-secondary">
+              Use this when you want to hand-build a specific match. Only unmatched checked-in players are shown.
+            </p>
+            <div className="mt-4 grid gap-3 md:grid-cols-[1fr_1fr_auto]">
+              <select
+                className="rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
+                value={manualPlayer1Id}
+                onChange={(event) => setManualPlayer1Id(event.target.value)}
+                disabled={isRefreshing || unmatchedPresentPlayers.length < 2}
+              >
+                <option value="">Select player 1</option>
+                {unmatchedPresentPlayers.map((player) => (
+                  <option key={player.playerId} value={player.playerId}>
+                    {player.name}
+                  </option>
+                ))}
+              </select>
+              <select
+                className="rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
+                value={manualPlayer2Id}
+                onChange={(event) => setManualPlayer2Id(event.target.value)}
+                disabled={isRefreshing || unmatchedPresentPlayers.length < 2}
+              >
+                <option value="">Select player 2</option>
+                {unmatchedPresentPlayers
+                  .filter((player) => player.playerId !== manualPlayer1Id)
+                  .map((player) => (
+                    <option key={player.playerId} value={player.playerId}>
+                      {player.name}
+                    </option>
+                  ))}
+              </select>
+              <button
+                type="button"
+                className="font-condensed rounded-lg bg-surface-sunken px-4 py-3 text-sm font-bold uppercase tracking-wide text-text-primary disabled:cursor-not-allowed disabled:text-text-disabled"
+                onClick={createManualPairing}
+                disabled={!canCreateManualPairing || isRefreshing}
+              >
+                Create Match
+              </button>
+            </div>
           </div>
         ) : null}
       </section>

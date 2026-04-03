@@ -38,6 +38,7 @@ type MatchScorePageData = {
     }
     player1NetTotal: number | null
     player2NetTotal: number | null
+    nextPendingMatchId: string | null
   }
   rows: Array<{
     holeNumber: number
@@ -200,7 +201,13 @@ export function MatchScoreClient({ initialData }: MatchScoreClientProps) {
       return
     }
 
-    router.push('/week')
+    const payload = await response.json().catch(() => null)
+
+    router.push(
+      payload?.nextPendingMatchId
+        ? `/week/matches/${payload.nextPendingMatchId}`
+        : '/week'
+    )
     router.refresh()
   }
 
@@ -361,7 +368,9 @@ export function MatchScoreClient({ initialData }: MatchScoreClientProps) {
           ? `Submit Scores (${9 - completeHoleCount} holes remaining)`
           : isSubmitting
             ? 'Saving...'
-            : 'Submit Scores'}
+            : initialData.match.nextPendingMatchId
+              ? 'Save Scores & Next Match'
+              : 'Submit Scores'}
       </button>
     </section>
   )

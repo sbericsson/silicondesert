@@ -219,10 +219,7 @@ export async function PATCH(
   return NextResponse.json(player)
 }
 
-export async function DELETE(
-  _request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function DELETE(_request: NextRequest, { params }: { params: { id: string } }) {
   const session = await getApiSession()
   if (!session) {
     return unauthorizedResponse()

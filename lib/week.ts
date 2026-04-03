@@ -245,31 +245,48 @@ export async function getCurrentWeekPageData() {
                   nineHoleSlope: currentWeek.course.nineHoleSlope
                 })
               : null
+            const player1EffectiveIndex =
+              match.player1HandicapIndex ?? getPlayerPairingHandicap(match.player1)
+            const player2EffectiveIndex =
+              match.player2HandicapIndex ?? getPlayerPairingHandicap(match.player2)
+            const player1PlayingHandicap =
+              currentWeek.course && player1Tee
+                ? courseHandicap(
+                    player1EffectiveIndex,
+                    player1Tee.nineHoleSlope,
+                    player1Tee.nineHoleRating,
+                    player1Tee.nineHolePar
+                  )
+                : Math.round(player1EffectiveIndex)
+            const player2PlayingHandicap =
+              currentWeek.course && player2Tee
+                ? courseHandicap(
+                    player2EffectiveIndex,
+                    player2Tee.nineHoleSlope,
+                    player2Tee.nineHoleRating,
+                    player2Tee.nineHolePar
+                  )
+                : Math.round(player2EffectiveIndex)
+            const popDifference = Math.abs(player1PlayingHandicap - player2PlayingHandicap)
+            const popRecipientId =
+              popDifference === 0
+                ? null
+                : player1PlayingHandicap > player2PlayingHandicap
+                  ? match.player1.id
+                  : match.player2.id
 
             return {
               id: match.id,
+              player1Id: match.player1.id,
+              player2Id: match.player2.id,
               player1Name: match.player1.name,
               player2Name: match.player2.name,
               player1TeeColor,
               player2TeeColor,
-              player1Handicap:
-                currentWeek.course && player1Tee
-                  ? courseHandicap(
-                      match.player1HandicapIndex ?? getPlayerPairingHandicap(match.player1),
-                      player1Tee.nineHoleSlope,
-                      player1Tee.nineHoleRating,
-                      player1Tee.nineHolePar
-                    )
-                  : match.player1HandicapIndex ?? getPlayerPairingHandicap(match.player1),
-              player2Handicap:
-                currentWeek.course && player2Tee
-                  ? courseHandicap(
-                      match.player2HandicapIndex ?? getPlayerPairingHandicap(match.player2),
-                      player2Tee.nineHoleSlope,
-                      player2Tee.nineHoleRating,
-                      player2Tee.nineHolePar
-                    )
-                  : match.player2HandicapIndex ?? getPlayerPairingHandicap(match.player2),
+              player1DisplayHandicap: Math.round(player1EffectiveIndex),
+              player2DisplayHandicap: Math.round(player2EffectiveIndex),
+              popDifference,
+              popRecipientId,
               player2ScorecardOnly: match.player2ScorecardOnly,
               locked: match.locked,
               scoreComplete: match.matchPlayLeadBy !== null

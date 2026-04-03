@@ -92,7 +92,13 @@ export async function getRosterPageData() {
       publicRosterEnabled: commissioner?.publicRosterEnabled ?? false
     },
     players: [...players]
-      .sort((left, right) => getPlayerSortKey(left.name).localeCompare(getPlayerSortKey(right.name)))
+      .sort((left, right) => {
+        if (left.active !== right.active) {
+          return left.active ? -1 : 1
+        }
+
+        return getPlayerSortKey(left.name).localeCompare(getPlayerSortKey(right.name))
+      })
       .map((player) => ({
       id: player.id,
       name: player.name,

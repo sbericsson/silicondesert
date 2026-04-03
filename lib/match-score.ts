@@ -43,6 +43,41 @@ function normalizeScores(scores: Array<{ holeNumber: number; grossScore: number 
   return [...scores].sort((a, b) => a.holeNumber - b.holeNumber)
 }
 
+async function getNextPendingMatchId(weekId: string, currentMatch: {
+  id: string
+  createdAt: Date
+}) {
+  const nextLaterMatch = await prisma.match.findFirst({
+    where: {
+      weekId,
+      locked: true,
+      matchPlayLeadBy: null,
+      createdAt: {
+        gt: currentMatch.createdAt
+      }
+    },
+    orderBy: [{ createdAt: 'asc' }]
+  })
+
+  if (nextLaterMatch) {
+    return nextLaterMatch.id
+  }
+
+  const nextFromTop = await prisma.match.findFirst({
+    where: {
+      weekId,
+      locked: true,
+      matchPlayLeadBy: null,
+      id: {
+        not: currentMatch.id
+      }
+    },
+    orderBy: [{ createdAt: 'asc' }]
+  })
+
+  return nextFromTop?.id ?? null
+}
+
 export async function getMatchScorePageData(weekId: string, matchId: string) {
   if (!process.env.DATABASE_URL) {
     return null
@@ -160,6 +195,10 @@ export async function getMatchScorePageData(weekId: string, matchId: string) {
 
   const player1NetTotal = rows.every((row) => row.player1Net !== null) ? sum(rows.map((row) => row.player1Net)) : null
   const player2NetTotal = rows.every((row) => row.player2Net !== null) ? sum(rows.map((row) => row.player2Net)) : null
+  const nextPendingMatchId = await getNextPendingMatchId(weekId, {
+    id: match.id,
+    createdAt: match.createdAt
+  })
 
   return {
     match: {
@@ -191,7 +230,8 @@ export async function getMatchScorePageData(weekId: string, matchId: string) {
         present: attendanceMap.get(match.player2Id) ?? false
       },
       player1NetTotal,
-      player2NetTotal
+      player2NetTotal,
+      nextPendingMatchId
     },
     rows
   }
@@ -563,6 +603,11 @@ export async function submitMatchScores(input: {
     attendanceMap.get(match.player2Id) ?? false
   )
 
+  const nextPendingMatchId = await getNextPendingMatchId(input.weekId, {
+    id: match.id,
+    createdAt: match.createdAt
+  })
+
   return {
     match: {
       id: match.id,
@@ -571,6 +616,7 @@ export async function submitMatchScores(input: {
       matchPlayHolesRemaining: matchPlayResult?.matchPlayHolesRemaining ?? null,
       matchPlayWinnerId: matchPlayResult?.matchPlayWinnerId ?? null
     },
-    pointsSummary
+    pointsSummary,
+    nextPendingMatchId
   }
 }

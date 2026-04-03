@@ -43,6 +43,23 @@ export async function POST(
     return NextResponse.json({ error: 'Attendance is locked for this week' }, { status: 409 })
   }
 
+  if (!present) {
+    const activeMatch = await prisma.match.findFirst({
+      where: {
+        weekId: params.id,
+        OR: [{ player1Id: playerId }, { player2Id: playerId }]
+      },
+      select: { id: true }
+    })
+
+    if (activeMatch) {
+      return NextResponse.json(
+        { error: 'This player is already in a pairing. Remove the match before un-checking them.' },
+        { status: 409 }
+      )
+    }
+  }
+
   const attendance = await prisma.$transaction(async (tx) => {
     const existing = await tx.attendance.findUnique({
       where: {

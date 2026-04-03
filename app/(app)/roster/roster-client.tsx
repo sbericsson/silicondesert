@@ -147,6 +147,24 @@ function isBlankImportedRound(round: ImportedRoundEditor) {
   )
 }
 
+function getPlayerSortKey(name: string) {
+  const normalized = name.trim().replace(/\s+/g, ' ')
+  const parts = normalized.split(' ')
+  const lastName = parts.at(-1) ?? normalized
+  const firstNames = parts.slice(0, -1).join(' ')
+  return `${lastName.toLocaleLowerCase()}|${firstNames.toLocaleLowerCase()}|${normalized.toLocaleLowerCase()}`
+}
+
+function sortPlayers(players: RosterPageData['players']) {
+  return [...players].sort((left, right) => {
+    if (left.active !== right.active) {
+      return left.active ? -1 : 1
+    }
+
+    return getPlayerSortKey(left.name).localeCompare(getPlayerSortKey(right.name))
+  })
+}
+
 export function RosterClient({ initialData }: RosterClientProps) {
   const router = useRouter()
   const [data, setData] = useState(initialData)
@@ -406,6 +424,12 @@ export function RosterClient({ initialData }: RosterClientProps) {
       return
     }
 
+    setData((current) => ({
+      ...current,
+      players: sortPlayers(
+        current.players.map((player) => (player.id === playerId ? { ...player, active } : player))
+      )
+    }))
     setIsSubmitting(false)
     await refreshPage(active ? 'Player activated.' : 'Player deactivated.')
   }
@@ -445,6 +469,10 @@ export function RosterClient({ initialData }: RosterClientProps) {
       setEditingPlayerSeasonTeeChoices({})
     }
 
+    setData((current) => ({
+      ...current,
+      players: current.players.filter((currentPlayer) => currentPlayer.id !== player.id)
+    }))
     setIsSubmitting(false)
     await refreshPage('Player deleted.')
   }
@@ -1082,16 +1110,29 @@ export function RosterClient({ initialData }: RosterClientProps) {
           <p className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
             Players ({data.players.length})
           </p>
+          <p className="mt-1 text-xs text-text-secondary">
+            Active players are listed first, with inactive players grouped at the bottom.
+          </p>
         </div>
         <div className="divide-y divide-surface-border">
           {data.players.map((player) => (
-            <div key={player.id} className="flex items-center gap-3 px-4 py-3">
+            <div
+              key={player.id}
+              className={`flex items-center gap-3 px-4 py-3 ${
+                player.active ? '' : 'bg-surface-sunken/30'
+              }`}
+            >
               <div className="flex-1">
                 <div className="flex flex-wrap items-center gap-2">
                   <p className="text-sm font-medium text-text-primary">{player.name}</p>
                   <span className="rounded bg-surface-sunken px-2 py-0.5 font-condensed text-[11px] font-semibold uppercase tracking-widest text-text-secondary">
                     {player.gender === 'man' ? 'Man' : 'Woman'}
                   </span>
+                  {!player.active ? (
+                    <span className="rounded bg-warning-dim px-2 py-0.5 font-condensed text-[11px] font-semibold uppercase tracking-widest text-warning-text">
+                      Inactive
+                    </span>
+                  ) : null}
                 </div>
                 <p className="mt-1 text-xs text-text-secondary">
                   {player.email ?? 'No email'} · {formatUsPhoneNumber(player.cellPhone) ?? 'No cell'}{' '}

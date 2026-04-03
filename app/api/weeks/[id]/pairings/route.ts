@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { getApiSession, unauthorizedResponse } from '@/lib/api-auth'
 import { writeAuditLog } from '@/lib/audit'
@@ -12,14 +12,16 @@ function getPlayerPairingHandicap(player: {
   return handicapIndex(player.handicapRecords.map((record) => record.courseDifferential)) ?? player.seedHandicap ?? 0
 }
 
-export async function POST(
-  _request: Request,
-  { params }: { params: { id: string } }
-) {
+export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
   const session = await getApiSession()
   if (!session) {
     return unauthorizedResponse()
   }
+
+  const body = await request.json().catch(() => ({}))
+  const requestedPlayerIds = Array.isArray(body?.playerIds)
+    ? body.playerIds.filter((playerId: unknown): playerId is string => typeof playerId === 'string')
+    : null
 
   const week = await prisma.week.findUnique({
     where: { id: params.id },
@@ -39,7 +41,12 @@ export async function POST(
         orderBy: { checkedInAt: 'asc' }
       },
       matches: {
-        select: { id: true, locked: true }
+        select: {
+          id: true,
+          locked: true,
+          player1Id: true,
+          player2Id: true
+        }
       },
       season: {
         select: {
@@ -75,8 +82,25 @@ export async function POST(
     return NextResponse.json({ error: 'Select a CTP hole before generating pairings' }, { status: 400 })
   }
 
-  if (week.attendance.length < 2) {
-    return NextResponse.json({ error: 'Need at least 2 checked-in players' }, { status: 400 })
+  const alreadyPairedPlayerIds = new Set(
+    week.matches.flatMap((match) => [match.player1Id, match.player2Id])
+  )
+  const availableAttendance = week.attendance.filter(
+    (entry) =>
+      !alreadyPairedPlayerIds.has(entry.playerId) &&
+      (!requestedPlayerIds || requestedPlayerIds.includes(entry.playerId))
+  )
+
+  if (availableAttendance.length < 2) {
+    return NextResponse.json(
+      {
+        error:
+          week.matches.length > 0
+            ? 'Need at least 2 unmatched checked-in players to generate more pairings'
+            : 'Need at least 2 checked-in players'
+      },
+      { status: 400 }
+    )
   }
 
   const priorWeekIds = week.season.weeks.map((seasonWeek) => seasonWeek.id)
@@ -92,7 +116,7 @@ export async function POST(
       })
     : []
 
-  const pairingInput = week.attendance.map((entry, index) => ({
+  const pairingInput = availableAttendance.map((entry, index) => ({
     id: entry.player.id,
     name: entry.player.name,
     handicapIndex: getPlayerPairingHandicap(entry.player),
@@ -102,21 +126,6 @@ export async function POST(
   const generated = generatePairings(pairingInput, priorMatches)
 
   const result = await prisma.$transaction(async (tx) => {
-    const existingMatches = await tx.match.findMany({
-      where: { weekId: params.id },
-      select: { id: true, locked: true }
-    })
-
-    if (existingMatches.some((match) => match.locked)) {
-      throw new Error('Locked pairings cannot be regenerated')
-    }
-
-    if (existingMatches.length > 0) {
-      await tx.match.deleteMany({
-        where: { weekId: params.id }
-      })
-    }
-
     const createdMatches = []
 
     for (const match of generated.matches) {
@@ -158,8 +167,8 @@ export async function POST(
       weekId: params.id,
       action: 'pairings_generate',
       field: 'matchCount',
-      oldValue: String(existingMatches.length),
-      newValue: String(createdMatches.length)
+      oldValue: String(week.matches.length),
+      newValue: String(week.matches.length + createdMatches.length)
     })
 
     return createdMatches

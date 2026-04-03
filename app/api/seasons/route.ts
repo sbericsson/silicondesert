@@ -53,6 +53,48 @@ export async function POST(request: NextRequest) {
       }
     })
 
+    const priorTeeChoices = await tx.playerSeasonTee.findMany({
+      where: {
+        seasonId: {
+          not: createdSeason.id
+        }
+      },
+      include: {
+        season: {
+          select: {
+            startDate: true
+          }
+        }
+      },
+      orderBy: [
+        {
+          season: {
+            startDate: 'desc'
+          }
+        },
+        {
+          createdAt: 'desc'
+        }
+      ]
+    })
+
+    const latestChoiceByPlayer = new Map<string, (typeof priorTeeChoices)[number]>()
+    for (const choice of priorTeeChoices) {
+      if (!latestChoiceByPlayer.has(choice.playerId)) {
+        latestChoiceByPlayer.set(choice.playerId, choice)
+      }
+    }
+
+    if (latestChoiceByPlayer.size > 0) {
+      await tx.playerSeasonTee.createMany({
+        data: [...latestChoiceByPlayer.values()].map((choice) => ({
+          playerId: choice.playerId,
+          seasonId: createdSeason.id,
+          teeColor: choice.teeColor
+        }))
+      })
+    }
+
     for (const [index, weekDate] of orderedWeekDates.entries()) {
       await tx.week.create({
         data: {

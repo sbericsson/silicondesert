@@ -14,6 +14,7 @@ type WeekPageData = {
     dateLabel: string
     courseId: string | null
     courseName: string | null
+    ctpHoleOptions: number[]
     ctpHoleNumber: number | null
     longestPuttHoleNumber: number | null
     ctpWinnerId: string | null
@@ -63,6 +64,10 @@ type WeekPageData = {
       color: TeeColor
       rating: number
       slope: number
+    }>
+    holes: Array<{
+      holeNumber: number
+      par: number
     }>
   }>
   presentCount: number
@@ -410,6 +415,14 @@ export function WeekClient({ initialData }: WeekClientProps) {
     manualPlayer2Id.length > 0 &&
     manualPlayer1Id !== manualPlayer2Id
 
+  const selectedCourse =
+    data.currentWeek.courseId
+      ? data.courses.find((course) => course.id === data.currentWeek?.courseId) ?? null
+      : null
+  const ctpHoleOptions =
+    selectedCourse?.holes.filter((hole) => hole.par === 3).map((hole) => hole.holeNumber) ??
+    data.currentWeek.ctpHoleOptions
+
   return (
     <section className="space-y-4 px-4 py-6">
       <header className="rounded-xl border border-surface-border bg-surface-elevated p-4">
@@ -474,8 +487,8 @@ export function WeekClient({ initialData }: WeekClientProps) {
             onChange={(event) => updateWeekField('ctpHoleNumber', event.target.value)}
             disabled={isRefreshing || data.currentWeek.locked}
           >
-            <option value="">Select hole</option>
-            {holeOptions.map((hole) => (
+            <option value="">{selectedCourse ? 'Select par 3 hole' : 'Select course first'}</option>
+            {ctpHoleOptions.map((hole) => (
               <option key={hole} value={hole}>
                 Hole {hole}
               </option>

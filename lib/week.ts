@@ -1,7 +1,7 @@
 import { prisma } from '@/lib/db'
 import { courseHandicap, handicapIndex } from '@/lib/handicap'
 import { getPhoenixDateParts } from '@/lib/phoenix-time'
-import { getCourseTee, getPlayerSeasonTeeColor } from '@/lib/course-tee'
+import { getCourseTee, getDefaultTeeColorForGender, getPlayerSeasonTeeColor } from '@/lib/course-tee'
 
 function phoenixStartOfDay(isoDate: string) {
   return new Date(`${isoDate}T00:00:00-07:00`)
@@ -77,7 +77,10 @@ export async function getCurrentWeekRecord() {
       },
       course: {
         include: {
-          tees: true
+          tees: true,
+          holes: {
+            orderBy: { holeNumber: 'asc' }
+          }
         }
       },
       attendance: {
@@ -176,6 +179,9 @@ export async function getCurrentWeekPageData() {
       include: {
         tees: {
           orderBy: { color: 'asc' }
+        },
+        holes: {
+          orderBy: { holeNumber: 'asc' }
         }
       },
       orderBy: { name: 'asc' }
@@ -195,8 +201,9 @@ export async function getCurrentWeekPageData() {
       name: player.name,
       present: status?.present ?? false,
       checkedInAt: status?.checkedInAt?.toISOString() ?? null,
-      teeColor:
-        currentWeek ? getPlayerSeasonTeeColor(player.seasonTeeChoices, currentWeek.seasonId) : 'white',
+      teeColor: currentWeek
+        ? getPlayerSeasonTeeColor(player.seasonTeeChoices, currentWeek.seasonId, player.gender)
+        : getDefaultTeeColorForGender(player.gender),
       handicap
     }
   })
@@ -210,6 +217,8 @@ export async function getCurrentWeekPageData() {
           dateLabel: formatDate(currentWeek.date),
           courseId: currentWeek.courseId,
           courseName: currentWeek.course?.name ?? null,
+          ctpHoleOptions:
+            currentWeek.course?.holes.filter((hole) => hole.par === 3).map((hole) => hole.holeNumber) ?? [],
           ctpHoleNumber: currentWeek.ctpHoleNumber,
           longestPuttHoleNumber: currentWeek.longestPuttHoleNumber,
           ctpWinnerId: currentWeek.ctpWinnerId,
@@ -221,11 +230,13 @@ export async function getCurrentWeekPageData() {
           matches: currentWeek.matches.map((match) => {
             const player1TeeColor = getPlayerSeasonTeeColor(
               match.player1.seasonTeeChoices,
-              currentWeek.seasonId
+              currentWeek.seasonId,
+              match.player1.gender
             )
             const player2TeeColor = getPlayerSeasonTeeColor(
               match.player2.seasonTeeChoices,
-              currentWeek.seasonId
+              currentWeek.seasonId,
+              match.player2.gender
             )
             const player1Tee = currentWeek.course
               ? getCourseTee(currentWeek.course.tees, player1TeeColor, match.player1.gender, {
@@ -310,6 +321,10 @@ export async function getCurrentWeekPageData() {
         color: tee.color,
         rating: tee.nineHoleRating,
         slope: tee.nineHoleSlope
+      })),
+      holes: course.holes.map((hole) => ({
+        holeNumber: hole.holeNumber,
+        par: hole.par
       }))
     })),
     presentCount: attendance.filter((entry) => entry.present).length,

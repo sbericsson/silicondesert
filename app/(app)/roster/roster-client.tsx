@@ -5,6 +5,7 @@ import { startTransition, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import type { Gender, TeeColor } from '@prisma/client'
 import { formatUsPhoneInput, formatUsPhoneNumber } from '@/lib/phone'
+import { getDefaultTeeColorForGender } from '@/lib/course-tee'
 import {
   getImportedHandicapCourseTee,
   matchImportedHandicapRoundToCourse
@@ -98,9 +99,12 @@ function createBlankImportedRound(
   gender: Gender
 ): ImportedRoundEditor {
   const defaultCourse = courses[0]
+  const defaultTeeColor = getDefaultTeeColorForGender(gender)
   const defaultTee =
+    defaultCourse?.tees.find((tee) => tee.color === defaultTeeColor && tee.gender === gender) ??
     defaultCourse?.tees.find((tee) => tee.color === 'white' && tee.gender === gender) ??
     defaultCourse?.tees.find((tee) => tee.gender === gender) ??
+    defaultCourse?.tees.find((tee) => tee.color === defaultTeeColor) ??
     defaultCourse?.tees.find((tee) => tee.color === 'white') ??
     defaultCourse?.tees[0]
 
@@ -108,7 +112,7 @@ function createBlankImportedRound(
     id: createEditorRoundId(),
     date: '',
     courseId: defaultCourse?.id ?? CUSTOM_COURSE_ID,
-    teeColor: defaultTee?.color ?? 'white',
+    teeColor: defaultTee?.color ?? defaultTeeColor,
     grossScore: '',
     adjustedGrossScore: '',
     courseRating: '',
@@ -119,7 +123,8 @@ function createBlankImportedRound(
 
 function importedRoundToEditorRound(
   round: RosterPageData['players'][number]['importedHandicapRounds'][number],
-  courses: RosterPageData['courses']
+  courses: RosterPageData['courses'],
+  gender: Gender
 ): ImportedRoundEditor {
   const match = matchImportedHandicapRoundToCourse(round, courses)
 
@@ -127,7 +132,7 @@ function importedRoundToEditorRound(
     id: createEditorRoundId(),
     date: round.date,
     courseId: match?.courseId ?? CUSTOM_COURSE_ID,
-    teeColor: match?.teeColor ?? 'white',
+    teeColor: match?.teeColor ?? getDefaultTeeColorForGender(gender),
     grossScore: String(round.grossScore),
     adjustedGrossScore:
       round.adjustedGrossScore === round.grossScore ? '' : String(round.adjustedGrossScore),
@@ -633,7 +638,9 @@ export function RosterClient({ initialData }: RosterClientProps) {
     setEditingPlayerCellPhone(formatUsPhoneNumber(player.cellPhone) ?? '')
     setEditingPlayerSeedHandicap(player.seedHandicap?.toString() ?? '')
     setEditingPlayerImportedRounds(
-      player.importedHandicapRounds.map((round) => importedRoundToEditorRound(round, data.courses))
+      player.importedHandicapRounds.map((round) =>
+        importedRoundToEditorRound(round, data.courses, player.gender)
+      )
     )
     setEditingPlayerSeasonTeeChoices(
       Object.fromEntries(
@@ -1255,7 +1262,7 @@ export function RosterClient({ initialData }: RosterClientProps) {
                             </div>
                             <select
                               className="w-full rounded-md border border-surface-border bg-surface-elevated px-3 py-2.5 text-sm text-text-primary"
-                              value={editingPlayerSeasonTeeChoices[season.id] ?? 'white'}
+                              value={editingPlayerSeasonTeeChoices[season.id] ?? getDefaultTeeColorForGender(editingPlayerGender)}
                               onChange={(event) =>
                                 updateEditingPlayerSeasonTeeChoice(season.id, event.target.value as TeeColor)
                               }

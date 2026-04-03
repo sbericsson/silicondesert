@@ -16,6 +16,18 @@ function parseOptionalInt(value: unknown) {
   return parsed
 }
 
+async function getCoursePar3HoleNumbers(courseId: string) {
+  const holes = await prisma.courseHole.findMany({
+    where: { courseId },
+    select: {
+      holeNumber: true,
+      par: true
+    }
+  })
+
+  return holes.filter((hole) => hole.par === 3).map((hole) => hole.holeNumber)
+}
+
 export async function PATCH(
   request: NextRequest,
   { params }: { params: { id: string } }
@@ -57,6 +69,11 @@ export async function PATCH(
   const existingWeek = await prisma.week.findUnique({
     where: { id: params.id },
     include: {
+      course: {
+        include: {
+          holes: true
+        }
+      },
       season: {
         select: {
           archivedAt: true
@@ -79,6 +96,39 @@ export async function PATCH(
   const hasLockedFieldUpdate = lockedFields.some((field) => field in updates)
   if (existingWeek.locked && hasLockedFieldUpdate) {
     return NextResponse.json({ error: 'Locked weeks cannot be edited' }, { status: 409 })
+  }
+
+  const effectiveCourseId = updates.courseId !== undefined ? updates.courseId : existingWeek.courseId
+  const requestedCtpHoleNumber =
+    updates.ctpHoleNumber !== undefined ? updates.ctpHoleNumber : existingWeek.ctpHoleNumber
+
+  if (updates.ctpHoleNumber !== undefined && updates.ctpHoleNumber !== null && !effectiveCourseId) {
+    return NextResponse.json(
+      { error: 'Select a course before choosing the CTP hole' },
+      { status: 400 }
+    )
+  }
+
+  let validPar3HoleNumbers: number[] = []
+  if (effectiveCourseId) {
+    validPar3HoleNumbers = await getCoursePar3HoleNumbers(effectiveCourseId)
+  }
+
+  if (
+    requestedCtpHoleNumber !== null &&
+    requestedCtpHoleNumber !== undefined &&
+    effectiveCourseId &&
+    !validPar3HoleNumbers.includes(requestedCtpHoleNumber)
+  ) {
+    if (updates.ctpHoleNumber !== undefined) {
+      return NextResponse.json(
+        { error: 'Closest to pin must be set to a par 3 hole on the selected course' },
+        { status: 400 }
+      )
+    }
+
+    updates.ctpHoleNumber = null
+    updates.ctpWinnerId = null
   }
 
   const updatedWeek = await prisma.$transaction(async (tx) => {

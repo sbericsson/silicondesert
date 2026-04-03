@@ -13,11 +13,16 @@ interface SeasonTeeChoiceLike {
   teeColor: TeeColor
 }
 
+export function getDefaultTeeColorForGender(gender: Gender): TeeColor {
+  return gender === 'woman' ? 'yellow' : 'blue'
+}
+
 export function getPlayerSeasonTeeColor(
   choices: SeasonTeeChoiceLike[],
-  seasonId: string
+  seasonId: string,
+  gender: Gender
 ): TeeColor {
-  return choices.find((choice) => choice.seasonId === seasonId)?.teeColor ?? 'white'
+  return choices.find((choice) => choice.seasonId === seasonId)?.teeColor ?? getDefaultTeeColorForGender(gender)
 }
 
 export function getCourseTee(
@@ -26,15 +31,17 @@ export function getCourseTee(
   gender: Gender,
   fallback?: CourseTeeLike
 ): CourseTeeLike {
+  const defaultColor = getDefaultTeeColorForGender(gender)
+
   return (
     tees.find((tee) => tee.color === color && tee.gender === gender) ??
-    tees.find((tee) => tee.color === 'white' && tee.gender === gender) ??
+    tees.find((tee) => tee.color === defaultColor && tee.gender === gender) ??
     tees.find((tee) => tee.color === color && tee.gender === 'man') ??
     tees.find((tee) => tee.color === 'white' && tee.gender === 'man') ??
     tees[0] ??
     fallback ?? {
-      color: 'white',
-      gender: 'man',
+      color: defaultColor,
+      gender,
       nineHolePar: 36,
       nineHoleRating: 36,
       nineHoleSlope: 113

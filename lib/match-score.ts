@@ -219,6 +219,7 @@ export async function getMatchScorePageData(weekId: string, matchId: string) {
       ctpHoleNumber: match.week.ctpHoleNumber,
       locked: match.locked,
       seasonArchived: Boolean(match.week.season.archivedAt),
+      weekCompleted: Boolean(match.week.completedAt),
       player2ScorecardOnly: match.player2ScorecardOnly,
       matchPlayLeadBy: match.matchPlayLeadBy,
       matchPlayHolesRemaining: match.matchPlayHolesRemaining,
@@ -320,6 +321,10 @@ export async function submitMatchScores(input: {
 
   if (match.week.season.archivedAt) {
     throw new Error('Archived seasons cannot be edited')
+  }
+
+  if (match.week.completedAt) {
+    throw new Error('Closed weeks cannot be edited')
   }
 
   const course = match.week.course

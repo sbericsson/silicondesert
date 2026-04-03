@@ -12,6 +12,8 @@ type WeekPageData = {
     weekNumber: number
     seasonName: string
     dateLabel: string
+    startedAt: string | null
+    completedAt: string | null
     courseId: string | null
     courseName: string | null
     ctpHoleOptions: number[]
@@ -123,7 +125,7 @@ export function WeekClient({ initialData }: WeekClientProps) {
     )
   }, [data])
 
-  async function runAction(action: () => Promise<void>) {
+  async function runAction(action: () => Promise<void>, successMessage = 'Week updated.') {
     setIsRefreshing(true)
     setError(null)
     setMessage(null)
@@ -131,7 +133,7 @@ export function WeekClient({ initialData }: WeekClientProps) {
 
     try {
       await action()
-      setMessage('Week updated.')
+      setMessage(successMessage)
       startTransition(() => {
         router.refresh()
       })
@@ -163,7 +165,7 @@ export function WeekClient({ initialData }: WeekClientProps) {
         const payload = await response.json().catch(() => null)
         throw new Error(payload?.error ?? 'Unable to update attendance')
       }
-    })
+    }, 'Attendance updated.')
   }
 
   async function updateWeekField(field: 'courseId' | 'ctpHoleNumber' | 'longestPuttHoleNumber' | 'ctpWinnerId' | 'longestPuttWinnerId', value: string) {
@@ -203,9 +205,7 @@ export function WeekClient({ initialData }: WeekClientProps) {
         const payload = await response.json().catch(() => null)
         throw new Error(payload?.error ?? 'Unable to generate pairings')
       }
-
-      setMessage('Pairings generated.')
-    })
+    }, 'Pairings generated.')
   }
 
   async function createManualPairing() {
@@ -229,9 +229,7 @@ export function WeekClient({ initialData }: WeekClientProps) {
         const payload = await response.json().catch(() => null)
         throw new Error(payload?.error ?? 'Unable to create manual pairing')
       }
-
-      setMessage('Manual pairing created.')
-    })
+    }, 'Manual pairing created.')
   }
 
   async function removePairing(matchId: string) {
@@ -248,9 +246,7 @@ export function WeekClient({ initialData }: WeekClientProps) {
         const payload = await response.json().catch(() => null)
         throw new Error(payload?.error ?? 'Unable to remove pairing')
       }
-
-      setMessage('Pairing removed.')
-    })
+    }, 'Pairing removed.')
   }
 
   async function setLockState(locked: boolean) {
@@ -267,9 +263,7 @@ export function WeekClient({ initialData }: WeekClientProps) {
         const payload = await response.json().catch(() => null)
         throw new Error(payload?.error ?? 'Unable to update lock state')
       }
-
-      setMessage(locked ? 'Pairings locked.' : 'Pairings unlocked.')
-    })
+    }, locked ? 'Pairings locked.' : 'Pairings unlocked.')
   }
 
   async function startUpcomingWeek() {
@@ -286,9 +280,24 @@ export function WeekClient({ initialData }: WeekClientProps) {
         const payload = await response.json().catch(() => null)
         throw new Error(payload?.error ?? 'Unable to start the upcoming week')
       }
+    }, 'Week started.')
+  }
 
-      setMessage('Upcoming week started for today.')
-    })
+  async function closeCurrentWeek() {
+    if (!data.currentWeek) {
+      return
+    }
+
+    await runAction(async () => {
+      const response = await fetch(`/api/weeks/${data.currentWeek?.id}/close`, {
+        method: 'POST'
+      })
+
+      if (!response.ok) {
+        const payload = await response.json().catch(() => null)
+        throw new Error(payload?.error ?? 'Unable to close the week')
+      }
+    }, 'Week closed. Start the next scheduled week when you are ready.')
   }
 
   async function copyToClipboard(text: string) {
@@ -364,19 +373,24 @@ export function WeekClient({ initialData }: WeekClientProps) {
       <section className="px-4 py-6">
         <div className="rounded-xl border border-surface-border bg-surface-elevated p-4">
           <p className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
-            Week
+            Week Workspace
           </p>
           <h2 className="font-condensed mt-2 text-2xl font-bold uppercase tracking-wide text-text-primary">
             {data.upcomingWeek
               ? `Week ${data.upcomingWeek.weekNumber} - ${data.upcomingWeek.seasonName}`
-              : 'No current week'}
+              : 'No active week'}
           </h2>
           <p className="mt-2 text-sm text-text-secondary">
             {data.upcomingWeek
-              ? `${data.upcomingWeek.dateLabel}. Create or start this week from the season setup flow.`
+              ? `${data.upcomingWeek.dateLabel}. This is the next scheduled week and can be started whenever the commissioner is ready.`
               : 'No scheduled week was found yet. Start by creating a season and its Friday dates.'}
           </p>
           <div className="mt-6 rounded-lg border border-surface-border bg-surface-sunken p-4 text-sm text-text-secondary">
+            {data.upcomingWeek ? (
+              <p>
+                Next up: Week {data.upcomingWeek.weekNumber} - {data.upcomingWeek.seasonName}
+              </p>
+            ) : null}
             <p>Players on roster: {data.totalPlayers}</p>
             <p className="mt-2">Courses configured: {data.courses.length}</p>
           </div>
@@ -387,7 +401,7 @@ export function WeekClient({ initialData }: WeekClientProps) {
               onClick={startUpcomingWeek}
               disabled={isRefreshing}
             >
-              {isRefreshing ? 'Working...' : `Start Week ${data.upcomingWeek.weekNumber} Now`}
+              {isRefreshing ? 'Working...' : `Start Week ${data.upcomingWeek.weekNumber}`}
             </button>
           ) : null}
         </div>
@@ -414,6 +428,7 @@ export function WeekClient({ initialData }: WeekClientProps) {
     manualPlayer1Id.length > 0 &&
     manualPlayer2Id.length > 0 &&
     manualPlayer1Id !== manualPlayer2Id
+  const canCloseWeek = data.currentWeek.locked && allScoresComplete && !data.currentWeek.completedAt
 
   const selectedCourse =
     data.currentWeek.courseId
@@ -436,6 +451,37 @@ export function WeekClient({ initialData }: WeekClientProps) {
           {data.currentWeek.courseName ?? 'Course not selected'} - {data.currentWeek.dateLabel}
         </p>
       </header>
+
+      <section className="grid gap-3 md:grid-cols-2">
+        <div className="rounded-xl border border-surface-border bg-surface-elevated p-4">
+          <p className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
+            Active Week
+          </p>
+          <p className="mt-2 text-sm text-text-primary">
+            Week {data.currentWeek.weekNumber} is the live commissioner workspace.
+          </p>
+          <p className="mt-1 text-sm text-text-secondary">
+            Close it when pairings are locked and all scorecards are entered.
+          </p>
+        </div>
+        <div className="rounded-xl border border-surface-border bg-surface-elevated p-4">
+          <p className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
+            Next Scheduled
+          </p>
+          {data.upcomingWeek ? (
+            <>
+              <p className="mt-2 text-sm text-text-primary">
+                Week {data.upcomingWeek.weekNumber} - {data.upcomingWeek.seasonName}
+              </p>
+              <p className="mt-1 text-sm text-text-secondary">{data.upcomingWeek.dateLabel}</p>
+            </>
+          ) : (
+            <p className="mt-2 text-sm text-text-secondary">
+              No later scheduled week found yet.
+            </p>
+          )}
+        </div>
+      </section>
 
       {message ? (
         <div className="rounded-md border border-accent bg-accent-dim px-4 py-3 text-sm text-accent-text">
@@ -677,10 +723,26 @@ export function WeekClient({ initialData }: WeekClientProps) {
                 Share Results
               </button>
             ) : null}
+            {canCloseWeek ? (
+              <button
+                type="button"
+                className="font-condensed rounded-lg bg-surface-sunken px-4 py-3 text-sm font-bold uppercase tracking-wide text-text-primary disabled:cursor-not-allowed disabled:text-text-disabled"
+                onClick={closeCurrentWeek}
+                disabled={isRefreshing}
+              >
+                Close Week
+              </button>
+            ) : null}
             {copyMessage ? (
               <span className="self-center text-sm text-accent-text">{copyMessage}</span>
             ) : null}
           </div>
+        ) : null}
+
+        {data.currentWeek.locked && !allScoresComplete ? (
+          <p className="mt-4 text-sm text-text-secondary">
+            Enter every locked match score before closing this week.
+          </p>
         ) : null}
 
         {data.currentWeek.matches.length > 0 ? (

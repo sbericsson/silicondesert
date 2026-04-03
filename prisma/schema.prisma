@@ -110,6 +110,8 @@ model Week {
   seasonId              String
   weekNumber            Int
   date                  DateTime
+  startedAt             DateTime?
+  completedAt           DateTime?
   courseId              String?
   ctpHoleNumber         Int?
   longestPuttHoleNumber Int?

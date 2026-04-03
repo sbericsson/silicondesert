@@ -41,6 +41,10 @@ export async function DELETE(
     return NextResponse.json({ error: 'Archived seasons cannot be edited' }, { status: 409 })
   }
 
+  if (match.week.completedAt) {
+    return NextResponse.json({ error: 'Closed weeks cannot be edited' }, { status: 409 })
+  }
+
   if (match.week.locked || match.locked) {
     return NextResponse.json({ error: 'Locked matches cannot be removed' }, { status: 409 })
   }

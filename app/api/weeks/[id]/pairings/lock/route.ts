@@ -59,6 +59,10 @@ export async function POST(
     return NextResponse.json({ error: 'Archived seasons cannot be edited' }, { status: 409 })
   }
 
+  if (week.completedAt) {
+    return NextResponse.json({ error: 'Closed weeks cannot be edited' }, { status: 409 })
+  }
+
   if (week.locked) {
     return NextResponse.json({ error: 'Week is already locked' }, { status: 409 })
   }
@@ -129,6 +133,10 @@ export async function DELETE(
 
   if (week.season.archivedAt) {
     return NextResponse.json({ error: 'Archived seasons cannot be edited' }, { status: 409 })
+  }
+
+  if (week.completedAt) {
+    return NextResponse.json({ error: 'Closed weeks cannot be edited' }, { status: 409 })
   }
 
   if (!week.locked) {

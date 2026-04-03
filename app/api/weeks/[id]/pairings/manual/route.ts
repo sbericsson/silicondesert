@@ -61,6 +61,10 @@ export async function POST(
     return NextResponse.json({ error: 'Archived seasons cannot be edited' }, { status: 409 })
   }
 
+  if (week.completedAt) {
+    return NextResponse.json({ error: 'Closed weeks cannot be edited' }, { status: 409 })
+  }
+
   if (week.locked) {
     return NextResponse.json({ error: 'Week is locked' }, { status: 409 })
   }

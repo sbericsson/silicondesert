@@ -16,6 +16,7 @@ type MatchScorePageData = {
     ctpHoleNumber: number | null
     locked: boolean
     seasonArchived: boolean
+    weekCompleted: boolean
     player2ScorecardOnly: boolean
     matchPlayLeadBy: number | null
     matchPlayHolesRemaining: number | null
@@ -254,6 +255,10 @@ export function MatchScoreClient({ initialData }: MatchScoreClientProps) {
         <div className="rounded-md border border-warning bg-warning/10 px-4 py-3 text-sm text-warning-text">
           This season is archived. Scores remain visible, but edits are disabled.
         </div>
+      ) : initialData.match.weekCompleted ? (
+        <div className="rounded-md border border-warning bg-warning/10 px-4 py-3 text-sm text-warning-text">
+          This week has been closed. Scores remain visible, but edits are disabled.
+        </div>
       ) : null}
 
       <div className="rounded-md border-l-[3px] border-accent bg-accent-dim px-4 py-3 text-sm text-accent-text">
@@ -359,11 +364,13 @@ export function MatchScoreClient({ initialData }: MatchScoreClientProps) {
       <button
         type="button"
         className="font-condensed w-full rounded-lg bg-accent px-4 py-4 text-base font-bold uppercase tracking-wide text-white disabled:cursor-not-allowed disabled:bg-surface-sunken disabled:text-text-disabled"
-        disabled={!isComplete || isSubmitting || initialData.match.seasonArchived}
+        disabled={!isComplete || isSubmitting || initialData.match.seasonArchived || initialData.match.weekCompleted}
         onClick={handleSubmit}
       >
         {initialData.match.seasonArchived
           ? 'Season Archived'
+          : initialData.match.weekCompleted
+            ? 'Week Closed'
           : !isComplete
           ? `Submit Scores (${9 - completeHoleCount} holes remaining)`
           : isSubmitting

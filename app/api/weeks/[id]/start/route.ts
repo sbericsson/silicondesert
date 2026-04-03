@@ -1,16 +1,7 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { getApiSession, unauthorizedResponse } from '@/lib/api-auth'
-import { getPhoenixDateParts } from '@/lib/phoenix-time'
 import { writeAuditLog } from '@/lib/audit'
-
-function phoenixStartOfDay(isoDate: string) {
-  return new Date(`${isoDate}T00:00:00-07:00`)
-}
-
-function phoenixEndOfDay(isoDate: string) {
-  return new Date(`${isoDate}T23:59:59.999-07:00`)
-}
 
 export async function POST(
   _request: Request,
@@ -21,9 +12,7 @@ export async function POST(
     return unauthorizedResponse()
   }
 
-  const { isoDate } = getPhoenixDateParts()
-  const startOfToday = phoenixStartOfDay(isoDate)
-  const endOfToday = phoenixEndOfDay(isoDate)
+  const startedAt = new Date()
 
   const [existingCurrentWeek, targetWeek] = await Promise.all([
     prisma.week.findFirst({
@@ -33,10 +22,29 @@ export async function POST(
             archivedAt: null
           }
         },
-        date: {
-          gte: startOfToday,
-          lte: endOfToday
-        }
+        completedAt: null,
+        OR: [
+          {
+            startedAt: {
+              not: null
+            }
+          },
+          {
+            locked: true
+          },
+          {
+            matches: {
+              some: {}
+            }
+          },
+          {
+            attendance: {
+              some: {
+                present: true
+              }
+            }
+          }
+        ]
       }
     }),
     prisma.week.findUnique({
@@ -59,24 +67,32 @@ export async function POST(
     return NextResponse.json({ error: 'Archived seasons cannot be edited' }, { status: 409 })
   }
 
+  if (targetWeek.completedAt) {
+    return NextResponse.json({ error: 'Closed weeks cannot be started again' }, { status: 409 })
+  }
+
   if (existingCurrentWeek && existingCurrentWeek.id !== params.id) {
-    return NextResponse.json({ error: 'A current week already exists for today' }, { status: 409 })
+    return NextResponse.json({ error: 'Another week is already active' }, { status: 409 })
+  }
+
+  if (targetWeek.startedAt) {
+    return NextResponse.json({ error: 'This week is already active' }, { status: 409 })
   }
 
   const updatedWeek = await prisma.$transaction(async (tx) => {
     const week = await tx.week.update({
       where: { id: params.id },
       data: {
-        date: startOfToday
+        startedAt
       }
     })
 
     await writeAuditLog(tx, {
       weekId: params.id,
       action: 'week_start',
-      field: 'date',
-      oldValue: targetWeek.date.toISOString(),
-      newValue: startOfToday.toISOString()
+      field: 'startedAt',
+      oldValue: targetWeek.startedAt?.toISOString() ?? null,
+      newValue: startedAt.toISOString()
     })
 
     return week

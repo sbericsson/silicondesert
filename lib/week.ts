@@ -1,3 +1,4 @@
+import type { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/db'
 import { courseHandicap, handicapIndex } from '@/lib/handicap'
 import { getPhoenixDateParts } from '@/lib/phoenix-time'
@@ -7,8 +8,37 @@ function phoenixStartOfDay(isoDate: string) {
   return new Date(`${isoDate}T00:00:00-07:00`)
 }
 
-function phoenixEndOfDay(isoDate: string) {
-  return new Date(`${isoDate}T23:59:59.999-07:00`)
+function getActiveWeekWhere() {
+  return {
+    season: {
+      is: {
+        archivedAt: null
+      }
+    },
+    completedAt: null,
+    OR: [
+      {
+        startedAt: {
+          not: null
+        }
+      },
+      {
+        locked: true
+      },
+      {
+        matches: {
+          some: {}
+        }
+      },
+      {
+        attendance: {
+          some: {
+            present: true
+          }
+        }
+      }
+    ]
+  } satisfies Prisma.WeekWhereInput
 }
 
 function formatDate(date: Date) {
@@ -49,20 +79,8 @@ export async function getCurrentWeekRecord() {
     return null
   }
 
-  const { isoDate } = getPhoenixDateParts()
-
   return prisma.week.findFirst({
-    where: {
-      season: {
-        is: {
-          archivedAt: null
-        }
-      },
-      date: {
-        gte: phoenixStartOfDay(isoDate),
-        lte: phoenixEndOfDay(isoDate)
-      }
-    },
+    where: getActiveWeekWhere(),
     include: {
       season: true,
       ctpWinner: {
@@ -120,7 +138,8 @@ export async function getCurrentWeekRecord() {
         },
         orderBy: { createdAt: 'asc' }
       }
-    }
+    },
+    orderBy: [{ startedAt: 'desc' }, { date: 'asc' }]
   })
 }
 
@@ -130,18 +149,44 @@ export async function getNextScheduledWeekRecord() {
   }
 
   const { isoDate } = getPhoenixDateParts()
-
-  return prisma.week.findFirst({
-    where: {
-      season: {
-        is: {
-          archivedAt: null
-        }
-      },
-      date: {
-        gt: phoenixEndOfDay(isoDate)
+  const baseWhere = {
+    season: {
+      is: {
+        archivedAt: null
       }
     },
+    startedAt: null,
+    completedAt: null,
+    locked: false,
+    matches: {
+      none: {}
+    },
+    attendance: {
+      none: {
+        present: true
+      }
+    }
+  } satisfies Prisma.WeekWhereInput
+
+  const nextFutureWeek = await prisma.week.findFirst({
+    where: {
+      ...baseWhere,
+      date: {
+        gte: phoenixStartOfDay(isoDate)
+      }
+    },
+    include: {
+      season: true
+    },
+    orderBy: { date: 'asc' }
+  })
+
+  if (nextFutureWeek) {
+    return nextFutureWeek
+  }
+
+  return prisma.week.findFirst({
+    where: baseWhere,
     include: {
       season: true
     },
@@ -220,6 +265,8 @@ export async function getCurrentWeekPageData() {
           weekNumber: currentWeek.weekNumber,
           seasonName: currentWeek.season.name,
           dateLabel: formatDate(currentWeek.date),
+          startedAt: currentWeek.startedAt?.toISOString() ?? null,
+          completedAt: currentWeek.completedAt?.toISOString() ?? null,
           courseId: currentWeek.courseId,
           courseName: currentWeek.course?.name ?? null,
           ctpHoleOptions:

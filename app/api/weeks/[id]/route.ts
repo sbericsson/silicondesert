@@ -90,6 +90,10 @@ export async function PATCH(
     return NextResponse.json({ error: 'Archived seasons cannot be edited' }, { status: 409 })
   }
 
+  if (existingWeek.completedAt) {
+    return NextResponse.json({ error: 'Closed weeks cannot be edited' }, { status: 409 })
+  }
+
   // CTP/LP winner fields can be updated after lock (post-round data).
   // Course, CTP hole, and LP hole cannot be changed once locked.
   const lockedFields = ['courseId', 'ctpHoleNumber', 'longestPuttHoleNumber'] as const

@@ -33,6 +33,7 @@ type RosterPageData = {
     id: string
     name: string
     gender: Gender
+    defaultTeeColor: TeeColor | null
     email: string | null
     cellPhone: string | null
     active: boolean
@@ -178,9 +179,11 @@ export function RosterClient({ initialData }: RosterClientProps) {
   const [playerEmail, setPlayerEmail] = useState('')
   const [playerCellPhone, setPlayerCellPhone] = useState('')
   const [playerSeedHandicap, setPlayerSeedHandicap] = useState('')
+  const [playerDefaultTeeColor, setPlayerDefaultTeeColor] = useState<TeeColor>('blue')
   const [editingPlayerId, setEditingPlayerId] = useState<string | null>(null)
   const [editingPlayerName, setEditingPlayerName] = useState('')
   const [editingPlayerGender, setEditingPlayerGender] = useState<Gender>('man')
+  const [editingPlayerDefaultTeeColor, setEditingPlayerDefaultTeeColor] = useState<TeeColor>('blue')
   const [editingPlayerEmail, setEditingPlayerEmail] = useState('')
   const [editingPlayerCellPhone, setEditingPlayerCellPhone] = useState('')
   const [editingPlayerSeedHandicap, setEditingPlayerSeedHandicap] = useState('')
@@ -387,6 +390,7 @@ export function RosterClient({ initialData }: RosterClientProps) {
       body: JSON.stringify({
         name: playerName,
         gender: playerGender,
+        defaultTeeColor: playerDefaultTeeColor,
         email: playerEmail,
         cellPhone: playerCellPhone,
         seedHandicap: playerSeedHandicap
@@ -402,6 +406,7 @@ export function RosterClient({ initialData }: RosterClientProps) {
 
     setPlayerName('')
     setPlayerGender('man')
+    setPlayerDefaultTeeColor('blue')
     setPlayerEmail('')
     setPlayerCellPhone('')
     setPlayerSeedHandicap('')
@@ -596,6 +601,7 @@ export function RosterClient({ initialData }: RosterClientProps) {
       body: JSON.stringify({
         name: editingPlayerName,
         gender: editingPlayerGender,
+        defaultTeeColor: editingPlayerDefaultTeeColor,
         email: editingPlayerEmail,
         cellPhone: editingPlayerCellPhone,
         seedHandicap: editingPlayerSeedHandicap,
@@ -623,6 +629,7 @@ export function RosterClient({ initialData }: RosterClientProps) {
     setEditingPlayerId(null)
     setEditingPlayerName('')
     setEditingPlayerGender('man')
+    setEditingPlayerDefaultTeeColor('blue')
     setEditingPlayerEmail('')
     setEditingPlayerCellPhone('')
     setEditingPlayerSeedHandicap('')
@@ -634,6 +641,9 @@ export function RosterClient({ initialData }: RosterClientProps) {
     setEditingPlayerId(player.id)
     setEditingPlayerName(player.name)
     setEditingPlayerGender(player.gender)
+    setEditingPlayerDefaultTeeColor(
+      player.defaultTeeColor ?? getDefaultTeeColorForGender(player.gender)
+    )
     setEditingPlayerEmail(player.email ?? '')
     setEditingPlayerCellPhone(formatUsPhoneNumber(player.cellPhone) ?? '')
     setEditingPlayerSeedHandicap(player.seedHandicap?.toString() ?? '')
@@ -986,10 +996,24 @@ export function RosterClient({ initialData }: RosterClientProps) {
             <select
               className="w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
               value={playerGender}
-              onChange={(event) => setPlayerGender(event.target.value as Gender)}
+              onChange={(event) => {
+                const nextGender = event.target.value as Gender
+                setPlayerGender(nextGender)
+                setPlayerDefaultTeeColor(getDefaultTeeColorForGender(nextGender))
+              }}
             >
               <option value="man">Man</option>
               <option value="woman">Woman</option>
+            </select>
+            <select
+              className="w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
+              value={playerDefaultTeeColor}
+              onChange={(event) => setPlayerDefaultTeeColor(event.target.value as TeeColor)}
+            >
+              <option value="blue">Standard tee: Blue</option>
+              <option value="white">Standard tee: White</option>
+              <option value="yellow">Standard tee: Yellow</option>
+              <option value="silver">Standard tee: Silver</option>
             </select>
             <input
               className="w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
@@ -1220,10 +1244,26 @@ export function RosterClient({ initialData }: RosterClientProps) {
                     <select
                       className="w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
                       value={editingPlayerGender}
-                      onChange={(event) => setEditingPlayerGender(event.target.value as Gender)}
+                      onChange={(event) => {
+                        const nextGender = event.target.value as Gender
+                        setEditingPlayerGender(nextGender)
+                        setEditingPlayerDefaultTeeColor(getDefaultTeeColorForGender(nextGender))
+                      }}
                     >
                       <option value="man">Man</option>
                       <option value="woman">Woman</option>
+                    </select>
+                    <select
+                      className="w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
+                      value={editingPlayerDefaultTeeColor}
+                      onChange={(event) =>
+                        setEditingPlayerDefaultTeeColor(event.target.value as TeeColor)
+                      }
+                    >
+                      <option value="blue">Standard tee: Blue</option>
+                      <option value="white">Standard tee: White</option>
+                      <option value="yellow">Standard tee: Yellow</option>
+                      <option value="silver">Standard tee: Silver</option>
                     </select>
                     <input
                       className="w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"

@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/db'
 import { getApiSession, unauthorizedResponse } from '@/lib/api-auth'
+import { getDefaultTeeColorForGender } from '@/lib/course-tee'
 import { parsePhoenixDate, sortUniqueWeekDates } from '@/lib/seasons'
 
 export async function GET() {
@@ -43,77 +45,106 @@ export async function POST(request: NextRequest) {
   const orderedWeekDates = [...weekDates].sort((a, b) => a.getTime() - b.getTime())
   const endDate = orderedWeekDates[orderedWeekDates.length - 1]
 
-  const season = await prisma.$transaction(async (tx) => {
-    const createdSeason = await tx.season.create({
-      data: {
-        name,
-        type,
-        startDate,
-        endDate
-      }
-    })
-
-    const priorTeeChoices = await tx.playerSeasonTee.findMany({
-      where: {
-        seasonId: {
-          not: createdSeason.id
-        }
-      },
-      include: {
-        season: {
-          select: {
-            startDate: true
-          }
-        }
-      },
-      orderBy: [
-        {
-          season: {
-            startDate: 'desc'
-          }
-        },
-        {
-          createdAt: 'desc'
-        }
-      ]
-    })
-
-    const latestChoiceByPlayer = new Map<string, (typeof priorTeeChoices)[number]>()
-    for (const choice of priorTeeChoices) {
-      if (!latestChoiceByPlayer.has(choice.playerId)) {
-        latestChoiceByPlayer.set(choice.playerId, choice)
-      }
-    }
-
-    if (latestChoiceByPlayer.size > 0) {
-      await tx.playerSeasonTee.createMany({
-        data: [...latestChoiceByPlayer.values()].map((choice) => ({
-          playerId: choice.playerId,
-          seasonId: createdSeason.id,
-          teeColor: choice.teeColor
-        }))
-      })
-    }
-
-    for (const [index, weekDate] of orderedWeekDates.entries()) {
-      await tx.week.create({
+  try {
+    const season = await prisma.$transaction(async (tx) => {
+      const createdSeason = await tx.season.create({
         data: {
-          seasonId: createdSeason.id,
-          weekNumber: index + 1,
-          date: weekDate
+          name,
+          type,
+          startDate,
+          endDate
         }
       })
-    }
 
-    return tx.season.findUnique({
-      where: { id: createdSeason.id },
-      include: {
-        weeks: {
-          orderBy: { date: 'asc' }
+      const [priorTeeChoices, players] = await Promise.all([
+        tx.playerSeasonTee.findMany({
+          where: {
+            seasonId: {
+              not: createdSeason.id
+            }
+          },
+          include: {
+            season: {
+              select: {
+                startDate: true
+              }
+            }
+          },
+          orderBy: [
+            {
+              season: {
+                startDate: 'desc'
+              }
+            },
+            {
+              createdAt: 'desc'
+            }
+          ]
+        }),
+        tx.player.findMany({
+          select: {
+            id: true,
+            gender: true,
+            defaultTeeColor: true
+          }
+        })
+      ])
+
+      const latestChoiceByPlayer = new Map<string, (typeof priorTeeChoices)[number]>()
+      for (const choice of priorTeeChoices) {
+        if (!latestChoiceByPlayer.has(choice.playerId)) {
+          latestChoiceByPlayer.set(choice.playerId, choice)
         }
       }
-    })
-  })
 
-  return NextResponse.json(season, { status: 201 })
+      if (players.length > 0) {
+        await tx.playerSeasonTee.createMany({
+          data: players.map((player) => ({
+            playerId: player.id,
+            seasonId: createdSeason.id,
+            teeColor:
+              latestChoiceByPlayer.get(player.id)?.teeColor ??
+              player.defaultTeeColor ??
+              getDefaultTeeColorForGender(player.gender)
+          }))
+        })
+      }
+
+      for (const [index, weekDate] of orderedWeekDates.entries()) {
+        await tx.week.create({
+          data: {
+            seasonId: createdSeason.id,
+            weekNumber: index + 1,
+            date: weekDate
+          }
+        })
+      }
+
+      return tx.season.findUnique({
+        where: { id: createdSeason.id },
+        include: {
+          weeks: {
+            orderBy: { date: 'asc' }
+          }
+        }
+      })
+    })
+
+    return NextResponse.json(season, { status: 201 })
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      if (error.code === 'P2002') {
+        return NextResponse.json(
+          { error: 'A season with one of those unique values already exists.' },
+          { status: 409 }
+        )
+      }
+    }
+
+    if (error instanceof Error) {
+      return NextResponse.json({ error: error.message }, { status: 400 })
+    }
+
+    return NextResponse.json({ error: 'Unable to create season' }, { status: 500 })
+  }
 }

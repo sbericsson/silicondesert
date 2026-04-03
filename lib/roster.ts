@@ -103,6 +103,7 @@ export async function getRosterPageData() {
       id: player.id,
       name: player.name,
       gender: player.gender,
+      defaultTeeColor: player.defaultTeeColor,
       email: player.email,
       cellPhone: player.cellPhone,
       active: player.active,

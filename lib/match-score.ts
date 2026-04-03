@@ -141,8 +141,18 @@ export async function getMatchScorePageData(weekId: string, matchId: string) {
   const attendanceMap = new Map(match.week.attendance.map((entry) => [entry.playerId, entry.present]))
   const player1Index = getEffectiveHandicapIndex(match.player1, match.player1HandicapIndex)
   const player2Index = getEffectiveHandicapIndex(match.player2, match.player2HandicapIndex)
-  const player1TeeColor = getPlayerSeasonTeeColor(match.player1.seasonTeeChoices, match.week.season.id, match.player1.gender)
-  const player2TeeColor = getPlayerSeasonTeeColor(match.player2.seasonTeeChoices, match.week.season.id, match.player2.gender)
+  const player1TeeColor = getPlayerSeasonTeeColor(
+    match.player1.seasonTeeChoices,
+    match.week.season.id,
+    match.player1.gender,
+    match.player1.defaultTeeColor
+  )
+  const player2TeeColor = getPlayerSeasonTeeColor(
+    match.player2.seasonTeeChoices,
+    match.week.season.id,
+    match.player2.gender,
+    match.player2.defaultTeeColor
+  )
   const player1Tee = getCourseTee(match.week.course.tees, player1TeeColor, match.player1.gender, {
     color: 'white',
     gender: 'man',
@@ -325,8 +335,18 @@ export async function submitMatchScores(input: {
 
   const player1Index = getEffectiveHandicapIndex(match.player1, match.player1HandicapIndex)
   const player2Index = getEffectiveHandicapIndex(match.player2, match.player2HandicapIndex)
-  const player1TeeColor = getPlayerSeasonTeeColor(match.player1.seasonTeeChoices, match.week.season.id, match.player1.gender)
-  const player2TeeColor = getPlayerSeasonTeeColor(match.player2.seasonTeeChoices, match.week.season.id, match.player2.gender)
+  const player1TeeColor = getPlayerSeasonTeeColor(
+    match.player1.seasonTeeChoices,
+    match.week.season.id,
+    match.player1.gender,
+    match.player1.defaultTeeColor
+  )
+  const player2TeeColor = getPlayerSeasonTeeColor(
+    match.player2.seasonTeeChoices,
+    match.week.season.id,
+    match.player2.gender,
+    match.player2.defaultTeeColor
+  )
   const player1Tee = getCourseTee(course.tees, player1TeeColor, match.player1.gender, {
     color: 'white',
     gender: 'man',

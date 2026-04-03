@@ -20,9 +20,14 @@ export function getDefaultTeeColorForGender(gender: Gender): TeeColor {
 export function getPlayerSeasonTeeColor(
   choices: SeasonTeeChoiceLike[],
   seasonId: string,
-  gender: Gender
+  gender: Gender,
+  defaultTeeColor?: TeeColor | null
 ): TeeColor {
-  return choices.find((choice) => choice.seasonId === seasonId)?.teeColor ?? getDefaultTeeColorForGender(gender)
+  return (
+    choices.find((choice) => choice.seasonId === seasonId)?.teeColor ??
+    defaultTeeColor ??
+    getDefaultTeeColorForGender(gender)
+  )
 }
 
 export function getCourseTee(

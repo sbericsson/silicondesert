@@ -3,6 +3,7 @@ import type { Gender, TeeColor } from '@prisma/client'
 import { prisma } from '@/lib/db'
 import { getApiSession, unauthorizedResponse } from '@/lib/api-auth'
 import { normalizeUsPhoneNumber } from '@/lib/phone'
+import { getDefaultTeeColorForGender } from '@/lib/course-tee'
 import {
   validateImportedHandicapRounds,
   toImportedHandicapRoundRecords
@@ -22,6 +23,7 @@ export async function PATCH(
   const updates: {
     name?: string
     gender?: Gender
+    defaultTeeColor?: TeeColor
     email?: string | null
     cellPhone?: string | null
     active?: boolean
@@ -47,6 +49,19 @@ export async function PATCH(
     }
 
     updates.gender = body.gender
+  }
+
+  if ('defaultTeeColor' in body) {
+    if (
+      body.defaultTeeColor !== 'blue' &&
+      body.defaultTeeColor !== 'white' &&
+      body.defaultTeeColor !== 'yellow' &&
+      body.defaultTeeColor !== 'silver'
+    ) {
+      return NextResponse.json({ error: 'Default tee must be blue, white, yellow, or silver' }, { status: 400 })
+    }
+
+    updates.defaultTeeColor = body.defaultTeeColor
   }
 
   if ('email' in body) {
@@ -138,9 +153,27 @@ export async function PATCH(
   }
 
   const player = await prisma.$transaction(async (tx) => {
+    const existingPlayer = await tx.player.findUnique({
+      where: { id: params.id },
+      select: {
+        gender: true,
+        defaultTeeColor: true
+      }
+    })
+
+    if (!existingPlayer) {
+      throw new Error('Player not found')
+    }
+
+    const nextGender = updates.gender ?? existingPlayer.gender
+    const nextDefaultTeeColor = updates.defaultTeeColor ?? existingPlayer.defaultTeeColor ?? getDefaultTeeColorForGender(nextGender)
+
     const updatedPlayer = await tx.player.update({
       where: { id: params.id },
-      data: updates
+      data: {
+        ...updates,
+        defaultTeeColor: nextDefaultTeeColor
+      }
     })
 
     if (importedHandicapRounds !== undefined) {

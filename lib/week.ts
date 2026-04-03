@@ -202,7 +202,12 @@ export async function getCurrentWeekPageData() {
       present: status?.present ?? false,
       checkedInAt: status?.checkedInAt?.toISOString() ?? null,
       teeColor: currentWeek
-        ? getPlayerSeasonTeeColor(player.seasonTeeChoices, currentWeek.seasonId, player.gender)
+        ? getPlayerSeasonTeeColor(
+            player.seasonTeeChoices,
+            currentWeek.seasonId,
+            player.gender,
+            player.defaultTeeColor
+          )
         : getDefaultTeeColorForGender(player.gender),
       handicap
     }
@@ -231,12 +236,14 @@ export async function getCurrentWeekPageData() {
             const player1TeeColor = getPlayerSeasonTeeColor(
               match.player1.seasonTeeChoices,
               currentWeek.seasonId,
-              match.player1.gender
+              match.player1.gender,
+              match.player1.defaultTeeColor
             )
             const player2TeeColor = getPlayerSeasonTeeColor(
               match.player2.seasonTeeChoices,
               currentWeek.seasonId,
-              match.player2.gender
+              match.player2.gender,
+              match.player2.defaultTeeColor
             )
             const player1Tee = currentWeek.course
               ? getCourseTee(currentWeek.course.tees, player1TeeColor, match.player1.gender, {

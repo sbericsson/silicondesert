@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
-import type { Gender } from '@prisma/client'
+import type { Gender, TeeColor } from '@prisma/client'
 import { prisma } from '@/lib/db'
 import { getApiSession, unauthorizedResponse } from '@/lib/api-auth'
 import { normalizeUsPhoneNumber } from '@/lib/phone'
+import { getDefaultTeeColorForGender } from '@/lib/course-tee'
 
 export async function GET(request: NextRequest) {
   const session = await getApiSession()
@@ -31,6 +32,13 @@ export async function POST(request: NextRequest) {
   const gender: Gender = body.gender === 'woman' ? 'woman' : 'man'
   const email =
     typeof body.email === 'string' && body.email.trim().length > 0 ? body.email.trim() : null
+  const defaultTeeColor =
+    body.defaultTeeColor === 'blue' ||
+    body.defaultTeeColor === 'white' ||
+    body.defaultTeeColor === 'yellow' ||
+    body.defaultTeeColor === 'silver'
+      ? (body.defaultTeeColor as TeeColor)
+      : getDefaultTeeColorForGender(gender)
   const rawCellPhone = typeof body.cellPhone === 'string' ? body.cellPhone.trim() : ''
   const cellPhone = normalizeUsPhoneNumber(rawCellPhone)
   const seedHandicap =
@@ -57,6 +65,7 @@ export async function POST(request: NextRequest) {
     data: {
       name,
       gender,
+      defaultTeeColor,
       email,
       cellPhone,
       seedHandicap

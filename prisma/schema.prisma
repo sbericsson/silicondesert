@@ -59,6 +59,7 @@ model Player {
   id              String           @id @default(cuid())
   name            String
   gender          Gender           @default(man)
+  defaultTeeColor TeeColor?
   email           String?
   cellPhone       String?
   active          Boolean          @default(true)
@@ -85,8 +86,6 @@ model Season {
   playerTeeChoices PlayerSeasonTee[]
   weeks     Week[]
   createdAt DateTime   @default(now())
-
-  @@unique([type, startDate])
 }
 
 model PlayerSeasonTee {

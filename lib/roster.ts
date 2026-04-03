@@ -1,6 +1,14 @@
 import { prisma } from '@/lib/db'
 import { handicapIndex } from '@/lib/handicap'
 
+function getPlayerSortKey(name: string) {
+  const normalized = name.trim().replace(/\s+/g, ' ')
+  const parts = normalized.split(' ')
+  const lastName = parts.at(-1) ?? normalized
+  const firstNames = parts.slice(0, -1).join(' ')
+  return `${lastName.toLocaleLowerCase()}|${firstNames.toLocaleLowerCase()}|${normalized.toLocaleLowerCase()}`
+}
+
 function getPlayerDisplay(player: {
   seedHandicap: number | null
   handicapRecords: Array<{ courseDifferential: number }>
@@ -38,7 +46,7 @@ export async function getRosterPageData() {
         },
         seasonTeeChoices: true
       },
-      orderBy: [{ active: 'desc' }, { name: 'asc' }]
+      orderBy: { name: 'asc' }
     }),
     prisma.season.findMany({
       include: {
@@ -83,7 +91,9 @@ export async function getRosterPageData() {
     settings: {
       publicRosterEnabled: commissioner?.publicRosterEnabled ?? false
     },
-    players: players.map((player) => ({
+    players: [...players]
+      .sort((left, right) => getPlayerSortKey(left.name).localeCompare(getPlayerSortKey(right.name)))
+      .map((player) => ({
       id: player.id,
       name: player.name,
       gender: player.gender,

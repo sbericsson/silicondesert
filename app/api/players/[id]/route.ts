@@ -218,3 +218,88 @@ export async function PATCH(
 
   return NextResponse.json(player)
 }
+
+export async function DELETE(
+  _request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  const session = await getApiSession()
+  if (!session) {
+    return unauthorizedResponse()
+  }
+
+  const player = await prisma.player.findUnique({
+    where: { id: params.id },
+    select: {
+      id: true,
+      name: true
+    }
+  })
+
+  if (!player) {
+    return NextResponse.json({ error: 'Player not found' }, { status: 404 })
+  }
+
+  const [
+    attendanceCount,
+    matchCount,
+    holeScoreCount,
+    weeklyHandicapCount,
+    ctpCount,
+    longestPuttCount
+  ] = await Promise.all([
+    prisma.attendance.count({
+      where: { playerId: params.id }
+    }),
+    prisma.match.count({
+      where: {
+        OR: [{ player1Id: params.id }, { player2Id: params.id }]
+      }
+    }),
+    prisma.holeScore.count({
+      where: { playerId: params.id }
+    }),
+    prisma.handicapRecord.count({
+      where: {
+        playerId: params.id,
+        weekId: {
+          not: null
+        }
+      }
+    }),
+    prisma.week.count({
+      where: { ctpWinnerId: params.id }
+    }),
+    prisma.week.count({
+      where: { longestPuttWinnerId: params.id }
+    })
+  ])
+
+  const hasLeagueHistory =
+    attendanceCount > 0 ||
+    matchCount > 0 ||
+    holeScoreCount > 0 ||
+    weeklyHandicapCount > 0 ||
+    ctpCount > 0 ||
+    longestPuttCount > 0
+
+  if (hasLeagueHistory) {
+    return NextResponse.json(
+      {
+        error:
+          'Players with league history cannot be deleted. Deactivate them instead so past weeks stay intact.'
+      },
+      { status: 409 }
+    )
+  }
+
+  await prisma.player.delete({
+    where: { id: params.id }
+  })
+
+  return NextResponse.json({
+    deleted: true,
+    id: player.id,
+    name: player.name
+  })
+}

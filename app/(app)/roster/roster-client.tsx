@@ -410,6 +410,45 @@ export function RosterClient({ initialData }: RosterClientProps) {
     await refreshPage(active ? 'Player activated.' : 'Player deactivated.')
   }
 
+  async function handleDeletePlayer(player: RosterPageData['players'][number]) {
+    const confirmed = window.confirm(
+      `Delete ${player.name}? This is only safe for players without league history.`
+    )
+
+    if (!confirmed) {
+      return
+    }
+
+    setIsSubmitting(true)
+    setError(null)
+    setMessage(null)
+
+    const response = await fetch(`/api/players/${player.id}`, {
+      method: 'DELETE'
+    })
+
+    if (!response.ok) {
+      const payload = await response.json().catch(() => null)
+      setError(payload?.error ?? 'Unable to delete player')
+      setIsSubmitting(false)
+      return
+    }
+
+    if (editingPlayerId === player.id) {
+      setEditingPlayerId(null)
+      setEditingPlayerName('')
+      setEditingPlayerGender('man')
+      setEditingPlayerEmail('')
+      setEditingPlayerCellPhone('')
+      setEditingPlayerSeedHandicap('')
+      setEditingPlayerImportedRounds([])
+      setEditingPlayerSeasonTeeChoices({})
+    }
+
+    setIsSubmitting(false)
+    await refreshPage('Player deleted.')
+  }
+
   async function handleSavePlayer(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     if (!editingPlayerId) {
@@ -1065,7 +1104,7 @@ export function RosterClient({ initialData }: RosterClientProps) {
                     : 'No imported handicap history'}
                 </p>
               </div>
-              <div className="flex gap-2">
+              <div className="flex flex-wrap justify-end gap-2">
                 <button
                   type="button"
                   className="rounded-lg bg-surface-sunken px-3 py-2 text-sm font-semibold text-text-primary"
@@ -1085,6 +1124,14 @@ export function RosterClient({ initialData }: RosterClientProps) {
                   disabled={isSubmitting}
                 >
                   {player.active ? 'Deactivate' : 'Activate'}
+                </button>
+                <button
+                  type="button"
+                  className="rounded-lg bg-danger-dim px-3 py-2 text-sm font-semibold text-danger-text"
+                  onClick={() => handleDeletePlayer(player)}
+                  disabled={isSubmitting}
+                >
+                  Delete
                 </button>
               </div>
             </div>

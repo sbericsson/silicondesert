@@ -302,8 +302,12 @@ export function WeekClient({ initialData }: WeekClientProps) {
 
   async function copyToClipboard(text: string) {
     if (navigator.clipboard?.writeText) {
-      await navigator.clipboard.writeText(text)
-      return
+      try {
+        await navigator.clipboard.writeText(text)
+        return
+      } catch {
+        // clipboard permission denied — fall through to execCommand
+      }
     }
 
     const textArea = document.createElement('textarea')
@@ -539,6 +543,13 @@ export function WeekClient({ initialData }: WeekClientProps) {
                 Hole {hole}
               </option>
             ))}
+            {data.currentWeek.locked &&
+              data.currentWeek.ctpHoleNumber !== null &&
+              !ctpHoleOptions.includes(data.currentWeek.ctpHoleNumber) && (
+                <option value={data.currentWeek.ctpHoleNumber}>
+                  Hole {data.currentWeek.ctpHoleNumber}
+                </option>
+              )}
           </select>
         </label>
 

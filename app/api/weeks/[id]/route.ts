@@ -131,8 +131,19 @@ export async function PATCH(
       )
     }
 
-    updates.ctpHoleNumber = null
-    updates.ctpWinnerId = null
+    // Only auto-reset CTP when the course itself is being changed, not when
+    // updating other fields (e.g. ctpWinnerId) while the hole is stale.
+    if ('courseId' in updates) {
+      updates.ctpHoleNumber = null
+      updates.ctpWinnerId = null
+    } else {
+      return NextResponse.json(
+        {
+          error: `CTP hole ${requestedCtpHoleNumber} is not a par 3 on the selected course. Clear the CTP hole before saving a winner.`
+        },
+        { status: 409 }
+      )
+    }
   }
 
   const updatedWeek = await prisma.$transaction(async (tx) => {

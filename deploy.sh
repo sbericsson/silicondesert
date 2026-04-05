@@ -2,23 +2,41 @@
 set -euo pipefail
 
 APP_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-APP_NAME="silicon"
+APP_NAME="${APP_NAME:-silicon}"
+DEPLOY_BRANCH="${DEPLOY_BRANCH:-main}"
 
 cd "$APP_DIR"
 
+if [ -f .env ]; then
+  set -a
+  # shellcheck disable=SC1091
+  source .env
+  set +a
+fi
+
 echo ""
 echo "======================================"
-echo "  SDGL Deploy — $(date '+%Y-%m-%d %H:%M:%S')"
+echo "  SDGL Deploy ($DEPLOY_BRANCH) — $(date '+%Y-%m-%d %H:%M:%S')"
 echo "======================================"
 echo ""
 
 # ── 1. Show what's incoming ────────────────────────────────────────────────────
 
 echo "► Fetching latest from remote..."
-git fetch origin main --quiet
+git fetch origin "$DEPLOY_BRANCH" --quiet
+
+CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+if [ "$CURRENT_BRANCH" != "$DEPLOY_BRANCH" ]; then
+  echo "► Switching to branch '$DEPLOY_BRANCH'..."
+  if git show-ref --verify --quiet "refs/heads/$DEPLOY_BRANCH"; then
+    git checkout --quiet "$DEPLOY_BRANCH"
+  else
+    git checkout --quiet -b "$DEPLOY_BRANCH" "origin/$DEPLOY_BRANCH"
+  fi
+fi
 
 LOCAL=$(git rev-parse HEAD)
-REMOTE=$(git rev-parse origin/main)
+REMOTE=$(git rev-parse "origin/$DEPLOY_BRANCH")
 
 if [ "$LOCAL" = "$REMOTE" ]; then
   echo ""
@@ -30,11 +48,11 @@ fi
 echo ""
 echo "┌─ Changes since last deploy ─────────────────────────────────────────────"
 echo ""
-git log --oneline HEAD..origin/main
+git log --oneline "HEAD..origin/$DEPLOY_BRANCH"
 echo ""
 echo "┌─ Files changed ─────────────────────────────────────────────────────────"
 echo ""
-git diff --stat HEAD..origin/main
+git diff --stat "HEAD..origin/$DEPLOY_BRANCH"
 echo ""
 
 # ── 2. Confirm ─────────────────────────────────────────────────────────────────
@@ -50,7 +68,7 @@ echo ""
 # ── 3. Pull ────────────────────────────────────────────────────────────────────
 
 echo "► Pulling..."
-git pull origin main --quiet
+git pull origin "$DEPLOY_BRANCH" --quiet
 echo "  Done."
 
 # ── 4. Dependencies ────────────────────────────────────────────────────────────

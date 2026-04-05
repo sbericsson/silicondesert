@@ -53,7 +53,7 @@ export async function getPublicRosterData() {
     },
     include: {
       handicapRecords: {
-        orderBy: { date: 'asc' },
+        orderBy: { date: 'desc' },
         take: 20
       }
     },

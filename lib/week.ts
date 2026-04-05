@@ -106,7 +106,7 @@ export async function getCurrentWeekRecord() {
           player: {
             include: {
               handicapRecords: {
-                orderBy: { date: 'asc' },
+                orderBy: { date: 'desc' },
                 take: 20
               },
               seasonTeeChoices: true
@@ -120,7 +120,7 @@ export async function getCurrentWeekRecord() {
           player1: {
             include: {
               handicapRecords: {
-                orderBy: { date: 'asc' },
+                orderBy: { date: 'desc' },
                 take: 20
               },
               seasonTeeChoices: true
@@ -129,7 +129,7 @@ export async function getCurrentWeekRecord() {
           player2: {
             include: {
               handicapRecords: {
-                orderBy: { date: 'asc' },
+                orderBy: { date: 'desc' },
                 take: 20
               },
               seasonTeeChoices: true
@@ -213,7 +213,7 @@ export async function getCurrentWeekPageData() {
       where: { active: true },
       include: {
         handicapRecords: {
-          orderBy: { date: 'asc' },
+          orderBy: { date: 'desc' },
           take: 20
         },
         seasonTeeChoices: true

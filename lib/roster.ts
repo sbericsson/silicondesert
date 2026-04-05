@@ -41,7 +41,7 @@ export async function getRosterPageData() {
     prisma.player.findMany({
       include: {
         handicapRecords: {
-          orderBy: { date: 'asc' },
+          orderBy: { date: 'desc' },
           take: 20
         },
         seasonTeeChoices: true

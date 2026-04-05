@@ -28,7 +28,7 @@ export async function POST(
           player1: {
             include: {
               handicapRecords: {
-                orderBy: { date: 'asc' },
+                orderBy: { date: 'desc' },
                 take: 20
               }
             }
@@ -36,7 +36,7 @@ export async function POST(
           player2: {
             include: {
               handicapRecords: {
-                orderBy: { date: 'asc' },
+                orderBy: { date: 'desc' },
                 take: 20
               }
             }

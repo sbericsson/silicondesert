@@ -32,7 +32,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
           player: {
             include: {
               handicapRecords: {
-                orderBy: { date: 'asc' },
+                orderBy: { date: 'desc' },
                 take: 20
               }
             }

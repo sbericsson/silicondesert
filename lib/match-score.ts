@@ -106,7 +106,7 @@ export async function getMatchScorePageData(weekId: string, matchId: string) {
       player1: {
         include: {
           handicapRecords: {
-            orderBy: { date: 'asc' },
+            orderBy: { date: 'desc' },
             take: 20
           },
           seasonTeeChoices: true
@@ -115,7 +115,7 @@ export async function getMatchScorePageData(weekId: string, matchId: string) {
       player2: {
         include: {
           handicapRecords: {
-            orderBy: { date: 'asc' },
+            orderBy: { date: 'desc' },
             take: 20
           },
           seasonTeeChoices: true
@@ -297,7 +297,7 @@ export async function submitMatchScores(input: {
       player1: {
         include: {
           handicapRecords: {
-            orderBy: { date: 'asc' },
+            orderBy: { date: 'desc' },
             take: 20
           },
           seasonTeeChoices: true
@@ -306,7 +306,7 @@ export async function submitMatchScores(input: {
       player2: {
         include: {
           handicapRecords: {
-            orderBy: { date: 'asc' },
+            orderBy: { date: 'desc' },
             take: 20
           },
           seasonTeeChoices: true

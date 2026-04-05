@@ -50,6 +50,19 @@ function formatDate(date: Date) {
   }).format(date)
 }
 
+function compareNamesByLastName(a: string, b: string) {
+  const aParts = a.trim().split(/\s+/)
+  const bParts = b.trim().split(/\s+/)
+  const aLast = aParts[aParts.length - 1]?.toLocaleLowerCase('en-US') ?? ''
+  const bLast = bParts[bParts.length - 1]?.toLocaleLowerCase('en-US') ?? ''
+
+  if (aLast !== bLast) {
+    return aLast.localeCompare(bLast, 'en-US')
+  }
+
+  return a.localeCompare(b, 'en-US')
+}
+
 function getPlayerDisplayHandicap(player: {
   seedHandicap: number | null
   handicapRecords: Array<{ courseDifferential: number }>
@@ -256,7 +269,7 @@ export async function getCurrentWeekPageData() {
         : getDefaultTeeColorForGender(player.gender),
       handicap
     }
-  })
+  }).sort((a, b) => compareNamesByLastName(a.name, b.name))
 
   return {
     currentWeek: currentWeek

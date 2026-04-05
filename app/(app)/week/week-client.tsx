@@ -55,7 +55,7 @@ type WeekPageData = {
     checkedInAt: string | null
     teeColor: TeeColor
     handicap: {
-      kind: 'HCP' | 'PRO' | 'EST'
+      kind: 'HCP' | 'NEW' | 'EST'
       value: string | null
     }
   }>
@@ -651,7 +651,7 @@ export function WeekClient({ initialData }: WeekClientProps) {
               </span>
               <span
                 className={`rounded px-2 py-1 text-[11px] font-semibold ${
-                  player.handicap.kind === 'PRO'
+                  player.handicap.kind === 'NEW'
                     ? 'bg-warning-dim text-warning-text'
                     : player.handicap.kind === 'EST'
                       ? 'bg-surface-sunken text-text-secondary'

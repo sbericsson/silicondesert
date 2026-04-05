@@ -58,8 +58,8 @@ function getPlayerDisplayHandicap(player: {
     return { kind: 'EST' as const, value: player.seedHandicap.toFixed(1) }
   }
 
-  if (player.handicapRecords.length < 3) {
-    return { kind: 'PRO' as const, value: null }
+  if (player.handicapRecords.length === 0) {
+    return { kind: 'NEW' as const, value: null }
   }
 
   const value = handicapIndex(player.handicapRecords.map((record) => record.courseDifferential))

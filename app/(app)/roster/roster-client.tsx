@@ -51,7 +51,7 @@ type RosterPageData = {
       coursePar: number
     }>
     handicap: {
-      kind: 'HCP' | 'PRO' | 'EST'
+      kind: 'HCP' | 'NEW' | 'EST'
       value: string | null
     }
   }>

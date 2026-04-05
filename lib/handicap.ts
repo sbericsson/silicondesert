@@ -26,7 +26,10 @@ export function scoreDifferential(
   return roundToTenth(raw)
 }
 
-// WHS Rule 5.2a table: [max score count, differentials to use, adjustment]
+// League rule: for 1-3 rounds we establish an initial handicap using the
+// lowest differential with the same -2.0 adjustment as the 3-round WHS case.
+// After that, follow the standard WHS Rule 5.2a table.
+// [max score count, differentials to use, adjustment]
 const WHS_TABLE: Array<[number, number, number]> = [
   [3, 1, -2.0],
   [4, 1, -1.0],
@@ -42,7 +45,7 @@ const WHS_TABLE: Array<[number, number, number]> = [
 ]
 
 export function handicapIndex(differentials: number[]) {
-  if (differentials.length < 3) {
+  if (differentials.length === 0) {
     return null
   }
 

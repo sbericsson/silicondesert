@@ -12,9 +12,9 @@ function getPublicHandicap(player: {
     }
   }
 
-  if (player.handicapRecords.length < 3) {
+  if (player.handicapRecords.length === 0) {
     return {
-      kind: 'PRO' as const,
+      kind: 'NEW' as const,
       value: null
     }
   }

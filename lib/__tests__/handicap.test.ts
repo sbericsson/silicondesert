@@ -23,12 +23,14 @@ describe('handicap helpers', () => {
   })
 
   it('computes handicap index from recent rounds', () => {
+    // League rule: 1-3 scores all use the 3-score initial-handicap treatment.
+    expect(handicapIndex([5.0])).toBe(3.0)
+    expect(handicapIndex([5.0, 8.0])).toBe(3.0)
     // 3 scores: lowest 1 differential, -2.0 adjustment (WHS Rule 5.2a)
     expect(handicapIndex([5.0, 8.0, 6.0])).toBe(3.0)
     // 6 scores: average of lowest 2, -1.0 adjustment
     expect(handicapIndex([5.0, 8.0, 6.0, 7.0, 9.0, 4.0])).toBe(3.5)
-    // fewer than 3 scores: no index
-    expect(handicapIndex([5.0, 8.0])).toBeNull()
+    // zero scores: no index
     expect(handicapIndex([])).toBeNull()
   })
 

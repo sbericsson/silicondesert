@@ -258,6 +258,8 @@ export async function getCurrentWeekPageData() {
       playerId: player.id,
       name: player.name,
       present: status?.present ?? false,
+      ctpPoolPaid: status?.ctpPoolPaid ?? false,
+      longestPuttPoolPaid: status?.longestPuttPoolPaid ?? false,
       checkedInAt: status?.checkedInAt?.toISOString() ?? null,
       teeColor: currentWeek
         ? getPlayerSeasonTeeColor(

@@ -54,6 +54,8 @@ type WeekPageData = {
     playerId: string
     name: string
     present: boolean
+    ctpPoolPaid: boolean
+    longestPuttPoolPaid: boolean
     checkedInAt: string | null
     teeColor: TeeColor
     handicap: {
@@ -168,6 +170,34 @@ export function WeekClient({ initialData }: WeekClientProps) {
         throw new Error(payload?.error ?? 'Unable to update attendance')
       }
     }, 'Attendance updated.')
+  }
+
+  async function updatePrizePoolStatus(
+    playerId: string,
+    field: 'ctpPoolPaid' | 'longestPuttPoolPaid',
+    value: boolean
+  ) {
+    if (!data.currentWeek) {
+      return
+    }
+
+    await runAction(async () => {
+      const response = await fetch(`/api/weeks/${data.currentWeek?.id}/attendance`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          playerId,
+          [field]: value
+        })
+      })
+
+      if (!response.ok) {
+        const payload = await response.json().catch(() => null)
+        throw new Error(payload?.error ?? 'Unable to update prize-pool status')
+      }
+    }, 'Prize-pool status updated.')
   }
 
   async function updateWeekField(field: 'courseId' | 'ctpHoleNumber' | 'longestPuttHoleNumber' | 'ctpWinnerId' | 'longestPuttWinnerId', value: string) {
@@ -628,17 +658,20 @@ export function WeekClient({ initialData }: WeekClientProps) {
         </div>
         <div className="divide-y divide-surface-border">
           {data.attendance.map((player) => (
-            <button
+            <div
               key={player.playerId}
-              type="button"
-              className="flex w-full items-center gap-3 px-4 py-3 text-left disabled:cursor-not-allowed"
-              onClick={() => toggleAttendance(player.playerId, !player.present)}
-              disabled={
-                isRefreshing ||
-                data.currentWeek?.locked ||
-                (player.present && matchedPlayerIds.has(player.playerId))
-              }
+              className="flex w-full items-center gap-3 px-4 py-3"
             >
+              <button
+                type="button"
+                className="flex min-w-0 flex-1 items-center gap-3 text-left disabled:cursor-not-allowed"
+                onClick={() => toggleAttendance(player.playerId, !player.present)}
+                disabled={
+                  isRefreshing ||
+                  data.currentWeek?.locked ||
+                  (player.present && matchedPlayerIds.has(player.playerId))
+                }
+              >
               <span
                 className={`h-4 w-4 rounded-full border-2 ${
                   player.present ? 'border-transparent bg-accent-bright' : 'border-surface-border bg-transparent'
@@ -663,12 +696,39 @@ export function WeekClient({ initialData }: WeekClientProps) {
                 {player.handicap.kind === 'HCP' ? player.handicap.value : player.handicap.kind} ·{' '}
                 {player.teeColor.toUpperCase()}
               </span>
+              </button>
+              <label className="flex items-center gap-1 rounded bg-surface-sunken px-2 py-1 text-[11px] font-semibold text-text-secondary">
+                <input
+                  type="checkbox"
+                  checked={player.ctpPoolPaid}
+                  onChange={(event) =>
+                    updatePrizePoolStatus(player.playerId, 'ctpPoolPaid', event.target.checked)
+                  }
+                  disabled={isRefreshing || data.currentWeek?.locked || !player.present}
+                />
+                CTP
+              </label>
+              <label className="flex items-center gap-1 rounded bg-surface-sunken px-2 py-1 text-[11px] font-semibold text-text-secondary">
+                <input
+                  type="checkbox"
+                  checked={player.longestPuttPoolPaid}
+                  onChange={(event) =>
+                    updatePrizePoolStatus(
+                      player.playerId,
+                      'longestPuttPoolPaid',
+                      event.target.checked
+                    )
+                  }
+                  disabled={isRefreshing || data.currentWeek?.locked || !player.present}
+                />
+                LPM
+              </label>
               {player.present && matchedPlayerIds.has(player.playerId) ? (
                 <span className="rounded bg-surface-sunken px-2 py-1 text-[11px] font-semibold text-text-secondary">
                   Paired
                 </span>
               ) : null}
-            </button>
+            </div>
           ))}
         </div>
       </section>

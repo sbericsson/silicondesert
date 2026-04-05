@@ -134,13 +134,15 @@ model Week {
 }
 
 model Attendance {
-  id          String    @id @default(cuid())
-  weekId       String
-  playerId     String
-  present      Boolean   @default(false)
-  checkedInAt  DateTime?
-  week         Week      @relation(fields: [weekId], references: [id], onDelete: Cascade)
-  player       Player    @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  id                  String    @id @default(cuid())
+  weekId              String
+  playerId            String
+  present             Boolean   @default(false)
+  ctpPoolPaid         Boolean   @default(false)
+  longestPuttPoolPaid Boolean   @default(false)
+  checkedInAt         DateTime?
+  week                Week      @relation(fields: [weekId], references: [id], onDelete: Cascade)
+  player              Player    @relation(fields: [playerId], references: [id], onDelete: Cascade)
 
   @@unique([weekId, playerId])
 }

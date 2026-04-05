@@ -1,0 +1,3 @@
+ALTER TABLE "Attendance"
+ADD COLUMN "ctpPoolPaid" BOOLEAN NOT NULL DEFAULT false,
+ADD COLUMN "longestPuttPoolPaid" BOOLEAN NOT NULL DEFAULT false;

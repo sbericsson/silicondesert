@@ -11,3 +11,5 @@ coverage
 dist
 *.log
 *.tsbuildinfo
+historical_rounds_import.sql
+scripts/

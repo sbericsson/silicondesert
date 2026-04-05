@@ -190,6 +190,7 @@ export function RosterClient({ initialData }: RosterClientProps) {
   const [editingPlayerImportedRounds, setEditingPlayerImportedRounds] = useState<
     ImportedRoundEditor[]
   >([])
+  const [editingPlayerRoundsExpanded, setEditingPlayerRoundsExpanded] = useState(false)
   const [editingPlayerSeasonTeeChoices, setEditingPlayerSeasonTeeChoices] = useState<
     Record<string, TeeColor>
   >({})
@@ -476,6 +477,7 @@ export function RosterClient({ initialData }: RosterClientProps) {
       setEditingPlayerCellPhone('')
       setEditingPlayerSeedHandicap('')
       setEditingPlayerImportedRounds([])
+      setEditingPlayerRoundsExpanded(false)
       setEditingPlayerSeasonTeeChoices({})
     }
 
@@ -634,6 +636,7 @@ export function RosterClient({ initialData }: RosterClientProps) {
     setEditingPlayerCellPhone('')
     setEditingPlayerSeedHandicap('')
     setEditingPlayerImportedRounds([])
+    setEditingPlayerRoundsExpanded(false)
     setEditingPlayerSeasonTeeChoices({})
   }
 
@@ -652,6 +655,7 @@ export function RosterClient({ initialData }: RosterClientProps) {
         importedRoundToEditorRound(round, data.courses, player.gender)
       )
     )
+    setEditingPlayerRoundsExpanded(player.importedHandicapRounds.length === 0)
     setEditingPlayerSeasonTeeChoices(
       Object.fromEntries(
         player.seasonTeeChoices.map((choice) => [choice.seasonId, choice.teeColor])
@@ -660,6 +664,7 @@ export function RosterClient({ initialData }: RosterClientProps) {
   }
 
   function addEditingPlayerImportedRound() {
+    setEditingPlayerRoundsExpanded(true)
     setEditingPlayerImportedRounds((current) => [
       ...current,
       createBlankImportedRound(data.courses, editingPlayerGender)
@@ -1234,6 +1239,31 @@ export function RosterClient({ initialData }: RosterClientProps) {
                       Close
                     </button>
                   </div>
+                  <div className="sticky top-4 z-10 mt-4 flex items-center justify-between gap-3 rounded-lg border border-surface-border bg-surface-elevated/95 px-4 py-3 shadow-sm backdrop-blur">
+                    <div>
+                      <p className="text-sm font-semibold text-text-primary">{editingPlayerName || player.name}</p>
+                      <p className="text-xs text-text-secondary">
+                        Save quick contact changes without scrolling through handicap history.
+                      </p>
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        className="rounded-lg border border-surface-border bg-surface-sunken px-3 py-2 text-sm font-semibold text-text-primary disabled:cursor-not-allowed disabled:text-text-disabled"
+                        onClick={closeEditingPlayer}
+                        disabled={isSubmitting}
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="submit"
+                        className="font-condensed rounded-lg bg-accent px-4 py-2.5 text-sm font-bold uppercase tracking-wide text-white disabled:cursor-not-allowed disabled:bg-surface-sunken disabled:text-text-disabled"
+                        disabled={isSubmitting}
+                      >
+                        Save Player
+                      </button>
+                    </div>
+                  </div>
                   <div className="mt-4 grid gap-3 md:grid-cols-2">
                     <input
                       className="w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
@@ -1333,18 +1363,33 @@ export function RosterClient({ initialData }: RosterClientProps) {
                         <p className="mt-1 text-xs text-text-secondary">
                           Leave adjusted blank when gross and adjusted are the same. Choose custom only when the round does not match one of the configured courses.
                         </p>
+                        <p className="mt-1 text-xs font-semibold text-text-secondary">
+                          {editingPlayerImportedRounds.length > 0
+                            ? `${editingPlayerImportedRounds.length} round${editingPlayerImportedRounds.length === 1 ? '' : 's'} loaded`
+                            : 'No prior rounds loaded yet'}
+                        </p>
                       </div>
-                      <button
-                        type="button"
-                        className="rounded-lg border border-surface-border bg-surface-elevated px-3 py-2 text-sm font-semibold text-text-primary"
-                        onClick={addEditingPlayerImportedRound}
-                        disabled={isSubmitting || editingPlayerImportedRounds.length >= 20}
-                      >
-                        Add Round
-                      </button>
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          className="rounded-lg border border-surface-border bg-surface-elevated px-3 py-2 text-sm font-semibold text-text-primary"
+                          onClick={() => setEditingPlayerRoundsExpanded((current) => !current)}
+                        >
+                          {editingPlayerRoundsExpanded ? 'Hide Rounds' : 'Show Rounds'}
+                        </button>
+                        <button
+                          type="button"
+                          className="rounded-lg border border-surface-border bg-surface-elevated px-3 py-2 text-sm font-semibold text-text-primary"
+                          onClick={addEditingPlayerImportedRound}
+                          disabled={isSubmitting || editingPlayerImportedRounds.length >= 20}
+                        >
+                          Add Round
+                        </button>
+                      </div>
                     </div>
-                    <div className="mt-4 space-y-3">
-                      {editingPlayerImportedRounds.length > 0 ? (
+                    {editingPlayerRoundsExpanded ? (
+                      <div className="mt-4 space-y-3">
+                        {editingPlayerImportedRounds.length > 0 ? (
                         editingPlayerImportedRounds.map((round, index) => {
                           const selectedTee =
                             round.courseId !== CUSTOM_COURSE_ID
@@ -1528,20 +1573,35 @@ export function RosterClient({ initialData }: RosterClientProps) {
                             </div>
                           )
                         })
-                      ) : (
-                        <div className="rounded-lg border border-dashed border-surface-border px-4 py-6 text-sm text-text-secondary">
-                          No prior handicap rounds added yet.
-                        </div>
-                      )}
-                    </div>
+                        ) : (
+                          <div className="rounded-lg border border-dashed border-surface-border px-4 py-6 text-sm text-text-secondary">
+                            No prior handicap rounds added yet.
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="mt-4 rounded-lg border border-dashed border-surface-border px-4 py-4 text-sm text-text-secondary">
+                        Prior rounds are collapsed for quicker profile edits.
+                      </div>
+                    )}
                   </div>
-                  <button
-                    type="submit"
-                    className="mt-4 font-condensed w-full rounded-lg bg-accent px-4 py-3 text-sm font-bold uppercase tracking-wide text-white disabled:cursor-not-allowed disabled:bg-surface-sunken disabled:text-text-disabled"
-                    disabled={isSubmitting}
-                  >
-                    Save Player
-                  </button>
+                  <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:justify-end">
+                    <button
+                      type="button"
+                      className="rounded-lg border border-surface-border bg-surface-sunken px-4 py-3 text-sm font-semibold text-text-primary disabled:cursor-not-allowed disabled:text-text-disabled"
+                      onClick={closeEditingPlayer}
+                      disabled={isSubmitting}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      className="font-condensed rounded-lg bg-accent px-4 py-3 text-sm font-bold uppercase tracking-wide text-white disabled:cursor-not-allowed disabled:bg-surface-sunken disabled:text-text-disabled"
+                      disabled={isSubmitting}
+                    >
+                      Save Player
+                    </button>
+                  </div>
                 </form>
               ) : null}
             </div>

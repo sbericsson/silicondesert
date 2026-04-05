@@ -33,8 +33,10 @@ type WeekPageData = {
       player2Name: string
       player1TeeColor: TeeColor
       player2TeeColor: TeeColor
-      player1DisplayHandicap: number
-      player2DisplayHandicap: number
+      player1DisplayHandicapIndex: number
+      player2DisplayHandicapIndex: number
+      player1CourseHandicap: number
+      player2CourseHandicap: number
       popDifference: number
       popRecipientId: string | null
       player2ScorecardOnly: boolean
@@ -774,7 +776,9 @@ export function WeekClient({ initialData }: WeekClientProps) {
                   <span>
                     {match.player1Name} ({match.player1TeeColor.toUpperCase()})
                   </span>
-                  <span className="text-text-secondary">HI {match.player1DisplayHandicap}</span>
+                  <span className="text-right text-text-secondary">
+                    HI {match.player1DisplayHandicapIndex.toFixed(1)} · CH {match.player1CourseHandicap}
+                  </span>
                 </div>
                 <div className="font-condensed mt-1 text-center text-xs font-bold uppercase tracking-widest text-text-muted">vs</div>
                 <div className="mt-1 flex items-center justify-between text-sm text-text-primary">
@@ -782,7 +786,9 @@ export function WeekClient({ initialData }: WeekClientProps) {
                     {match.player2Name} ({match.player2TeeColor.toUpperCase()})
                   </span>
                   <span className="text-text-secondary">
-                    {match.player2ScorecardOnly ? 'Reference scorecard' : `HI ${match.player2DisplayHandicap}`}
+                    {match.player2ScorecardOnly
+                      ? 'Reference scorecard'
+                      : `HI ${match.player2DisplayHandicapIndex.toFixed(1)} · CH ${match.player2CourseHandicap}`}
                   </span>
                 </div>
                 {!match.player2ScorecardOnly ? (

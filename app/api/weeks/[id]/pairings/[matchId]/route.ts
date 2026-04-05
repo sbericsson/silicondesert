@@ -60,7 +60,6 @@ export async function DELETE(
 
     await writeAuditLog(tx, {
       weekId: params.id,
-      matchId: params.matchId,
       action: 'pairings_manual_delete',
       field: 'matchId',
       oldValue: params.matchId,

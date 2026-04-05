@@ -5,6 +5,8 @@ import { writeAuditLog } from '@/lib/audit'
 import { handicapIndex } from '@/lib/handicap'
 import { generatePairings } from '@/lib/matchmaking'
 
+const COMMISSIONER_LAST_PLAYER_NAME = 'Peter Pestalozzi'
+
 function getPlayerPairingHandicap(player: {
   seedHandicap: number | null
   handicapRecords: Array<{ courseDifferential: number }>
@@ -45,7 +47,8 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
           id: true,
           locked: true,
           player1Id: true,
-          player2Id: true
+          player2Id: true,
+          player2ScorecardOnly: true
         }
       },
       season: {
@@ -89,10 +92,33 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
   const alreadyPairedPlayerIds = new Set(
     week.matches.flatMap((match) => [match.player1Id, match.player2Id])
   )
+  const peterAttendance = week.attendance.find(
+    (entry) => entry.player.name === COMMISSIONER_LAST_PLAYER_NAME
+  )
+  const peterId = peterAttendance?.playerId ?? null
+  const requestedPlayerIdSet = requestedPlayerIds ? new Set(requestedPlayerIds) : null
+  const peterCurrentGroupMatches =
+    peterId && week.matches.length > 0
+      ? week.matches.filter((match) => match.player1Id === peterId || match.player2Id === peterId)
+      : []
+  const peterCurrentGroupPlayerIds = new Set(
+    peterCurrentGroupMatches.flatMap((match) => [match.player1Id, match.player2Id])
+  )
+  const shouldRebuildPeterGroup =
+    Boolean(peterId) &&
+    peterCurrentGroupMatches.length > 0 &&
+    week.attendance.some(
+      (entry) =>
+        !alreadyPairedPlayerIds.has(entry.playerId) &&
+        entry.playerId !== peterId &&
+        (!requestedPlayerIdSet || requestedPlayerIdSet.has(entry.playerId))
+    )
+
   const availableAttendance = week.attendance.filter(
     (entry) =>
-      !alreadyPairedPlayerIds.has(entry.playerId) &&
-      (!requestedPlayerIds || requestedPlayerIds.includes(entry.playerId))
+      ((!alreadyPairedPlayerIds.has(entry.playerId) &&
+        (!requestedPlayerIdSet || requestedPlayerIdSet.has(entry.playerId))) ||
+        (shouldRebuildPeterGroup && peterCurrentGroupPlayerIds.has(entry.playerId)))
   )
 
   if (availableAttendance.length < 2) {
@@ -127,10 +153,22 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
     checkInOrder: index + 1
   }))
 
-  const generated = generatePairings(pairingInput, priorMatches)
+  const generated = generatePairings(pairingInput, priorMatches, {
+    trailingPlayerId: peterId
+  })
 
   const result = await prisma.$transaction(async (tx) => {
     const createdMatches = []
+
+    if (shouldRebuildPeterGroup && peterCurrentGroupMatches.length > 0) {
+      await tx.match.deleteMany({
+        where: {
+          id: {
+            in: peterCurrentGroupMatches.map((match) => match.id)
+          }
+        }
+      })
+    }
 
     for (const match of generated.matches) {
       createdMatches.push(
@@ -172,7 +210,9 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
       action: 'pairings_generate',
       field: 'matchCount',
       oldValue: String(week.matches.length),
-      newValue: String(week.matches.length + createdMatches.length)
+      newValue: String(
+        week.matches.length - peterCurrentGroupMatches.length + createdMatches.length
+      )
     })
 
     return createdMatches

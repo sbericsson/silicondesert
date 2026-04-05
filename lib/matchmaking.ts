@@ -25,6 +25,10 @@ export interface PairingResult {
   }>
 }
 
+interface GeneratePairingsOptions {
+  trailingPlayerId?: string | null
+}
+
 function pairKey(player1Id: string, player2Id: string) {
   return [player1Id, player2Id].sort().join(':')
 }
@@ -106,19 +110,60 @@ function buildFlags(
   return flags
 }
 
+function totalMatchCost(
+  matches: Array<{ player1: Player; player2: Player }>,
+  repeatCounts: Map<string, number>
+) {
+  return matches.reduce(
+    (total, match) => total + pairCost(match.player1, match.player2, repeatCounts),
+    0
+  )
+}
+
 export function generatePairings(
   players: Player[],
-  priorMatchesThisSeason: PriorMatch[]
+  priorMatchesThisSeason: PriorMatch[],
+  options: GeneratePairingsOptions = {}
 ): PairingResult {
   if (players.length < 2) {
     throw new Error('Need at least 2 players')
   }
 
   const repeatCounts = buildRepeatCounts(priorMatchesThisSeason)
+  const trailingPlayer =
+    options.trailingPlayerId
+      ? players.find((player) => player.id === options.trailingPlayerId) ?? null
+      : null
   const byCheckInDesc = [...players].sort((a, b) => b.checkInOrder - a.checkInOrder)
-  const pivot = players.length % 2 === 1 ? byCheckInDesc[0] : null
+  const pivot =
+    players.length % 2 === 1
+      ? trailingPlayer ?? byCheckInDesc[0]
+      : null
   const pairingPool = pivot ? players.filter((player) => player.id !== pivot.id) : players
-  const matches = greedyMatches(pairingPool, repeatCounts)
+  let matches =
+    !pivot && trailingPlayer
+      ? (() => {
+          const candidates = pairingPool.filter((player) => player.id !== trailingPlayer.id)
+          let bestMatches: Array<{ player1: Player; player2: Player }> | null = null
+          let bestCost = Number.POSITIVE_INFINITY
+
+          for (const candidate of candidates) {
+            const remainingPool = pairingPool.filter(
+              (player) => player.id !== trailingPlayer.id && player.id !== candidate.id
+            )
+            const leadingMatches = greedyMatches(remainingPool, repeatCounts)
+            const candidateMatches = [...leadingMatches, { player1: trailingPlayer, player2: candidate }]
+            const candidateCost = totalMatchCost(candidateMatches, repeatCounts)
+
+            if (candidateCost < bestCost) {
+              bestCost = candidateCost
+              bestMatches = candidateMatches
+            }
+          }
+
+          return bestMatches ?? greedyMatches(pairingPool, repeatCounts)
+        })()
+      : greedyMatches(pairingPool, repeatCounts)
 
   let threesome: PairingResult['threesome'] = null
 

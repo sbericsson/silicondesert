@@ -45,8 +45,8 @@ type MatchScorePageData = {
     holeNumber: number
     par: number
     strokeIndex: number
-    player1StrokesReceived: 0 | 1 | 2
-    player2StrokesReceived: 0 | 1 | 2
+    player1StrokesReceived: number
+    player2StrokesReceived: number
     player1Gross: number | null
     player1Adj: number | null
     player1Net: number | null

@@ -12,6 +12,7 @@ describe('handicap helpers', () => {
     expect(strokesReceivedOnHole(5, 7)).toBe(0)
     expect(strokesReceivedOnHole(5, 3)).toBe(1)
     expect(strokesReceivedOnHole(15, 5)).toBe(2)
+    expect(strokesReceivedOnHole(20, 2)).toBe(3)
   })
 
   it('applies ESC net double bogey cap', () => {
@@ -34,7 +35,7 @@ describe('handicap helpers', () => {
     expect(handicapIndex([])).toBeNull()
   })
 
-  it('computes nine-hole course handicap', () => {
-    expect(courseHandicap(14.2, 128, 35.2, 36)).toBe(7)
+  it('computes nine-hole course handicap from a nine-hole handicap index', () => {
+    expect(courseHandicap(14.2, 128, 35.2, 36)).toBe(15)
   })
 })

@@ -2,18 +2,19 @@ export function roundToTenth(value: number) {
   return Math.round(value * 10) / 10
 }
 
-export function strokesReceivedOnHole(courseHandicap: number, strokeIndex: number): 0 | 1 | 2 {
-  const firstPass = courseHandicap >= strokeIndex ? 1 : 0
-  const secondPass = courseHandicap >= strokeIndex + 9 ? 1 : 0
+export function strokesReceivedOnHole(courseHandicap: number, strokeIndex: number) {
+  if (courseHandicap < strokeIndex) {
+    return 0
+  }
 
-  return (firstPass + secondPass) as 0 | 1 | 2
+  return Math.floor((courseHandicap - strokeIndex) / 9) + 1
 }
 
-export function netDoubleBogey(par: number, strokesReceived: 0 | 1 | 2) {
+export function netDoubleBogey(par: number, strokesReceived: number) {
   return par + 2 + strokesReceived
 }
 
-export function applyESC(grossScore: number, par: number, strokesReceived: 0 | 1 | 2) {
+export function applyESC(grossScore: number, par: number, strokesReceived: number) {
   return Math.min(grossScore, netDoubleBogey(par, strokesReceived))
 }
 
@@ -66,7 +67,6 @@ export function courseHandicap(
   courseRating: number,
   coursePar: number
 ) {
-  const nineHoleHandicapIndex = roundToTenth(handicapIndexValue / 2)
-  const value = (nineHoleHandicapIndex * slopeRating) / 113 + (courseRating - coursePar)
+  const value = (handicapIndexValue * slopeRating) / 113 + (courseRating - coursePar)
   return Math.round(value)
 }

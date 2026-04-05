@@ -68,6 +68,17 @@ pm2 start ecosystem.config.js
 
 6. Put nginx in front of the app and terminate TLS there.
 
+## Staging Refresh
+
+From the staging checkout on the VPS, you can replace `silicon_staging` with a fresh copy of production:
+
+```bash
+./refresh-staging-db.sh
+./deploy-staging.sh
+```
+
+The refresh script reads staging `.env`, derives production as `silicon` by default, and refuses to run if the source and target database URLs are identical.
+
 ## Current Status
 
 Working now:

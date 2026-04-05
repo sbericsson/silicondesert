@@ -129,6 +129,34 @@ export function WeekClient({ initialData }: WeekClientProps) {
     )
   }, [data])
 
+  function applyAttendanceRecord(record: {
+    playerId: string
+    present: boolean
+    ctpPoolPaid: boolean
+    longestPuttPoolPaid: boolean
+    checkedInAt: string | null
+  }) {
+    setData((current) => {
+      const nextAttendance = current.attendance.map((player) =>
+        player.playerId === record.playerId
+          ? {
+              ...player,
+              present: record.present,
+              ctpPoolPaid: record.ctpPoolPaid,
+              longestPuttPoolPaid: record.longestPuttPoolPaid,
+              checkedInAt: record.checkedInAt
+            }
+          : player
+      )
+
+      return {
+        ...current,
+        attendance: nextAttendance,
+        presentCount: nextAttendance.filter((player) => player.present).length
+      }
+    })
+  }
+
   async function runAction(action: () => Promise<void>, successMessage = 'Week updated.') {
     setIsRefreshing(true)
     setError(null)
@@ -153,7 +181,23 @@ export function WeekClient({ initialData }: WeekClientProps) {
       return
     }
 
-    await runAction(async () => {
+    const previousAttendance = data.attendance
+    const previousPresentCount = data.presentCount
+    const currentPlayer = previousAttendance.find((player) => player.playerId === playerId)
+
+    applyAttendanceRecord({
+      playerId,
+      present,
+      ctpPoolPaid: false,
+      longestPuttPoolPaid: false,
+      checkedInAt: present ? currentPlayer?.checkedInAt ?? new Date().toISOString() : null
+    })
+    setIsRefreshing(true)
+    setError(null)
+    setMessage(null)
+    setCopyMessage(null)
+
+    try {
       const response = await fetch(`/api/weeks/${data.currentWeek?.id}/attendance`, {
         method: 'POST',
         headers: {
@@ -169,7 +213,26 @@ export function WeekClient({ initialData }: WeekClientProps) {
         const payload = await response.json().catch(() => null)
         throw new Error(payload?.error ?? 'Unable to update attendance')
       }
-    }, 'Attendance updated.')
+
+      const payload = await response.json()
+      applyAttendanceRecord({
+        playerId: payload.playerId,
+        present: payload.present,
+        ctpPoolPaid: payload.ctpPoolPaid,
+        longestPuttPoolPaid: payload.longestPuttPoolPaid,
+        checkedInAt: payload.checkedInAt
+      })
+      setMessage('Attendance updated.')
+    } catch (actionError) {
+      setData((current) => ({
+        ...current,
+        attendance: previousAttendance,
+        presentCount: previousPresentCount
+      }))
+      setError(actionError instanceof Error ? actionError.message : 'Unable to update attendance')
+    } finally {
+      setIsRefreshing(false)
+    }
   }
 
   async function updatePrizePoolStatus(
@@ -181,7 +244,28 @@ export function WeekClient({ initialData }: WeekClientProps) {
       return
     }
 
-    await runAction(async () => {
+    const previousAttendance = data.attendance
+    const previousPresentCount = data.presentCount
+    const currentPlayer = previousAttendance.find((player) => player.playerId === playerId)
+
+    if (!currentPlayer) {
+      return
+    }
+
+    applyAttendanceRecord({
+      playerId,
+      present: currentPlayer.present,
+      ctpPoolPaid: field === 'ctpPoolPaid' ? value : currentPlayer.ctpPoolPaid,
+      longestPuttPoolPaid:
+        field === 'longestPuttPoolPaid' ? value : currentPlayer.longestPuttPoolPaid,
+      checkedInAt: currentPlayer.checkedInAt
+    })
+    setIsRefreshing(true)
+    setError(null)
+    setMessage(null)
+    setCopyMessage(null)
+
+    try {
       const response = await fetch(`/api/weeks/${data.currentWeek?.id}/attendance`, {
         method: 'POST',
         headers: {
@@ -197,7 +281,28 @@ export function WeekClient({ initialData }: WeekClientProps) {
         const payload = await response.json().catch(() => null)
         throw new Error(payload?.error ?? 'Unable to update prize-pool status')
       }
-    }, 'Prize-pool status updated.')
+
+      const payload = await response.json()
+      applyAttendanceRecord({
+        playerId: payload.playerId,
+        present: payload.present,
+        ctpPoolPaid: payload.ctpPoolPaid,
+        longestPuttPoolPaid: payload.longestPuttPoolPaid,
+        checkedInAt: payload.checkedInAt
+      })
+      setMessage('Prize-pool status updated.')
+    } catch (actionError) {
+      setData((current) => ({
+        ...current,
+        attendance: previousAttendance,
+        presentCount: previousPresentCount
+      }))
+      setError(
+        actionError instanceof Error ? actionError.message : 'Unable to update prize-pool status'
+      )
+    } finally {
+      setIsRefreshing(false)
+    }
   }
 
   async function updateWeekField(field: 'courseId' | 'ctpHoleNumber' | 'longestPuttHoleNumber' | 'ctpWinnerId' | 'longestPuttWinnerId', value: string) {

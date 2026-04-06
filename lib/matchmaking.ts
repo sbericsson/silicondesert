@@ -180,20 +180,25 @@ export function generatePairings(
     })
 
     const [worstMatch] = matches.splice(worstIndex, 1)
-    const pivotToPlayer1 = pairCost(pivot, worstMatch.player1, repeatCounts)
-    const pivotToPlayer2 = pairCost(pivot, worstMatch.player2, repeatCounts)
-    const liveOpponent = pivotToPlayer1 <= pivotToPlayer2 ? worstMatch.player1 : worstMatch.player2
-    const referencePlayer = liveOpponent.id === worstMatch.player1.id ? worstMatch.player2 : worstMatch.player1
+    const anchorPlayer1Cost =
+      pairCost(pivot, worstMatch.player1, repeatCounts) +
+      pairCost(worstMatch.player2, worstMatch.player1, repeatCounts)
+    const anchorPlayer2Cost =
+      pairCost(pivot, worstMatch.player2, repeatCounts) +
+      pairCost(worstMatch.player1, worstMatch.player2, repeatCounts)
+    const anchorPlayer = anchorPlayer1Cost <= anchorPlayer2Cost ? worstMatch.player1 : worstMatch.player2
+    const scorecardPlayer =
+      anchorPlayer.id === worstMatch.player1.id ? worstMatch.player2 : worstMatch.player1
 
     threesome = {
       pivot,
       matchA: {
         player1: pivot,
-        player2: liveOpponent
+        player2: anchorPlayer
       },
       matchBRef: {
-        player: referencePlayer,
-        referencePlayer: pivot
+        player: scorecardPlayer,
+        referencePlayer: anchorPlayer
       }
     }
   }

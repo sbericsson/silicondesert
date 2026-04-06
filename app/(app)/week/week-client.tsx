@@ -969,18 +969,15 @@ export function WeekClient({ initialData }: WeekClientProps) {
                     {match.player2Name} ({match.player2TeeColor.toUpperCase()})
                   </span>
                   <span className="text-text-secondary">
-                    {match.player2ScorecardOnly
-                      ? 'Reference scorecard'
-                      : `HI ${match.player2DisplayHandicapIndex.toFixed(1)} · CH ${match.player2CourseHandicap}`}
+                    HI {match.player2DisplayHandicapIndex.toFixed(1)} · CH {match.player2CourseHandicap}
+                    {match.player2ScorecardOnly ? ' · Reference scorecard' : ''}
                   </span>
                 </div>
-                {!match.player2ScorecardOnly ? (
-                  <p className="mt-2 text-xs text-text-secondary">
-                    {match.popDifference === 0
-                      ? 'No pops in this match.'
-                      : `${match.popRecipientId === match.player1Id ? match.player1Name : match.player2Name} gets ${match.popDifference} pop${match.popDifference === 1 ? '' : 's'}.`}
-                  </p>
-                ) : null}
+                <p className="mt-2 text-xs text-text-secondary">
+                  {match.popDifference === 0
+                    ? 'No pops in this match.'
+                    : `${match.popRecipientId === match.player1Id ? match.player1Name : match.player2Name} gets ${match.popDifference} pop${match.popDifference === 1 ? '' : 's'}${match.player2ScorecardOnly ? ' against the reference scorecard' : ''}.`}
+                </p>
                 {data.currentWeek?.locked ? (
                   <div className="mt-3">
                     <Link

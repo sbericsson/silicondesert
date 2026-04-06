@@ -26,6 +26,33 @@ function sum(values: Array<number | null>) {
   return values.reduce<number>((total, value) => total + (value ?? 0), 0)
 }
 
+function getMatchStrokeAllocation(
+  player1CourseHandicap: number,
+  player2CourseHandicap: number,
+  strokeIndex: number
+) {
+  const popDifference = Math.abs(player1CourseHandicap - player2CourseHandicap)
+
+  if (popDifference === 0) {
+    return {
+      player1MatchStrokes: 0,
+      player2MatchStrokes: 0
+    }
+  }
+
+  if (player1CourseHandicap > player2CourseHandicap) {
+    return {
+      player1MatchStrokes: strokesReceivedOnHole(popDifference, strokeIndex),
+      player2MatchStrokes: 0
+    }
+  }
+
+  return {
+    player1MatchStrokes: 0,
+    player2MatchStrokes: strokesReceivedOnHole(popDifference, strokeIndex)
+  }
+}
+
 function normalizeScores(scores: Array<{ holeNumber: number; grossScore: number }>) {
   const uniqueHoleNumbers = new Set(scores.map((score) => score.holeNumber))
   const validHoleNumbers = new Set(Array.from({ length: 9 }, (_, index) => index + 1))
@@ -185,21 +212,26 @@ export async function getMatchScorePageData(weekId: string, matchId: string) {
   const rows = match.week.course.holes.map((hole) => {
     const p1 = scoreMap.get(`${match.player1Id}:${hole.holeNumber}`)
     const p2 = scoreMap.get(`${match.player2Id}:${hole.holeNumber}`)
-    const p1Strokes = strokesReceivedOnHole(player1CourseHandicap, hole.strokeIndex)
-    const p2Strokes = strokesReceivedOnHole(player2CourseHandicap, hole.strokeIndex)
+    const p1EscStrokes = strokesReceivedOnHole(player1CourseHandicap, hole.strokeIndex)
+    const p2EscStrokes = strokesReceivedOnHole(player2CourseHandicap, hole.strokeIndex)
+    const { player1MatchStrokes, player2MatchStrokes } = getMatchStrokeAllocation(
+      player1CourseHandicap,
+      player2CourseHandicap,
+      hole.strokeIndex
+    )
 
     return {
       holeNumber: hole.holeNumber,
       par: hole.par,
       strokeIndex: hole.strokeIndex,
-      player1StrokesReceived: p1Strokes,
-      player2StrokesReceived: p2Strokes,
+      player1StrokesReceived: player1MatchStrokes,
+      player2StrokesReceived: player2MatchStrokes,
       player1Gross: p1?.grossScore ?? null,
       player1Adj: p1?.adjustedScore ?? null,
-      player1Net: p1 ? p1.adjustedScore - p1Strokes : null,
+      player1Net: p1 ? p1.adjustedScore - player1MatchStrokes : null,
       player2Gross: p2?.grossScore ?? null,
       player2Adj: p2?.adjustedScore ?? null,
-      player2Net: p2 ? p2.adjustedScore - p2Strokes : null
+      player2Net: p2 ? p2.adjustedScore - player2MatchStrokes : null
     }
   })
 
@@ -387,14 +419,19 @@ export async function submitMatchScores(input: {
       throw new Error('Invalid hole')
     }
 
-    const strokes = strokesReceivedOnHole(player1CourseHandicap, hole.strokeIndex)
-    const adjustedScore = applyESC(score.grossScore, hole.par, strokes)
+    const escStrokes = strokesReceivedOnHole(player1CourseHandicap, hole.strokeIndex)
+    const { player1MatchStrokes } = getMatchStrokeAllocation(
+      player1CourseHandicap,
+      player2CourseHandicap,
+      hole.strokeIndex
+    )
+    const adjustedScore = applyESC(score.grossScore, hole.par, escStrokes)
 
     return {
       holeNumber: score.holeNumber,
       grossScore: score.grossScore,
       adjustedScore,
-      netScore: adjustedScore - strokes
+      netScore: adjustedScore - player1MatchStrokes
     }
   })
 
@@ -404,14 +441,19 @@ export async function submitMatchScores(input: {
       throw new Error('Invalid hole')
     }
 
-    const strokes = strokesReceivedOnHole(player2CourseHandicap, hole.strokeIndex)
-    const adjustedScore = applyESC(score.grossScore, hole.par, strokes)
+    const escStrokes = strokesReceivedOnHole(player2CourseHandicap, hole.strokeIndex)
+    const { player2MatchStrokes } = getMatchStrokeAllocation(
+      player1CourseHandicap,
+      player2CourseHandicap,
+      hole.strokeIndex
+    )
+    const adjustedScore = applyESC(score.grossScore, hole.par, escStrokes)
 
     return {
       holeNumber: score.holeNumber,
       grossScore: score.grossScore,
       adjustedScore,
-      netScore: adjustedScore - strokes
+      netScore: adjustedScore - player2MatchStrokes
     }
   })
 

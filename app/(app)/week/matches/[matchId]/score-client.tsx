@@ -345,7 +345,7 @@ export function MatchScoreClient({ initialData }: MatchScoreClientProps) {
                     : 'No pop'}
                 </p>
                 <p className={`text-xs ${row.player1Gross !== row.player1Adj ? 'text-warning-text' : 'text-text-secondary'}`}>
-                  Adj {row.player1Adj ?? '—'} · Net {row.player1Net ?? '—'}
+                  Adj {row.player1Adj ?? '—'} · Match Net {row.player1Net ?? '—'}
                 </p>
               </div>
               <div className="space-y-2">
@@ -370,7 +370,7 @@ export function MatchScoreClient({ initialData }: MatchScoreClientProps) {
                     : 'No pop'}
                 </p>
                 <p className={`text-xs ${row.player2Gross !== row.player2Adj ? 'text-warning-text' : 'text-text-secondary'}`}>
-                  Adj {row.player2Adj ?? '—'} · Net {row.player2Net ?? '—'}
+                  Adj {row.player2Adj ?? '—'} · Match Net {row.player2Net ?? '—'}
                 </p>
               </div>
             </div>
@@ -385,10 +385,10 @@ export function MatchScoreClient({ initialData }: MatchScoreClientProps) {
           </p>
           <div className="mt-3 space-y-2 text-sm text-text-secondary">
             <p>
-              {initialData.match.player1.name}: Gross {totals.player1Gross} · Adj {totals.player1Adj} · Net {totals.player1Net}
+              {initialData.match.player1.name}: Gross {totals.player1Gross} · Adj {totals.player1Adj} · Match Net {totals.player1Net}
             </p>
             <p>
-              {initialData.match.player2.name}: Gross {totals.player2Gross} · Adj {totals.player2Adj} · Net {totals.player2Net}
+              {initialData.match.player2.name}: Gross {totals.player2Gross} · Adj {totals.player2Adj} · Match Net {totals.player2Net}
             </p>
           </div>
         </div>
@@ -405,7 +405,7 @@ export function MatchScoreClient({ initialData }: MatchScoreClientProps) {
             )}
           </p>
           <p className="mt-2 text-xs text-text-secondary">
-            Match play updates automatically from each hole&apos;s net result.
+            Match play updates automatically from each hole&apos;s match net result. ESC still uses each player&apos;s full course handicap.
           </p>
         </div>
       </section>

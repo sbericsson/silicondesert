@@ -92,6 +92,7 @@ export function WeekClient({ initialData }: WeekClientProps) {
   const [manualPlayer1Id, setManualPlayer1Id] = useState('')
   const [manualPlayer2Id, setManualPlayer2Id] = useState('')
   const [isRefreshing, setIsRefreshing] = useState(false)
+  const [pendingAttendancePlayerIds, setPendingAttendancePlayerIds] = useState<string[]>([])
   const [message, setMessage] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [copyMessage, setCopyMessage] = useState<string | null>(null)
@@ -157,6 +158,16 @@ export function WeekClient({ initialData }: WeekClientProps) {
     })
   }
 
+  function setAttendancePending(playerId: string, pending: boolean) {
+    setPendingAttendancePlayerIds((current) => {
+      if (pending) {
+        return current.includes(playerId) ? current : [...current, playerId]
+      }
+
+      return current.filter((currentPlayerId) => currentPlayerId !== playerId)
+    })
+  }
+
   async function runAction(action: () => Promise<void>, successMessage = 'Week updated.') {
     setIsRefreshing(true)
     setError(null)
@@ -192,9 +203,8 @@ export function WeekClient({ initialData }: WeekClientProps) {
       longestPuttPoolPaid: false,
       checkedInAt: present ? currentPlayer?.checkedInAt ?? new Date().toISOString() : null
     })
-    setIsRefreshing(true)
+    setAttendancePending(playerId, true)
     setError(null)
-    setMessage(null)
     setCopyMessage(null)
 
     try {
@@ -222,7 +232,6 @@ export function WeekClient({ initialData }: WeekClientProps) {
         longestPuttPoolPaid: payload.longestPuttPoolPaid,
         checkedInAt: payload.checkedInAt
       })
-      setMessage('Attendance updated.')
     } catch (actionError) {
       setData((current) => ({
         ...current,
@@ -231,7 +240,7 @@ export function WeekClient({ initialData }: WeekClientProps) {
       }))
       setError(actionError instanceof Error ? actionError.message : 'Unable to update attendance')
     } finally {
-      setIsRefreshing(false)
+      setAttendancePending(playerId, false)
     }
   }
 
@@ -260,9 +269,8 @@ export function WeekClient({ initialData }: WeekClientProps) {
         field === 'longestPuttPoolPaid' ? value : currentPlayer.longestPuttPoolPaid,
       checkedInAt: currentPlayer.checkedInAt
     })
-    setIsRefreshing(true)
+    setAttendancePending(playerId, true)
     setError(null)
-    setMessage(null)
     setCopyMessage(null)
 
     try {
@@ -290,7 +298,6 @@ export function WeekClient({ initialData }: WeekClientProps) {
         longestPuttPoolPaid: payload.longestPuttPoolPaid,
         checkedInAt: payload.checkedInAt
       })
-      setMessage('Prize-pool status updated.')
     } catch (actionError) {
       setData((current) => ({
         ...current,
@@ -301,7 +308,7 @@ export function WeekClient({ initialData }: WeekClientProps) {
         actionError instanceof Error ? actionError.message : 'Unable to update prize-pool status'
       )
     } finally {
-      setIsRefreshing(false)
+      setAttendancePending(playerId, false)
     }
   }
 
@@ -773,6 +780,7 @@ export function WeekClient({ initialData }: WeekClientProps) {
                 onClick={() => toggleAttendance(player.playerId, !player.present)}
                 disabled={
                   isRefreshing ||
+                  pendingAttendancePlayerIds.includes(player.playerId) ||
                   data.currentWeek?.locked ||
                   (player.present && matchedPlayerIds.has(player.playerId))
                 }
@@ -809,7 +817,12 @@ export function WeekClient({ initialData }: WeekClientProps) {
                   onChange={(event) =>
                     updatePrizePoolStatus(player.playerId, 'ctpPoolPaid', event.target.checked)
                   }
-                  disabled={isRefreshing || data.currentWeek?.locked || !player.present}
+                  disabled={
+                    isRefreshing ||
+                    pendingAttendancePlayerIds.includes(player.playerId) ||
+                    data.currentWeek?.locked ||
+                    !player.present
+                  }
                 />
                 CTP
               </label>
@@ -824,7 +837,12 @@ export function WeekClient({ initialData }: WeekClientProps) {
                       event.target.checked
                     )
                   }
-                  disabled={isRefreshing || data.currentWeek?.locked || !player.present}
+                  disabled={
+                    isRefreshing ||
+                    pendingAttendancePlayerIds.includes(player.playerId) ||
+                    data.currentWeek?.locked ||
+                    !player.present
+                  }
                 />
                 LPM
               </label>

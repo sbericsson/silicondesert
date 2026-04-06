@@ -585,6 +585,10 @@ export function WeekClient({ initialData }: WeekClientProps) {
   const ctpHoleOptions =
     selectedCourse?.holes.filter((hole) => hole.par === 3).map((hole) => hole.holeNumber) ??
     data.currentWeek.ctpHoleOptions
+  const eligibleCtpPlayers = data.attendance.filter((player) => player.present && player.ctpPoolPaid)
+  const eligibleLongestPuttPlayers = data.attendance.filter(
+    (player) => player.present && player.longestPuttPoolPaid
+  )
 
   return (
     <section className="space-y-4 px-4 py-6">
@@ -723,6 +727,9 @@ export function WeekClient({ initialData }: WeekClientProps) {
             <p className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
               CTP Winner · Hole {data.currentWeek.ctpHoleNumber ?? '—'}
             </p>
+            <p className="mt-2 text-xs text-text-secondary">
+              Only checked-in players with the weekly `CTP` box checked are eligible.
+            </p>
             <select
               className="mt-2 w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
               value={data.currentWeek.ctpWinnerId ?? ''}
@@ -730,7 +737,7 @@ export function WeekClient({ initialData }: WeekClientProps) {
               disabled={isRefreshing}
             >
               <option value="">No winner recorded</option>
-              {data.attendance.filter((player) => player.present).map((player) => (
+              {eligibleCtpPlayers.map((player) => (
                 <option key={player.playerId} value={player.playerId}>
                   {player.name}
                 </option>
@@ -742,6 +749,9 @@ export function WeekClient({ initialData }: WeekClientProps) {
             <p className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
               LP Winner · Hole {data.currentWeek.longestPuttHoleNumber ?? '—'}
             </p>
+            <p className="mt-2 text-xs text-text-secondary">
+              Only checked-in players with the weekly `LPM` box checked are eligible.
+            </p>
             <select
               className="mt-2 w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
               value={data.currentWeek.longestPuttWinnerId ?? ''}
@@ -749,7 +759,7 @@ export function WeekClient({ initialData }: WeekClientProps) {
               disabled={isRefreshing}
             >
               <option value="">No winner recorded</option>
-              {data.attendance.filter((player) => player.present).map((player) => (
+              {eligibleLongestPuttPlayers.map((player) => (
                 <option key={player.playerId} value={player.playerId}>
                   {player.name}
                 </option>

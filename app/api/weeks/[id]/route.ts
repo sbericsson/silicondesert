@@ -69,6 +69,14 @@ export async function PATCH(
   const existingWeek = await prisma.week.findUnique({
     where: { id: params.id },
     include: {
+      attendance: {
+        select: {
+          playerId: true,
+          present: true,
+          ctpPoolPaid: true,
+          longestPuttPoolPaid: true
+        }
+      },
       course: {
         include: {
           holes: true
@@ -142,6 +150,36 @@ export async function PATCH(
           error: `CTP hole ${requestedCtpHoleNumber} is not a par 3 on the selected course. Clear the CTP hole before saving a winner.`
         },
         { status: 409 }
+      )
+    }
+  }
+
+  if (updates.ctpWinnerId) {
+    const eligibleCtpWinner = existingWeek.attendance.find(
+      (entry) =>
+        entry.playerId === updates.ctpWinnerId && entry.present && entry.ctpPoolPaid
+    )
+
+    if (!eligibleCtpWinner) {
+      return NextResponse.json(
+        { error: 'CTP winner must be checked in and paid into the CTP pool for this week' },
+        { status: 400 }
+      )
+    }
+  }
+
+  if (updates.longestPuttWinnerId) {
+    const eligibleLongestPuttWinner = existingWeek.attendance.find(
+      (entry) =>
+        entry.playerId === updates.longestPuttWinnerId &&
+        entry.present &&
+        entry.longestPuttPoolPaid
+    )
+
+    if (!eligibleLongestPuttWinner) {
+      return NextResponse.json(
+        { error: 'LP winner must be checked in and paid into the LPM pool for this week' },
+        { status: 400 }
       )
     }
   }

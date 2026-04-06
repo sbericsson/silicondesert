@@ -87,6 +87,20 @@ function getPlayerPairingHandicap(player: {
   return handicapIndex(player.handicapRecords.map((record) => record.courseDifferential)) ?? player.seedHandicap ?? 0
 }
 
+export function pickActiveSeason<T extends {
+  id: string
+  weeks: Array<{ matches: Array<{ matchPlayLeadBy: number | null }> }>
+}>(seasons: T[], currentSeasonId: string | null | undefined): T | null {
+  return (
+    (currentSeasonId ? seasons.find((s) => s.id === currentSeasonId) : null) ??
+    [...seasons]
+      .reverse()
+      .find((s) => s.weeks.some((w) => w.matches.some((m) => m.matchPlayLeadBy !== null))) ??
+    seasons.at(-1) ??
+    null
+  )
+}
+
 export async function getCurrentWeekRecord() {
   if (!process.env.DATABASE_URL) {
     return null

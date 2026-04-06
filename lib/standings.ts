@@ -1,6 +1,6 @@
 import { prisma } from '@/lib/db'
 import { applyStoredMatchResult } from '@/lib/points'
-import { getCurrentWeekRecord } from '@/lib/week'
+import { getCurrentWeekRecord, pickActiveSeason } from '@/lib/week'
 
 export async function getStandingsPageData() {
   if (!process.env.DATABASE_URL) {
@@ -33,15 +33,7 @@ export async function getStandingsPageData() {
     })
   ])
 
-  const selectedSeason =
-    (currentWeek ? seasons.find((season) => season.id === currentWeek.seasonId) : null) ??
-    [...seasons]
-      .reverse()
-      .find((season) =>
-        season.weeks.some((week) => week.matches.some((match) => match.matchPlayLeadBy !== null))
-      ) ??
-    seasons.at(-1) ??
-    null
+  const selectedSeason = pickActiveSeason(seasons, currentWeek?.seasonId)
 
   if (!selectedSeason) {
     return {

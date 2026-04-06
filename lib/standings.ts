@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/db'
 import { applyStoredMatchResult } from '@/lib/points'
+import { getCurrentWeekRecord } from '@/lib/week'
 
 export async function getStandingsPageData() {
   if (!process.env.DATABASE_URL) {
@@ -11,11 +12,36 @@ export async function getStandingsPageData() {
     }
   }
 
-  const seasons = await prisma.season.findMany({
-    orderBy: [{ startDate: 'asc' }]
-  })
+  const [currentWeek, seasons] = await Promise.all([
+    getCurrentWeekRecord(),
+    prisma.season.findMany({
+      where: {
+        archivedAt: null
+      },
+      include: {
+        weeks: {
+          select: {
+            matches: {
+              select: {
+                matchPlayLeadBy: true
+              }
+            }
+          }
+        }
+      },
+      orderBy: [{ startDate: 'asc' }]
+    })
+  ])
 
-  const selectedSeason = seasons.at(-1) ?? null
+  const selectedSeason =
+    (currentWeek ? seasons.find((season) => season.id === currentWeek.seasonId) : null) ??
+    [...seasons]
+      .reverse()
+      .find((season) =>
+        season.weeks.some((week) => week.matches.some((match) => match.matchPlayLeadBy !== null))
+      ) ??
+    seasons.at(-1) ??
+    null
 
   if (!selectedSeason) {
     return {

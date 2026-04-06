@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { prisma } from '@/lib/db'
 import { getPhoenixDateParts } from '@/lib/phoenix-time'
+import { getCurrentWeekRecord } from '@/lib/week'
 
 export const revalidate = 60
 
@@ -36,8 +37,9 @@ export default async function PublicSchedulePage() {
     )
   }
 
-  const season =
-    (await prisma.season.findFirst({
+  const [currentWeek, seasons] = await Promise.all([
+    getCurrentWeekRecord(),
+    prisma.season.findMany({
       where: {
         archivedAt: null
       },
@@ -50,20 +52,19 @@ export default async function PublicSchedulePage() {
           orderBy: { date: 'asc' }
         }
       },
-      orderBy: { startDate: 'desc' }
-    })) ??
-    (await prisma.season.findFirst({
-      include: {
-        weeks: {
-          include: {
-            course: true,
-            matches: true
-          },
-          orderBy: { date: 'asc' }
-        }
-      },
-      orderBy: { startDate: 'desc' }
-    }))
+      orderBy: { startDate: 'asc' }
+    })
+  ])
+
+  const season =
+    (currentWeek ? seasons.find((candidate) => candidate.id === currentWeek.seasonId) : null) ??
+    [...seasons]
+      .reverse()
+      .find((candidate) =>
+        candidate.weeks.some((week) => week.matches.some((match) => match.matchPlayLeadBy !== null))
+      ) ??
+    seasons.at(-1) ??
+    null
 
   if (!season) {
     return (

@@ -95,7 +95,11 @@ function formatMatchPlayLabel(
     return `${winnerName} ${result.matchPlayLeadBy} up.`
   }
 
-  return `${winnerName} ${result.matchPlayLeadBy} & ${result.matchPlayHolesRemaining}.`
+  if (result.matchPlayLeadBy > result.matchPlayHolesRemaining) {
+    return `${winnerName} ${result.matchPlayLeadBy} & ${result.matchPlayHolesRemaining}.`
+  }
+
+  return `${winnerName} ${result.matchPlayLeadBy} up.`
 }
 
 function formatHoleList(holes: number[]) {

@@ -117,8 +117,16 @@ export function calculateMatchPoints(
       p1Stroke = 1
       p2Stroke = 1
     }
-  } else if (match.player1NetScore !== null && match.player2ScorecardOnly) {
-    p1Stroke = 2
+  } else if (
+    match.player1NetScore !== null &&
+    match.player2NetScore !== null &&
+    match.player2ScorecardOnly
+  ) {
+    if (match.player1NetScore < match.player2NetScore) {
+      p1Stroke = 2
+    } else if (match.player1NetScore === match.player2NetScore) {
+      p1Stroke = 1
+    }
   }
 
   let p1MatchPlay = 0

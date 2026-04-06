@@ -39,6 +39,25 @@ describe('calculateMatchPoints', () => {
     expect(result.player1Points).toBe(5)
     expect(result.player2Points).toBe(0)
   })
+
+  it('only awards attendance when player1 loses to a reference scorecard', () => {
+    const result = calculateMatchPoints(
+      {
+        player1Id: 'p1',
+        player2Id: 'p2',
+        player1NetScore: 40,
+        player2NetScore: 36,
+        matchPlayWinnerId: 'p2',
+        matchPlayLeadBy: 3,
+        player2ScorecardOnly: true
+      },
+      true,
+      true
+    )
+
+    expect(result.player1Points).toBe(1)
+    expect(result.player2Points).toBe(0)
+  })
 })
 
 describe('calculateWeekPoints', () => {

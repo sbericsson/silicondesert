@@ -20,8 +20,12 @@ export function applyStoredMatchResult(input: {
   }
 
   if (input.player2ScorecardOnly) {
-    player1.totalPoints += 2
-    player1.strokeWins += 1
+    if (input.strokeWinnerId === input.player1Id) {
+      player1.totalPoints += 2
+      player1.strokeWins += 1
+    } else if (input.strokeWinnerId === null) {
+      player1.totalPoints += 1
+    }
   } else if (input.strokeWinnerId === input.player1Id) {
     player1.totalPoints += 2
     player1.strokeWins += 1

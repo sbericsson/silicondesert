@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { prisma } from '@/lib/db'
 import { getPhoenixDateParts } from '@/lib/phoenix-time'
-import { getCurrentWeekRecord } from '@/lib/week'
+import { getCurrentWeekRecord, pickActiveSeason } from '@/lib/week'
 
 export const revalidate = 60
 
@@ -56,15 +56,7 @@ export default async function PublicSchedulePage() {
     })
   ])
 
-  const season =
-    (currentWeek ? seasons.find((candidate) => candidate.id === currentWeek.seasonId) : null) ??
-    [...seasons]
-      .reverse()
-      .find((candidate) =>
-        candidate.weeks.some((week) => week.matches.some((match) => match.matchPlayLeadBy !== null))
-      ) ??
-    seasons.at(-1) ??
-    null
+  const season = pickActiveSeason(seasons, currentWeek?.seasonId)
 
   if (!season) {
     return (

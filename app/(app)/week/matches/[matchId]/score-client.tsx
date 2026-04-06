@@ -158,12 +158,8 @@ export function MatchScoreClient({ initialData }: MatchScoreClientProps) {
     player2Net: computedRows.reduce((sum, row) => sum + (row.player2Net ?? 0), 0)
   }
 
-  const player1PopHoles = computedRows.filter(
-    (row) => row.player1StrokesReceived > row.player2StrokesReceived
-  )
-  const player2PopHoles = computedRows.filter(
-    (row) => row.player2StrokesReceived > row.player1StrokesReceived
-  )
+  const player1PopHoles = computedRows.filter((row) => row.player1StrokesReceived > 0)
+  const player2PopHoles = computedRows.filter((row) => row.player2StrokesReceived > 0)
 
   const matchPlayResult = calculateMatchPlayResult(
     computedRows.map((row) => ({
@@ -266,16 +262,16 @@ export function MatchScoreClient({ initialData }: MatchScoreClientProps) {
                 {player1PopHoles.length > 0 ? (
                   <p>
                     {initialData.match.player1.name} gets{' '}
-                    {player1PopHoles[0]?.player1StrokesReceived - player1PopHoles[0]?.player2StrokesReceived}{' '}
-                    pop{player1PopHoles[0]?.player1StrokesReceived - player1PopHoles[0]?.player2StrokesReceived === 1 ? '' : 's'} on{' '}
+                    {player1PopHoles[0]?.player1StrokesReceived}{' '}
+                    pop{player1PopHoles[0]?.player1StrokesReceived === 1 ? '' : 's'} on{' '}
                     {formatHoleList(player1PopHoles.map((row) => row.holeNumber))}.
                   </p>
                 ) : null}
                 {player2PopHoles.length > 0 ? (
                   <p>
                     {initialData.match.player2.name} gets{' '}
-                    {player2PopHoles[0]?.player2StrokesReceived - player2PopHoles[0]?.player1StrokesReceived}{' '}
-                    pop{player2PopHoles[0]?.player2StrokesReceived - player2PopHoles[0]?.player1StrokesReceived === 1 ? '' : 's'} on{' '}
+                    {player2PopHoles[0]?.player2StrokesReceived}{' '}
+                    pop{player2PopHoles[0]?.player2StrokesReceived === 1 ? '' : 's'} on{' '}
                     {formatHoleList(player2PopHoles.map((row) => row.holeNumber))}.
                   </p>
                 ) : null}
@@ -337,15 +333,11 @@ export function MatchScoreClient({ initialData }: MatchScoreClientProps) {
                 />
                 <p
                   className={`text-xs font-semibold ${
-                    row.player1StrokesReceived > row.player2StrokesReceived
-                      ? 'text-accent-text'
-                      : 'text-transparent'
+                    row.player1StrokesReceived > 0 ? 'text-accent-text' : 'text-transparent'
                   }`}
                 >
-                  {row.player1StrokesReceived > row.player2StrokesReceived
-                    ? `${row.player1StrokesReceived - row.player2StrokesReceived} pop${
-                        row.player1StrokesReceived - row.player2StrokesReceived === 1 ? '' : 's'
-                      }`
+                  {row.player1StrokesReceived > 0
+                    ? `${row.player1StrokesReceived} pop${row.player1StrokesReceived === 1 ? '' : 's'}`
                     : 'No pop'}
                 </p>
                 <p className={`text-xs ${row.player1Gross !== row.player1Adj ? 'text-warning-text' : 'text-text-secondary'}`}>
@@ -362,15 +354,11 @@ export function MatchScoreClient({ initialData }: MatchScoreClientProps) {
                 />
                 <p
                   className={`text-xs font-semibold ${
-                    row.player2StrokesReceived > row.player1StrokesReceived
-                      ? 'text-accent-text'
-                      : 'text-transparent'
+                    row.player2StrokesReceived > 0 ? 'text-accent-text' : 'text-transparent'
                   }`}
                 >
-                  {row.player2StrokesReceived > row.player1StrokesReceived
-                    ? `${row.player2StrokesReceived - row.player1StrokesReceived} pop${
-                        row.player2StrokesReceived - row.player1StrokesReceived === 1 ? '' : 's'
-                      }`
+                  {row.player2StrokesReceived > 0
+                    ? `${row.player2StrokesReceived} pop${row.player2StrokesReceived === 1 ? '' : 's'}`
                     : 'No pop'}
                 </p>
                 <p className={`text-xs ${row.player2Gross !== row.player2Adj ? 'text-warning-text' : 'text-text-secondary'}`}>

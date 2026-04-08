@@ -121,6 +121,7 @@ export async function getPublicWeekData(weekId: string) {
 
   return {
     id: week.id,
+    seasonId: week.season.id,
     weekNumber: week.weekNumber,
     seasonName: week.season.name,
     dateLabel: formatDate(week.date),

@@ -25,6 +25,7 @@ function getDisplayHandicapIndex(player: {
 function formatMatchPlaySummary(input: {
   matchPlayWinnerId: string | null
   matchPlayLeadBy: number | null
+  matchPlayHolesRemaining: number | null
   player1Id: string
   player1Name: string
   player2Id: string
@@ -34,12 +35,18 @@ function formatMatchPlaySummary(input: {
     return 'Pending'
   }
 
+  function winLabel(name: string) {
+    const lead = input.matchPlayLeadBy!
+    const remaining = input.matchPlayHolesRemaining ?? 0
+    return remaining > 0 ? `${name} (${lead}&${remaining})` : `${name} (${lead} up)`
+  }
+
   if (input.matchPlayWinnerId === input.player1Id) {
-    return `${input.player1Name} (${input.matchPlayLeadBy} up)`
+    return winLabel(input.player1Name)
   }
 
   if (input.matchPlayWinnerId === input.player2Id) {
-    return `${input.player2Name} (${input.matchPlayLeadBy} up)`
+    return winLabel(input.player2Name)
   }
 
   return input.matchPlayLeadBy === 0 ? 'Halved' : 'All square'
@@ -199,6 +206,7 @@ export async function getPublicWeekData(weekId: string) {
         matchPlaySummary: formatMatchPlaySummary({
           matchPlayWinnerId: match.matchPlayWinnerId,
           matchPlayLeadBy: match.matchPlayLeadBy,
+          matchPlayHolesRemaining: match.matchPlayHolesRemaining,
           player1Id: match.player1Id,
           player1Name: match.player1.name,
           player2Id: match.player2Id,

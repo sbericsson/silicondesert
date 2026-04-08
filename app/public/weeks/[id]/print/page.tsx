@@ -87,7 +87,7 @@ export default async function PrintWeekPage({
                 <td className="py-2 pr-3 tabular-nums text-text-secondary">{i + 1}</td>
                 <td className="py-2 pr-3 font-medium">{match.player1Name}</td>
                 <td className="py-2 pr-3 text-right tabular-nums text-text-secondary">
-                  {match.player1HandicapIndex.toFixed(1)}
+                  {match.player1CourseHandicap ?? '—'}
                 </td>
                 <td className="py-2 pr-3 text-right tabular-nums text-text-secondary">
                   {match.player1Gross ?? '—'}
@@ -100,7 +100,7 @@ export default async function PrintWeekPage({
                 </td>
                 <td className="py-2 pr-3 font-medium">{match.player2Name}</td>
                 <td className="py-2 pr-3 text-right tabular-nums text-text-secondary">
-                  {match.player2HandicapIndex.toFixed(1)}
+                  {match.player2CourseHandicap ?? '—'}
                 </td>
                 <td className="py-2 pr-3 text-right tabular-nums text-text-secondary">
                   {match.player2Gross ?? '—'}

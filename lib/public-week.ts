@@ -181,6 +181,21 @@ export async function getPublicWeekData(weekId: string) {
         ? courseHandicap(player2Index, p2Record.slopeRating, p2Record.courseRating, p2Record.coursePar)
         : null
 
+      // Match net = adjustedGross minus strokes received from opponent.
+      // Total match strokes always equals the course handicap difference.
+      const matchStrokeDiff =
+        player1CourseHandicap !== null && player2CourseHandicap !== null
+          ? Math.abs(player1CourseHandicap - player2CourseHandicap)
+          : null
+      const player1MatchStrokes =
+        matchStrokeDiff !== null && player1CourseHandicap !== null && player2CourseHandicap !== null
+          ? player1CourseHandicap > player2CourseHandicap ? matchStrokeDiff : 0
+          : null
+      const player2MatchStrokes =
+        matchStrokeDiff !== null && player1CourseHandicap !== null && player2CourseHandicap !== null
+          ? player2CourseHandicap > player1CourseHandicap ? matchStrokeDiff : 0
+          : null
+
       return {
         id: match.id,
         label: `Match ${index + 1}`,
@@ -189,12 +204,14 @@ export async function getPublicWeekData(weekId: string) {
         player2Name: match.player2.name,
         player1HandicapIndex: player1Index,
         player2HandicapIndex: player2Index,
+        player1CourseHandicap,
+        player2CourseHandicap,
         player1Points: points?.player1.totalPoints ?? null,
         player2Points: points?.player2.totalPoints ?? null,
         player1Gross: p1Record?.grossScore ?? null,
-        player1Net: p1Record && player1CourseHandicap !== null ? p1Record.adjustedGrossScore - player1CourseHandicap : null,
+        player1Net: p1Record && player1MatchStrokes !== null ? p1Record.adjustedGrossScore - player1MatchStrokes : null,
         player2Gross: p2Record?.grossScore ?? null,
-        player2Net: p2Record && player2CourseHandicap !== null ? p2Record.adjustedGrossScore - player2CourseHandicap : null,
+        player2Net: p2Record && player2MatchStrokes !== null ? p2Record.adjustedGrossScore - player2MatchStrokes : null,
         strokeSummary:
           match.matchPlayLeadBy === null
             ? 'Pending'

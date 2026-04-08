@@ -66,9 +66,13 @@ export default async function PrintWeekPage({
               <th className="py-2 pr-3">#</th>
               <th className="py-2 pr-3">Player 1</th>
               <th className="py-2 pr-3 text-right">Hdcp</th>
+              <th className="py-2 pr-3 text-right">Gross</th>
+              <th className="py-2 pr-3 text-right">Net</th>
               <th className="py-2 pr-3 text-right">Pts</th>
               <th className="py-2 pr-3">Player 2</th>
               <th className="py-2 pr-3 text-right">Hdcp</th>
+              <th className="py-2 pr-3 text-right">Gross</th>
+              <th className="py-2 pr-3 text-right">Net</th>
               <th className="py-2 pr-3 text-right">Pts</th>
               <th className="py-2 pr-3">Stroke</th>
               <th className="py-2">Match Play</th>
@@ -85,12 +89,24 @@ export default async function PrintWeekPage({
                 <td className="py-2 pr-3 text-right tabular-nums text-text-secondary">
                   {match.player1HandicapIndex.toFixed(1)}
                 </td>
+                <td className="py-2 pr-3 text-right tabular-nums text-text-secondary">
+                  {match.player1Gross ?? '—'}
+                </td>
+                <td className="py-2 pr-3 text-right tabular-nums text-text-secondary">
+                  {match.player1Net ?? '—'}
+                </td>
                 <td className="py-2 pr-3 text-right tabular-nums font-semibold">
                   {match.player1Points}
                 </td>
                 <td className="py-2 pr-3 font-medium">{match.player2Name}</td>
                 <td className="py-2 pr-3 text-right tabular-nums text-text-secondary">
                   {match.player2HandicapIndex.toFixed(1)}
+                </td>
+                <td className="py-2 pr-3 text-right tabular-nums text-text-secondary">
+                  {match.player2Gross ?? '—'}
+                </td>
+                <td className="py-2 pr-3 text-right tabular-nums text-text-secondary">
+                  {match.player2Net ?? '—'}
                 </td>
                 <td className="py-2 pr-3 text-right tabular-nums font-semibold">
                   {match.player2Points}

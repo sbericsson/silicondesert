@@ -1,5 +1,5 @@
 import { prisma } from '@/lib/db'
-import { handicapIndex } from '@/lib/handicap'
+import { courseHandicap, handicapIndex } from '@/lib/handicap'
 import { applyStoredMatchResult } from '@/lib/points'
 
 function formatDate(date: Date) {
@@ -119,6 +119,19 @@ export async function getPublicWeekData(weekId: string) {
   const pairingsVisible = week.locked
   const resultsVisible = allScoresComplete
 
+  const handicapRecords = await prisma.handicapRecord.findMany({
+    where: { weekId },
+    select: {
+      playerId: true,
+      grossScore: true,
+      adjustedGrossScore: true,
+      courseRating: true,
+      slopeRating: true,
+      coursePar: true
+    }
+  })
+  const handicapRecordMap = new Map(handicapRecords.map((record) => [record.playerId, record]))
+
   return {
     id: week.id,
     seasonId: week.season.id,
@@ -150,16 +163,31 @@ export async function getPublicWeekData(weekId: string) {
             player2Present: attendanceMap.get(match.player2Id) ?? false
           })
 
+      const player1Index = getDisplayHandicapIndex(match.player1, match.player1HandicapIndex)
+      const player2Index = getDisplayHandicapIndex(match.player2, match.player2HandicapIndex)
+      const p1Record = handicapRecordMap.get(match.player1Id)
+      const p2Record = handicapRecordMap.get(match.player2Id)
+      const player1CourseHandicap = p1Record
+        ? courseHandicap(player1Index, p1Record.slopeRating, p1Record.courseRating, p1Record.coursePar)
+        : null
+      const player2CourseHandicap = p2Record
+        ? courseHandicap(player2Index, p2Record.slopeRating, p2Record.courseRating, p2Record.coursePar)
+        : null
+
       return {
         id: match.id,
         label: `Match ${index + 1}`,
         isThreesome: match.player2ScorecardOnly,
         player1Name: match.player1.name,
         player2Name: match.player2.name,
-        player1HandicapIndex: getDisplayHandicapIndex(match.player1, match.player1HandicapIndex),
-        player2HandicapIndex: getDisplayHandicapIndex(match.player2, match.player2HandicapIndex),
+        player1HandicapIndex: player1Index,
+        player2HandicapIndex: player2Index,
         player1Points: points?.player1.totalPoints ?? null,
         player2Points: points?.player2.totalPoints ?? null,
+        player1Gross: p1Record?.grossScore ?? null,
+        player1Net: p1Record && player1CourseHandicap !== null ? p1Record.adjustedGrossScore - player1CourseHandicap : null,
+        player2Gross: p2Record?.grossScore ?? null,
+        player2Net: p2Record && player2CourseHandicap !== null ? p2Record.adjustedGrossScore - player2CourseHandicap : null,
         strokeSummary:
           match.matchPlayLeadBy === null
             ? 'Pending'

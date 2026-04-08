@@ -1,5 +1,5 @@
 import { prisma } from '@/lib/db'
-import { courseHandicap, handicapIndex } from '@/lib/handicap'
+import { handicapIndex } from '@/lib/handicap'
 import { applyStoredMatchResult } from '@/lib/points'
 
 function formatDate(date: Date) {
@@ -174,27 +174,13 @@ export async function getPublicWeekData(weekId: string) {
       const player2Index = getDisplayHandicapIndex(match.player2, match.player2HandicapIndex)
       const p1Record = handicapRecordMap.get(match.player1Id)
       const p2Record = handicapRecordMap.get(match.player2Id)
-      const player1CourseHandicap = p1Record
-        ? courseHandicap(player1Index, p1Record.slopeRating, p1Record.courseRating, p1Record.coursePar)
-        : null
-      const player2CourseHandicap = p2Record
-        ? courseHandicap(player2Index, p2Record.slopeRating, p2Record.courseRating, p2Record.coursePar)
-        : null
 
-      // Match net = adjustedGross minus strokes received from opponent.
-      // Total match strokes always equals the course handicap difference.
-      const matchStrokeDiff =
-        player1CourseHandicap !== null && player2CourseHandicap !== null
-          ? Math.abs(player1CourseHandicap - player2CourseHandicap)
-          : null
-      const player1MatchStrokes =
-        matchStrokeDiff !== null && player1CourseHandicap !== null && player2CourseHandicap !== null
-          ? player1CourseHandicap > player2CourseHandicap ? matchStrokeDiff : 0
-          : null
-      const player2MatchStrokes =
-        matchStrokeDiff !== null && player1CourseHandicap !== null && player2CourseHandicap !== null
-          ? player2CourseHandicap > player1CourseHandicap ? matchStrokeDiff : 0
-          : null
+      // Playing handicap for display and match net: round the handicap index.
+      const player1PlayingHandicap = Math.round(player1Index)
+      const player2PlayingHandicap = Math.round(player2Index)
+      const matchStrokeDiff = Math.abs(player1PlayingHandicap - player2PlayingHandicap)
+      const player1MatchStrokes = player1PlayingHandicap > player2PlayingHandicap ? matchStrokeDiff : 0
+      const player2MatchStrokes = player2PlayingHandicap > player1PlayingHandicap ? matchStrokeDiff : 0
 
       return {
         id: match.id,
@@ -204,14 +190,14 @@ export async function getPublicWeekData(weekId: string) {
         player2Name: match.player2.name,
         player1HandicapIndex: player1Index,
         player2HandicapIndex: player2Index,
-        player1CourseHandicap,
-        player2CourseHandicap,
+        player1PlayingHandicap,
+        player2PlayingHandicap,
         player1Points: points?.player1.totalPoints ?? null,
         player2Points: points?.player2.totalPoints ?? null,
         player1Gross: p1Record?.grossScore ?? null,
-        player1Net: p1Record && player1MatchStrokes !== null ? p1Record.adjustedGrossScore - player1MatchStrokes : null,
+        player1Net: p1Record ? p1Record.adjustedGrossScore - player1MatchStrokes : null,
         player2Gross: p2Record?.grossScore ?? null,
-        player2Net: p2Record && player2MatchStrokes !== null ? p2Record.adjustedGrossScore - player2MatchStrokes : null,
+        player2Net: p2Record ? p2Record.adjustedGrossScore - player2MatchStrokes : null,
         strokeSummary:
           match.matchPlayLeadBy === null
             ? 'Pending'

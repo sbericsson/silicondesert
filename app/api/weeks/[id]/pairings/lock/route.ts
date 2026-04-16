@@ -2,14 +2,8 @@ import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { getApiSession, unauthorizedResponse } from '@/lib/api-auth'
 import { writeAuditLog } from '@/lib/audit'
-import { handicapIndex } from '@/lib/handicap'
-
-function getPlayerHandicapSnapshot(player: {
-  seedHandicap: number | null
-  handicapRecords: Array<{ courseDifferential: number }>
-}) {
-  return handicapIndex(player.handicapRecords.map((record) => record.courseDifferential)) ?? player.seedHandicap
-}
+import { getCourseTee, getPlayerSeasonTeeColor } from '@/lib/course-tee'
+import { getPlayerHandicapIndexValue, getPlayingHandicap } from '@/lib/playing-handicap'
 
 export async function POST(
   _request: Request,
@@ -30,7 +24,8 @@ export async function POST(
               handicapRecords: {
                 orderBy: { date: 'desc' },
                 take: 20
-              }
+              },
+              seasonTeeChoices: true
             }
           },
           player2: {
@@ -38,14 +33,21 @@ export async function POST(
               handicapRecords: {
                 orderBy: { date: 'desc' },
                 take: 20
-              }
+              },
+              seasonTeeChoices: true
             }
           }
         }
       },
+      course: {
+        include: {
+          tees: true
+        }
+      },
       season: {
         select: {
-          archivedAt: true
+          archivedAt: true,
+          id: true
         }
       }
     }
@@ -78,12 +80,47 @@ export async function POST(
     })
 
     for (const match of week.matches) {
+      const player1HandicapIndex = getPlayerHandicapIndexValue(match.player1)
+      const player2HandicapIndex = getPlayerHandicapIndexValue(match.player2)
+      const player1TeeColor = getPlayerSeasonTeeColor(
+        match.player1.seasonTeeChoices,
+        week.season.id,
+        match.player1.gender,
+        match.player1.defaultTeeColor
+      )
+      const player2TeeColor = getPlayerSeasonTeeColor(
+        match.player2.seasonTeeChoices,
+        week.season.id,
+        match.player2.gender,
+        match.player2.defaultTeeColor
+      )
+      const player1Tee = week.course
+        ? getCourseTee(week.course.tees, player1TeeColor, match.player1.gender, {
+            color: 'white',
+            gender: 'man',
+            nineHolePar: week.course.nineHolePar,
+            nineHoleRating: week.course.nineHoleRating,
+            nineHoleSlope: week.course.nineHoleSlope
+          })
+        : null
+      const player2Tee = week.course
+        ? getCourseTee(week.course.tees, player2TeeColor, match.player2.gender, {
+            color: 'white',
+            gender: 'man',
+            nineHolePar: week.course.nineHolePar,
+            nineHoleRating: week.course.nineHoleRating,
+            nineHoleSlope: week.course.nineHoleSlope
+          })
+        : null
+
       await tx.match.update({
         where: { id: match.id },
         data: {
           locked: true,
-          player1HandicapIndex: getPlayerHandicapSnapshot(match.player1),
-          player2HandicapIndex: getPlayerHandicapSnapshot(match.player2)
+          player1HandicapIndex,
+          player2HandicapIndex,
+          player1PlayingHandicap: getPlayingHandicap(week.handicapMode, player1HandicapIndex, player1Tee),
+          player2PlayingHandicap: getPlayingHandicap(week.handicapMode, player2HandicapIndex, player2Tee)
         }
       })
     }
@@ -161,7 +198,9 @@ export async function DELETE(
       data: {
         locked: false,
         player1HandicapIndex: null,
-        player2HandicapIndex: null
+        player2HandicapIndex: null,
+        player1PlayingHandicap: null,
+        player2PlayingHandicap: null
       }
     })
 

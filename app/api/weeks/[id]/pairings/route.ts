@@ -2,17 +2,11 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { getApiSession, unauthorizedResponse } from '@/lib/api-auth'
 import { writeAuditLog } from '@/lib/audit'
-import { handicapIndex } from '@/lib/handicap'
+import { getCourseTee, getPlayerSeasonTeeColor } from '@/lib/course-tee'
 import { generatePairings } from '@/lib/matchmaking'
+import { getPlayerHandicapIndexValue, getPlayingHandicap } from '@/lib/playing-handicap'
 
 const COMMISSIONER_LAST_PLAYER_NAME = 'Peter Pestalozzi'
-
-function getPlayerPairingHandicap(player: {
-  seedHandicap: number | null
-  handicapRecords: Array<{ courseDifferential: number }>
-}) {
-  return handicapIndex(player.handicapRecords.map((record) => record.courseDifferential)) ?? player.seedHandicap ?? 0
-}
 
 export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
   const session = await getApiSession()
@@ -36,11 +30,17 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
               handicapRecords: {
                 orderBy: { date: 'desc' },
                 take: 20
-              }
+              },
+              seasonTeeChoices: true
             }
           }
         },
         orderBy: { checkedInAt: 'asc' }
+      },
+      course: {
+        include: {
+          tees: true
+        }
       },
       matches: {
         select: {
@@ -83,6 +83,10 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
 
   if (!week.courseId) {
     return NextResponse.json({ error: 'Select a course before generating pairings' }, { status: 400 })
+  }
+
+  if (!week.course) {
+    return NextResponse.json({ error: 'Selected course could not be loaded' }, { status: 409 })
   }
 
   if (!week.ctpHoleNumber) {
@@ -146,12 +150,29 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
       })
     : []
 
-  const pairingInput = availableAttendance.map((entry, index) => ({
-    id: entry.player.id,
-    name: entry.player.name,
-    handicapIndex: getPlayerPairingHandicap(entry.player),
-    checkInOrder: index + 1
-  }))
+  const pairingInput = availableAttendance.map((entry, index) => {
+    const handicapIndexValue = getPlayerHandicapIndexValue(entry.player)
+    const teeColor = getPlayerSeasonTeeColor(
+      entry.player.seasonTeeChoices,
+      week.seasonId,
+      entry.player.gender,
+      entry.player.defaultTeeColor
+    )
+    const tee = getCourseTee(week.course!.tees, teeColor, entry.player.gender, {
+      color: 'white',
+      gender: 'man',
+      nineHolePar: week.course!.nineHolePar,
+      nineHoleRating: week.course!.nineHoleRating,
+      nineHoleSlope: week.course!.nineHoleSlope
+    })
+
+    return {
+      id: entry.player.id,
+      name: entry.player.name,
+      handicapIndex: getPlayingHandicap(week.handicapMode, handicapIndexValue, tee),
+      checkInOrder: index + 1
+    }
+  })
 
   const generated = generatePairings(pairingInput, priorMatches, {
     trailingPlayerId: peterId

@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
-import type { HandicapMode } from '@prisma/client'
+import type { HandicapMode, Prisma } from '@prisma/client'
 import { prisma } from '@/lib/db'
 import { getApiSession, unauthorizedResponse } from '@/lib/api-auth'
 import { writeAuditLog } from '@/lib/audit'
+import { getCourseTee, getPlayerSeasonTeeColor } from '@/lib/course-tee'
+import { calculateMatchOutcomeFromAdjustedScores } from '@/lib/match-net-scoring'
+import { getPlayerHandicapIndexValue, getPlayingHandicap } from '@/lib/playing-handicap'
 
 function parseOptionalInt(value: unknown) {
   if (value === null || value === undefined || value === '') {
@@ -27,6 +30,136 @@ async function getCoursePar3HoleNumbers(courseId: string) {
   })
 
   return holes.filter((hole) => hole.par === 3).map((hole) => hole.holeNumber)
+}
+
+async function rescoreLockedWeekMatchesForHandicapMode(
+  tx: Prisma.TransactionClient,
+  weekId: string,
+  handicapMode: HandicapMode
+) {
+  const week = await tx.week.findUnique({
+    where: { id: weekId },
+    include: {
+      course: {
+        include: {
+          holes: {
+            orderBy: { holeNumber: 'asc' }
+          },
+          tees: true
+        }
+      },
+      season: {
+        select: {
+          id: true
+        }
+      },
+      matches: {
+        include: {
+          player1: {
+            include: {
+              handicapRecords: {
+                orderBy: { date: 'desc' },
+                take: 20
+              },
+              seasonTeeChoices: true
+            }
+          },
+          player2: {
+            include: {
+              handicapRecords: {
+                orderBy: { date: 'desc' },
+                take: 20
+              },
+              seasonTeeChoices: true
+            }
+          },
+          holeScores: {
+            select: {
+              playerId: true,
+              holeNumber: true,
+              adjustedScore: true
+            }
+          }
+        }
+      }
+    }
+  })
+
+  if (!week || !week.course) {
+    throw new Error('Locked weeks must have a course before handicap basis can change')
+  }
+
+  let rescoredMatchCount = 0
+
+  for (const match of week.matches) {
+    const player1HandicapIndex = match.player1HandicapIndex ?? getPlayerHandicapIndexValue(match.player1)
+    const player2HandicapIndex = match.player2HandicapIndex ?? getPlayerHandicapIndexValue(match.player2)
+    const player1TeeColor = getPlayerSeasonTeeColor(
+      match.player1.seasonTeeChoices,
+      week.season.id,
+      match.player1.gender,
+      match.player1.defaultTeeColor
+    )
+    const player2TeeColor = getPlayerSeasonTeeColor(
+      match.player2.seasonTeeChoices,
+      week.season.id,
+      match.player2.gender,
+      match.player2.defaultTeeColor
+    )
+    const player1Tee = getCourseTee(week.course.tees, player1TeeColor, match.player1.gender, {
+      color: 'white',
+      gender: 'man',
+      nineHolePar: week.course.nineHolePar,
+      nineHoleRating: week.course.nineHoleRating,
+      nineHoleSlope: week.course.nineHoleSlope
+    })
+    const player2Tee = getCourseTee(week.course.tees, player2TeeColor, match.player2.gender, {
+      color: 'white',
+      gender: 'man',
+      nineHolePar: week.course.nineHolePar,
+      nineHoleRating: week.course.nineHoleRating,
+      nineHoleSlope: week.course.nineHoleSlope
+    })
+    const player1PlayingHandicap = getPlayingHandicap(handicapMode, player1HandicapIndex, player1Tee)
+    const player2PlayingHandicap = getPlayingHandicap(handicapMode, player2HandicapIndex, player2Tee)
+    const adjustedScoreByKey = new Map(
+      match.holeScores.map((score) => [`${score.playerId}:${score.holeNumber}`, score.adjustedScore])
+    )
+    const hasSavedScores = match.holeScores.length > 0
+    const outcome = hasSavedScores
+      ? calculateMatchOutcomeFromAdjustedScores({
+          player1Id: match.player1Id,
+          player2Id: match.player2Id,
+          player1PlayingHandicap,
+          player2PlayingHandicap,
+          player2ScorecardOnly: match.player2ScorecardOnly,
+          holes: week.course.holes.map((hole) => ({
+            holeNumber: hole.holeNumber,
+            strokeIndex: hole.strokeIndex,
+            player1AdjustedScore: adjustedScoreByKey.get(`${match.player1Id}:${hole.holeNumber}`) ?? null,
+            player2AdjustedScore: adjustedScoreByKey.get(`${match.player2Id}:${hole.holeNumber}`) ?? null
+          }))
+        })
+      : null
+
+    await tx.match.update({
+      where: { id: match.id },
+      data: {
+        player1PlayingHandicap,
+        player2PlayingHandicap,
+        strokeWinnerId: outcome?.strokeWinnerId ?? null,
+        matchPlayLeadBy: outcome?.matchPlayLeadBy ?? null,
+        matchPlayHolesRemaining: outcome?.matchPlayHolesRemaining ?? null,
+        matchPlayWinnerId: outcome?.matchPlayWinnerId ?? null
+      }
+    })
+
+    if (hasSavedScores) {
+      rescoredMatchCount += 1
+    }
+  }
+
+  return rescoredMatchCount
 }
 
 export async function PATCH(
@@ -116,8 +249,9 @@ export async function PATCH(
   }
 
   // CTP/LP winner fields can be updated after lock (post-round data).
-  // Course, handicap basis, CTP hole, and LP hole cannot be changed once locked.
-  const lockedFields = ['courseId', 'handicapMode', 'ctpHoleNumber', 'longestPuttHoleNumber'] as const
+  // Course and prize-hole configuration stay fixed after lock, but handicap basis can
+  // still change so saved matches can be rescored without reopening the week.
+  const lockedFields = ['courseId', 'ctpHoleNumber', 'longestPuttHoleNumber'] as const
   const hasLockedFieldUpdate = lockedFields.some((field) => field in updates)
   if (existingWeek.locked && hasLockedFieldUpdate) {
     return NextResponse.json({ error: 'Locked weeks cannot be edited' }, { status: 409 })
@@ -202,6 +336,12 @@ export async function PATCH(
       where: { id: params.id },
       data: updates
     })
+    const rescoredMatchCount =
+      existingWeek.locked &&
+      updates.handicapMode !== undefined &&
+      updates.handicapMode !== existingWeek.handicapMode
+        ? await rescoreLockedWeekMatchesForHandicapMode(tx, params.id, updates.handicapMode)
+        : 0
 
     for (const [field, newValue] of Object.entries(updates)) {
       const oldValue = existingWeek[field as keyof typeof existingWeek]
@@ -216,7 +356,23 @@ export async function PATCH(
       }
     }
 
-    return week
+    if (rescoredMatchCount > 0) {
+      await writeAuditLog(tx, {
+        weekId: params.id,
+        action: 'week_rescore',
+        field: 'handicapMode',
+        oldValue: existingWeek.handicapMode,
+        newValue: JSON.stringify({
+          handicapMode: updates.handicapMode,
+          rescoredMatchCount
+        })
+      })
+    }
+
+    return {
+      ...week,
+      rescoredMatchCount
+    }
   })
 
   return NextResponse.json(updatedWeek)

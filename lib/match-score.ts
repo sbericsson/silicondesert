@@ -7,6 +7,7 @@ import {
   strokesReceivedOnHole
 } from '@/lib/handicap'
 import { getCourseTee, getPlayerSeasonTeeColor } from '@/lib/course-tee'
+import { getMatchStrokeAllocation } from '@/lib/match-net-scoring'
 import { getHandicapModeLabel, getPlayingHandicap } from '@/lib/playing-handicap'
 import { calculateMatchPlayResult, calculateMatchPoints } from '@/lib/scoring'
 import { recomputeUsedInIndex } from '@/lib/handicap-records'
@@ -25,33 +26,6 @@ function getEffectiveHandicapIndex(player: {
 
 function sum(values: Array<number | null>) {
   return values.reduce<number>((total, value) => total + (value ?? 0), 0)
-}
-
-function getMatchStrokeAllocation(
-  player1CourseHandicap: number,
-  player2CourseHandicap: number,
-  strokeIndex: number
-) {
-  const popDifference = Math.abs(player1CourseHandicap - player2CourseHandicap)
-
-  if (popDifference === 0) {
-    return {
-      player1MatchStrokes: 0,
-      player2MatchStrokes: 0
-    }
-  }
-
-  if (player1CourseHandicap > player2CourseHandicap) {
-    return {
-      player1MatchStrokes: strokesReceivedOnHole(popDifference, strokeIndex),
-      player2MatchStrokes: 0
-    }
-  }
-
-  return {
-    player1MatchStrokes: 0,
-    player2MatchStrokes: strokesReceivedOnHole(popDifference, strokeIndex)
-  }
 }
 
 function normalizeScores(scores: Array<{ holeNumber: number; grossScore: number }>) {

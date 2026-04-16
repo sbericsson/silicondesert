@@ -706,7 +706,7 @@ export function WeekClient({ initialData }: WeekClientProps) {
             className="mt-2 w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
             value={data.currentWeek.handicapMode}
             onChange={(event) => updateWeekField('handicapMode', event.target.value)}
-            disabled={isRefreshing || data.currentWeek.locked}
+            disabled={isRefreshing}
           >
             <option value="index">Rounded index</option>
             <option value="course">Course handicap</option>
@@ -714,7 +714,11 @@ export function WeekClient({ initialData }: WeekClientProps) {
           <p className="mt-2 text-xs text-text-secondary">
             Uses {data.currentWeek.handicapModeLabel.toLowerCase()} to assign pops and match net scores.
           </p>
-          {!data.currentWeek.locked && data.currentWeek.matchCount > 0 ? (
+          {data.currentWeek.locked ? (
+            <p className="mt-1 text-xs text-text-secondary">
+              Locked pairings stay in place, and any saved scores are rescored immediately when this changes.
+            </p>
+          ) : data.currentWeek.matchCount > 0 ? (
             <p className="mt-1 text-xs text-text-secondary">
               Regenerate pairings if you want this basis to affect matchup selection too.
             </p>

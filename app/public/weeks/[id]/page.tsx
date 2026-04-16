@@ -112,6 +112,9 @@ export default async function PublicWeekDetailPage({
             </p>
           </div>
         </div>
+        <p className="mt-4 text-xs text-text-secondary">
+          Handicap basis: {data.handicapModeLabel}
+        </p>
       </div>
 
       {data.resultsVisible && (data.ctpWinnerName || data.longestPuttWinnerName) ? (
@@ -166,7 +169,7 @@ export default async function PublicWeekDetailPage({
                 <div>
                   <p className="font-condensed text-[15px] font-semibold uppercase text-text-primary">{match.player1Name}</p>
                   <p className="mt-1 text-xs text-text-secondary">
-                    Handicap {match.player1HandicapIndex.toFixed(1)}
+                    Handicap {match.player1PlayingHandicap}
                   </p>
                 </div>
                 {data.resultsVisible ? (
@@ -180,7 +183,7 @@ export default async function PublicWeekDetailPage({
                 <div>
                   <p className="font-condensed text-[15px] font-semibold uppercase text-text-primary">{match.player2Name}</p>
                   <p className="mt-1 text-xs text-text-secondary">
-                    Handicap {match.player2HandicapIndex.toFixed(1)}
+                    Handicap {match.player2PlayingHandicap}
                   </p>
                 </div>
                 {data.resultsVisible ? (

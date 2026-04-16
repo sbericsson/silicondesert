@@ -14,6 +14,8 @@ type WeekPageData = {
     dateLabel: string
     startedAt: string | null
     completedAt: string | null
+    handicapMode: 'index' | 'course'
+    handicapModeLabel: string
     courseId: string | null
     courseName: string | null
     ctpHoleOptions: number[]
@@ -35,8 +37,8 @@ type WeekPageData = {
       player2TeeColor: TeeColor
       player1DisplayHandicapIndex: number
       player2DisplayHandicapIndex: number
-      player1CourseHandicap: number
-      player2CourseHandicap: number
+      player1PlayingHandicap: number
+      player2PlayingHandicap: number
       popDifference: number
       popRecipientId: string | null
       player2ScorecardOnly: boolean
@@ -313,7 +315,16 @@ export function WeekClient({ initialData }: WeekClientProps) {
     }
   }
 
-  async function updateWeekField(field: 'courseId' | 'ctpHoleNumber' | 'longestPuttHoleNumber' | 'ctpWinnerId' | 'longestPuttWinnerId', value: string) {
+  async function updateWeekField(
+    field:
+      | 'courseId'
+      | 'handicapMode'
+      | 'ctpHoleNumber'
+      | 'longestPuttHoleNumber'
+      | 'ctpWinnerId'
+      | 'longestPuttWinnerId',
+    value: string
+  ) {
     if (!data.currentWeek) {
       return
     }
@@ -325,7 +336,15 @@ export function WeekClient({ initialData }: WeekClientProps) {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          [field]: value === '' ? null : (field === 'courseId' || field === 'ctpWinnerId' || field === 'longestPuttWinnerId') ? value : Number(value)
+          [field]:
+            value === ''
+              ? null
+              : field === 'courseId' ||
+                  field === 'handicapMode' ||
+                  field === 'ctpWinnerId' ||
+                  field === 'longestPuttWinnerId'
+                ? value
+                : Number(value)
         })
       })
 
@@ -661,7 +680,7 @@ export function WeekClient({ initialData }: WeekClientProps) {
         {data.currentWeek.locked ? ' - Pairings locked' : ''}
       </div>
 
-      <section className="grid gap-3 md:grid-cols-3">
+      <section className="grid gap-3 md:grid-cols-4">
         <label className="rounded-xl border border-surface-border bg-surface-elevated p-4">
           <p className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">Course</p>
           <select
@@ -677,6 +696,29 @@ export function WeekClient({ initialData }: WeekClientProps) {
               </option>
             ))}
           </select>
+        </label>
+
+        <label className="rounded-xl border border-surface-border bg-surface-elevated p-4">
+          <p className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
+            Handicap Basis
+          </p>
+          <select
+            className="mt-2 w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
+            value={data.currentWeek.handicapMode}
+            onChange={(event) => updateWeekField('handicapMode', event.target.value)}
+            disabled={isRefreshing || data.currentWeek.locked}
+          >
+            <option value="index">Rounded index</option>
+            <option value="course">Course handicap</option>
+          </select>
+          <p className="mt-2 text-xs text-text-secondary">
+            Uses {data.currentWeek.handicapModeLabel.toLowerCase()} to assign pops and match net scores.
+          </p>
+          {!data.currentWeek.locked && data.currentWeek.matchCount > 0 ? (
+            <p className="mt-1 text-xs text-text-secondary">
+              Regenerate pairings if you want this basis to affect matchup selection too.
+            </p>
+          ) : null}
         </label>
 
         <label className="rounded-xl border border-surface-border bg-surface-elevated p-4">
@@ -974,7 +1016,8 @@ export function WeekClient({ initialData }: WeekClientProps) {
                     {match.player1Name} ({match.player1TeeColor.toUpperCase()})
                   </span>
                   <span className="text-right text-text-secondary">
-                    HI {match.player1DisplayHandicapIndex.toFixed(1)} · CH {match.player1CourseHandicap}
+                    HI {match.player1DisplayHandicapIndex.toFixed(1)} · {data.currentWeek!.handicapMode === 'course' ? 'CH' : 'IDX'}{' '}
+                    {match.player1PlayingHandicap}
                   </span>
                 </div>
                 <div className="font-condensed mt-1 text-center text-xs font-bold uppercase tracking-widest text-text-muted">vs</div>
@@ -983,7 +1026,8 @@ export function WeekClient({ initialData }: WeekClientProps) {
                     {match.player2Name} ({match.player2TeeColor.toUpperCase()})
                   </span>
                   <span className="text-text-secondary">
-                    HI {match.player2DisplayHandicapIndex.toFixed(1)} · CH {match.player2CourseHandicap}
+                    HI {match.player2DisplayHandicapIndex.toFixed(1)} · {data.currentWeek!.handicapMode === 'course' ? 'CH' : 'IDX'}{' '}
+                    {match.player2PlayingHandicap}
                     {match.player2ScorecardOnly ? ' · Reference scorecard' : ''}
                   </span>
                 </div>

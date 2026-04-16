@@ -1,5 +1,7 @@
 import { prisma } from '@/lib/db'
 import { handicapIndex } from '@/lib/handicap'
+import { getCourseTee, getPlayerSeasonTeeColor } from '@/lib/course-tee'
+import { getHandicapModeLabel, getPlayingHandicap } from '@/lib/playing-handicap'
 import { applyStoredMatchResult } from '@/lib/points'
 
 function formatDate(date: Date) {
@@ -79,7 +81,11 @@ export async function getPublicWeekData(weekId: string) {
     where: { id: weekId },
     include: {
       season: true,
-      course: true,
+      course: {
+        include: {
+          tees: true
+        }
+      },
       ctpWinner: {
         select: { name: true }
       },
@@ -99,7 +105,8 @@ export async function getPublicWeekData(weekId: string) {
               handicapRecords: {
                 orderBy: { date: 'desc' },
                 take: 20
-              }
+              },
+              seasonTeeChoices: true
             }
           },
           player2: {
@@ -107,7 +114,8 @@ export async function getPublicWeekData(weekId: string) {
               handicapRecords: {
                 orderBy: { date: 'desc' },
                 take: 20
-              }
+              },
+              seasonTeeChoices: true
             }
           }
         },
@@ -146,6 +154,8 @@ export async function getPublicWeekData(weekId: string) {
     seasonName: week.season.name,
     dateLabel: formatDate(week.date),
     courseName: week.course?.name ?? 'Course not selected',
+    handicapMode: week.handicapMode,
+    handicapModeLabel: getHandicapModeLabel(week.handicapMode),
     locked: week.locked,
     scoredMatchCount,
     matchCount: week.matches.length,
@@ -174,10 +184,42 @@ export async function getPublicWeekData(weekId: string) {
       const player2Index = getDisplayHandicapIndex(match.player2, match.player2HandicapIndex)
       const p1Record = handicapRecordMap.get(match.player1Id)
       const p2Record = handicapRecordMap.get(match.player2Id)
-
-      // Playing handicap for display and match net: round the handicap index.
-      const player1PlayingHandicap = Math.round(player1Index)
-      const player2PlayingHandicap = Math.round(player2Index)
+      const player1TeeColor = getPlayerSeasonTeeColor(
+        match.player1.seasonTeeChoices,
+        week.season.id,
+        match.player1.gender,
+        match.player1.defaultTeeColor
+      )
+      const player2TeeColor = getPlayerSeasonTeeColor(
+        match.player2.seasonTeeChoices,
+        week.season.id,
+        match.player2.gender,
+        match.player2.defaultTeeColor
+      )
+      const player1Tee = week.course
+        ? getCourseTee(week.course.tees, player1TeeColor, match.player1.gender, {
+            color: 'white',
+            gender: 'man',
+            nineHolePar: week.course.nineHolePar,
+            nineHoleRating: week.course.nineHoleRating,
+            nineHoleSlope: week.course.nineHoleSlope
+          })
+        : null
+      const player2Tee = week.course
+        ? getCourseTee(week.course.tees, player2TeeColor, match.player2.gender, {
+            color: 'white',
+            gender: 'man',
+            nineHolePar: week.course.nineHolePar,
+            nineHoleRating: week.course.nineHoleRating,
+            nineHoleSlope: week.course.nineHoleSlope
+          })
+        : null
+      const player1PlayingHandicap =
+        match.player1PlayingHandicap ??
+        getPlayingHandicap(week.handicapMode, player1Index, player1Tee)
+      const player2PlayingHandicap =
+        match.player2PlayingHandicap ??
+        getPlayingHandicap(week.handicapMode, player2Index, player2Tee)
       const matchStrokeDiff = Math.abs(player1PlayingHandicap - player2PlayingHandicap)
       const player1MatchStrokes = player1PlayingHandicap > player2PlayingHandicap ? matchStrokeDiff : 0
       const player2MatchStrokes = player2PlayingHandicap > player1PlayingHandicap ? matchStrokeDiff : 0

@@ -33,6 +33,9 @@ export default async function PrintWeekPage({
         <p className="mt-1 text-sm text-text-secondary print:text-black">
           {data.courseName} &middot; {data.dateLabel}
         </p>
+        <p className="mt-1 text-xs text-text-secondary print:text-black">
+          Handicap basis: {data.handicapModeLabel}
+        </p>
       </div>
 
       {/* Side Games */}

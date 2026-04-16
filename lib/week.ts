@@ -1,8 +1,9 @@
 import type { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/db'
-import { courseHandicap, handicapIndex } from '@/lib/handicap'
+import { handicapIndex } from '@/lib/handicap'
 import { getPhoenixDateParts } from '@/lib/phoenix-time'
 import { getCourseTee, getDefaultTeeColorForGender, getPlayerSeasonTeeColor } from '@/lib/course-tee'
+import { getHandicapModeLabel, getPlayerHandicapIndexValue, getPlayingHandicap } from '@/lib/playing-handicap'
 
 function phoenixStartOfDay(isoDate: string) {
   return new Date(`${isoDate}T00:00:00-07:00`)
@@ -82,13 +83,6 @@ function getPlayerDisplayHandicap(player: {
   const value = handicapIndex(player.handicapRecords.map((record) => record.courseDifferential))
 
   return { kind: 'HCP' as const, value: value?.toFixed(1) ?? null }
-}
-
-function getPlayerPairingHandicap(player: {
-  seedHandicap: number | null
-  handicapRecords: Array<{ courseDifferential: number }>
-}) {
-  return handicapIndex(player.handicapRecords.map((record) => record.courseDifferential)) ?? player.seedHandicap ?? 0
 }
 
 export function pickActiveSeason<T extends {
@@ -284,6 +278,8 @@ export async function getCurrentWeekPageData() {
           dateLabel: formatDate(currentWeek.date),
           startedAt: currentWeek.startedAt?.toISOString() ?? null,
           completedAt: currentWeek.completedAt?.toISOString() ?? null,
+          handicapMode: currentWeek.handicapMode,
+          handicapModeLabel: getHandicapModeLabel(currentWeek.handicapMode),
           courseId: currentWeek.courseId,
           courseName: currentWeek.course?.name ?? null,
           ctpHoleOptions:
@@ -328,27 +324,15 @@ export async function getCurrentWeekPageData() {
                 })
               : null
             const player1EffectiveIndex =
-              match.player1HandicapIndex ?? getPlayerPairingHandicap(match.player1)
+              match.player1HandicapIndex ?? getPlayerHandicapIndexValue(match.player1)
             const player2EffectiveIndex =
-              match.player2HandicapIndex ?? getPlayerPairingHandicap(match.player2)
+              match.player2HandicapIndex ?? getPlayerHandicapIndexValue(match.player2)
             const player1PlayingHandicap =
-              currentWeek.course && player1Tee
-                ? courseHandicap(
-                    player1EffectiveIndex,
-                    player1Tee.nineHoleSlope,
-                    player1Tee.nineHoleRating,
-                    player1Tee.nineHolePar
-                  )
-                : Math.round(player1EffectiveIndex)
+              match.player1PlayingHandicap ??
+              getPlayingHandicap(currentWeek.handicapMode, player1EffectiveIndex, player1Tee)
             const player2PlayingHandicap =
-              currentWeek.course && player2Tee
-                ? courseHandicap(
-                    player2EffectiveIndex,
-                    player2Tee.nineHoleSlope,
-                    player2Tee.nineHoleRating,
-                    player2Tee.nineHolePar
-                  )
-                : Math.round(player2EffectiveIndex)
+              match.player2PlayingHandicap ??
+              getPlayingHandicap(currentWeek.handicapMode, player2EffectiveIndex, player2Tee)
             const popDifference = Math.abs(player1PlayingHandicap - player2PlayingHandicap)
             const popRecipientId =
               popDifference === 0
@@ -367,8 +351,8 @@ export async function getCurrentWeekPageData() {
               player2TeeColor,
               player1DisplayHandicapIndex: Number(player1EffectiveIndex.toFixed(1)),
               player2DisplayHandicapIndex: Number(player2EffectiveIndex.toFixed(1)),
-              player1CourseHandicap: player1PlayingHandicap,
-              player2CourseHandicap: player2PlayingHandicap,
+              player1PlayingHandicap,
+              player2PlayingHandicap,
               popDifference,
               popRecipientId,
               player2ScorecardOnly: match.player2ScorecardOnly,

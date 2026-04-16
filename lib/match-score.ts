@@ -7,6 +7,7 @@ import {
   strokesReceivedOnHole
 } from '@/lib/handicap'
 import { getCourseTee, getPlayerSeasonTeeColor } from '@/lib/course-tee'
+import { getHandicapModeLabel, getPlayingHandicap } from '@/lib/playing-handicap'
 import { calculateMatchPlayResult, calculateMatchPoints } from '@/lib/scoring'
 import { recomputeUsedInIndex } from '@/lib/handicap-records'
 import { writeAuditLog } from '@/lib/audit'
@@ -206,6 +207,12 @@ export async function getMatchScorePageData(weekId: string, matchId: string) {
     player2Tee.nineHoleRating,
     player2Tee.nineHolePar
   )
+  const player1PlayingHandicap =
+    match.player1PlayingHandicap ??
+    getPlayingHandicap(match.week.handicapMode, player1Index, player1Tee)
+  const player2PlayingHandicap =
+    match.player2PlayingHandicap ??
+    getPlayingHandicap(match.week.handicapMode, player2Index, player2Tee)
 
   const scoreMap = new Map(holeScores.map((score) => [`${score.playerId}:${score.holeNumber}`, score]))
 
@@ -215,8 +222,8 @@ export async function getMatchScorePageData(weekId: string, matchId: string) {
     const p1EscStrokes = strokesReceivedOnHole(player1CourseHandicap, hole.strokeIndex)
     const p2EscStrokes = strokesReceivedOnHole(player2CourseHandicap, hole.strokeIndex)
     const { player1MatchStrokes, player2MatchStrokes } = getMatchStrokeAllocation(
-      player1CourseHandicap,
-      player2CourseHandicap,
+      player1PlayingHandicap,
+      player2PlayingHandicap,
       hole.strokeIndex
     )
 
@@ -248,6 +255,8 @@ export async function getMatchScorePageData(weekId: string, matchId: string) {
       weekId,
       weekLabel: `Week ${match.week.weekNumber} - ${match.week.season.name}`,
       courseName: match.week.course.name,
+      handicapMode: match.week.handicapMode,
+      handicapModeLabel: getHandicapModeLabel(match.week.handicapMode),
       ctpHoleNumber: match.week.ctpHoleNumber,
       locked: match.locked,
       seasonArchived: Boolean(match.week.season.archivedAt),
@@ -261,6 +270,7 @@ export async function getMatchScorePageData(weekId: string, matchId: string) {
         name: match.player1.name,
         teeColor: player1TeeColor,
         handicapIndex: player1Index,
+        playingHandicap: player1PlayingHandicap,
         courseHandicap: player1CourseHandicap,
         present: attendanceMap.get(match.player1Id) ?? false
       },
@@ -269,6 +279,7 @@ export async function getMatchScorePageData(weekId: string, matchId: string) {
         name: match.player2.name,
         teeColor: player2TeeColor,
         handicapIndex: player2Index,
+        playingHandicap: player2PlayingHandicap,
         courseHandicap: player2CourseHandicap,
         present: attendanceMap.get(match.player2Id) ?? false
       },
@@ -410,6 +421,12 @@ export async function submitMatchScores(input: {
     player2Tee.nineHoleRating,
     player2Tee.nineHolePar
   )
+  const player1PlayingHandicap =
+    match.player1PlayingHandicap ??
+    getPlayingHandicap(match.week.handicapMode, player1Index, player1Tee)
+  const player2PlayingHandicap =
+    match.player2PlayingHandicap ??
+    getPlayingHandicap(match.week.handicapMode, player2Index, player2Tee)
 
   const holeByNumber = new Map(course.holes.map((hole) => [hole.holeNumber, hole]))
 
@@ -421,8 +438,8 @@ export async function submitMatchScores(input: {
 
     const escStrokes = strokesReceivedOnHole(player1CourseHandicap, hole.strokeIndex)
     const { player1MatchStrokes } = getMatchStrokeAllocation(
-      player1CourseHandicap,
-      player2CourseHandicap,
+      player1PlayingHandicap,
+      player2PlayingHandicap,
       hole.strokeIndex
     )
     const adjustedScore = applyESC(score.grossScore, hole.par, escStrokes)
@@ -443,8 +460,8 @@ export async function submitMatchScores(input: {
 
     const escStrokes = strokesReceivedOnHole(player2CourseHandicap, hole.strokeIndex)
     const { player2MatchStrokes } = getMatchStrokeAllocation(
-      player1CourseHandicap,
-      player2CourseHandicap,
+      player1PlayingHandicap,
+      player2PlayingHandicap,
       hole.strokeIndex
     )
     const adjustedScore = applyESC(score.grossScore, hole.par, escStrokes)

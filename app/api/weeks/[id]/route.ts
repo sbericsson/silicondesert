@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import type { HandicapMode } from '@prisma/client'
 import { prisma } from '@/lib/db'
 import { getApiSession, unauthorizedResponse } from '@/lib/api-auth'
 import { writeAuditLog } from '@/lib/audit'
@@ -40,6 +41,7 @@ export async function PATCH(
   const body = await request.json()
   const updates: {
     courseId?: string | null
+    handicapMode?: HandicapMode
     ctpHoleNumber?: number | null
     longestPuttHoleNumber?: number | null
     ctpWinnerId?: string | null
@@ -48,6 +50,17 @@ export async function PATCH(
 
   if ('courseId' in body) {
     updates.courseId = body.courseId || null
+  }
+
+  if ('handicapMode' in body) {
+    if (body.handicapMode !== 'index' && body.handicapMode !== 'course') {
+      return NextResponse.json(
+        { error: 'Handicap basis must be index or course handicap' },
+        { status: 400 }
+      )
+    }
+
+    updates.handicapMode = body.handicapMode
   }
 
   if ('ctpHoleNumber' in body) {
@@ -103,8 +116,8 @@ export async function PATCH(
   }
 
   // CTP/LP winner fields can be updated after lock (post-round data).
-  // Course, CTP hole, and LP hole cannot be changed once locked.
-  const lockedFields = ['courseId', 'ctpHoleNumber', 'longestPuttHoleNumber'] as const
+  // Course, handicap basis, CTP hole, and LP hole cannot be changed once locked.
+  const lockedFields = ['courseId', 'handicapMode', 'ctpHoleNumber', 'longestPuttHoleNumber'] as const
   const hasLockedFieldUpdate = lockedFields.some((field) => field in updates)
   if (existingWeek.locked && hasLockedFieldUpdate) {
     return NextResponse.json({ error: 'Locked weeks cannot be edited' }, { status: 409 })

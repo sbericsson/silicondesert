@@ -13,6 +13,8 @@ type MatchScorePageData = {
     weekId: string
     weekLabel: string
     courseName: string
+    handicapMode: 'index' | 'course'
+    handicapModeLabel: string
     ctpHoleNumber: number | null
     locked: boolean
     seasonArchived: boolean
@@ -26,6 +28,7 @@ type MatchScorePageData = {
       name: string
       teeColor: TeeColor
       handicapIndex: number
+      playingHandicap: number
       courseHandicap: number
       present: boolean
     }
@@ -34,6 +37,7 @@ type MatchScorePageData = {
       name: string
       teeColor: TeeColor
       handicapIndex: number
+      playingHandicap: number
       courseHandicap: number
       present: boolean
     }
@@ -257,6 +261,9 @@ export function MatchScoreClient({ initialData }: MatchScoreClientProps) {
             <p className="mt-2 text-sm text-text-secondary">
               {initialData.match.courseName} · {initialData.match.player1.teeColor.toUpperCase()} / {initialData.match.player2.teeColor.toUpperCase()}
             </p>
+            <p className="mt-1 text-xs text-text-secondary">
+              Competition basis: {initialData.match.handicapModeLabel}. ESC still uses each player's course handicap.
+            </p>
             {player1PopHoles.length > 0 || player2PopHoles.length > 0 ? (
               <div className="mt-2 space-y-1 text-xs text-text-secondary">
                 {player1PopHoles.length > 0 ? (
@@ -397,7 +404,7 @@ export function MatchScoreClient({ initialData }: MatchScoreClientProps) {
             )}
           </p>
           <p className="mt-2 text-xs text-text-secondary">
-            Match play updates automatically from each hole&apos;s match net result. ESC still uses each player&apos;s full course handicap.
+            Match play updates automatically from each hole&apos;s match net result.
           </p>
         </div>
       </section>

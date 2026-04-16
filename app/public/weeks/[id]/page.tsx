@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { getPublicWeekData } from '@/lib/public-week'
 
@@ -67,8 +68,18 @@ export default async function PublicWeekDetailPage({
 
   return (
     <section className="space-y-4">
-      <div className={`rounded-2xl border px-4 py-3 text-sm font-medium shadow-sm ${statusBanner.className}`}>
-        {statusBanner.text}
+      <div className="flex items-center justify-between gap-3">
+        <div className={`flex-1 rounded-2xl border px-4 py-3 text-sm font-medium shadow-sm ${statusBanner.className}`}>
+          {statusBanner.text}
+        </div>
+        {data.resultsVisible ? (
+          <Link
+            href={`/public/weeks/${data.id}/print`}
+            className="font-condensed shrink-0 rounded-full border border-surface-border bg-surface-elevated px-4 py-2 text-sm font-semibold uppercase tracking-wide text-text-secondary shadow-sm hover:border-accent hover:text-accent-text"
+          >
+            Print Results
+          </Link>
+        ) : null}
       </div>
 
       <div className="overflow-hidden rounded-3xl border border-surface-border bg-surface-elevated p-6 shadow-sm">

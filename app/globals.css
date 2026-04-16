@@ -43,6 +43,38 @@ a {
   text-decoration: none;
 }
 
+@media print {
+  @page {
+    size: letter;
+    margin: 0.5in;
+  }
+
+  body {
+    background: white !important;
+    color: black !important;
+    -webkit-print-color-adjust: exact;
+  }
+
+  /* Hide public layout chrome when printing */
+  .min-h-screen > .mx-auto > header,
+  .min-h-screen > .mx-auto > footer {
+    display: none !important;
+  }
+
+  .min-h-screen > .mx-auto {
+    max-width: none !important;
+    padding: 0 !important;
+  }
+
+  .min-h-screen > .mx-auto > main {
+    padding: 0 !important;
+  }
+
+  .min-h-screen {
+    min-height: auto !important;
+  }
+}
+
 button,
 input,
 select {

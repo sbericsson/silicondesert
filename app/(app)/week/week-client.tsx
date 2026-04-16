@@ -49,6 +49,7 @@ type WeekPageData = {
     weekNumber: number
     seasonName: string
     dateLabel: string
+    isOverdue: boolean
   } | null
   attendance: Array<{
     playerId: string
@@ -530,13 +531,16 @@ export function WeekClient({ initialData }: WeekClientProps) {
           </h2>
           <p className="mt-2 text-sm text-text-secondary">
             {data.upcomingWeek
-              ? `${data.upcomingWeek.dateLabel}. This is the next scheduled week and can be started whenever the commissioner is ready.`
+              ? data.upcomingWeek.isOverdue
+                ? `${data.upcomingWeek.dateLabel}. This scheduled week has not been started yet and needs to be opened before later weeks can be scored.`
+                : `${data.upcomingWeek.dateLabel}. This is the next scheduled week and can be started whenever the commissioner is ready.`
               : 'No scheduled week was found yet. Start by creating a season and its Friday dates.'}
           </p>
           <div className="mt-6 rounded-lg border border-surface-border bg-surface-sunken p-4 text-sm text-text-secondary">
             {data.upcomingWeek ? (
               <p>
-                Next up: Week {data.upcomingWeek.weekNumber} - {data.upcomingWeek.seasonName}
+                {data.upcomingWeek.isOverdue ? 'Needs attention:' : 'Next up:'} Week {data.upcomingWeek.weekNumber} -{' '}
+                {data.upcomingWeek.seasonName}
               </p>
             ) : null}
             <p>Players on roster: {data.totalPlayers}</p>

@@ -25,6 +25,7 @@ function getDisplayHandicapIndex(player: {
 function formatMatchPlaySummary(input: {
   matchPlayWinnerId: string | null
   matchPlayLeadBy: number | null
+  matchPlayHolesRemaining: number | null
   player1Id: string
   player1Name: string
   player2Id: string
@@ -34,12 +35,18 @@ function formatMatchPlaySummary(input: {
     return 'Pending'
   }
 
+  function winLabel(name: string) {
+    const lead = input.matchPlayLeadBy!
+    const remaining = input.matchPlayHolesRemaining ?? 0
+    return remaining > 0 ? `${name} (${lead}&${remaining})` : `${name} (${lead} up)`
+  }
+
   if (input.matchPlayWinnerId === input.player1Id) {
-    return `${input.player1Name} (${input.matchPlayLeadBy} up)`
+    return winLabel(input.player1Name)
   }
 
   if (input.matchPlayWinnerId === input.player2Id) {
-    return `${input.player2Name} (${input.matchPlayLeadBy} up)`
+    return winLabel(input.player2Name)
   }
 
   return input.matchPlayLeadBy === 0 ? 'Halved' : 'All square'
@@ -119,8 +126,22 @@ export async function getPublicWeekData(weekId: string) {
   const pairingsVisible = week.locked
   const resultsVisible = allScoresComplete
 
+  const handicapRecords = await prisma.handicapRecord.findMany({
+    where: { weekId },
+    select: {
+      playerId: true,
+      grossScore: true,
+      adjustedGrossScore: true,
+      courseRating: true,
+      slopeRating: true,
+      coursePar: true
+    }
+  })
+  const handicapRecordMap = new Map(handicapRecords.map((record) => [record.playerId, record]))
+
   return {
     id: week.id,
+    seasonId: week.season.id,
     weekNumber: week.weekNumber,
     seasonName: week.season.name,
     dateLabel: formatDate(week.date),
@@ -149,16 +170,34 @@ export async function getPublicWeekData(weekId: string) {
             player2Present: attendanceMap.get(match.player2Id) ?? false
           })
 
+      const player1Index = getDisplayHandicapIndex(match.player1, match.player1HandicapIndex)
+      const player2Index = getDisplayHandicapIndex(match.player2, match.player2HandicapIndex)
+      const p1Record = handicapRecordMap.get(match.player1Id)
+      const p2Record = handicapRecordMap.get(match.player2Id)
+
+      // Playing handicap for display and match net: round the handicap index.
+      const player1PlayingHandicap = Math.round(player1Index)
+      const player2PlayingHandicap = Math.round(player2Index)
+      const matchStrokeDiff = Math.abs(player1PlayingHandicap - player2PlayingHandicap)
+      const player1MatchStrokes = player1PlayingHandicap > player2PlayingHandicap ? matchStrokeDiff : 0
+      const player2MatchStrokes = player2PlayingHandicap > player1PlayingHandicap ? matchStrokeDiff : 0
+
       return {
         id: match.id,
         label: `Match ${index + 1}`,
         isThreesome: match.player2ScorecardOnly,
         player1Name: match.player1.name,
         player2Name: match.player2.name,
-        player1HandicapIndex: getDisplayHandicapIndex(match.player1, match.player1HandicapIndex),
-        player2HandicapIndex: getDisplayHandicapIndex(match.player2, match.player2HandicapIndex),
+        player1HandicapIndex: player1Index,
+        player2HandicapIndex: player2Index,
+        player1PlayingHandicap,
+        player2PlayingHandicap,
         player1Points: points?.player1.totalPoints ?? null,
         player2Points: points?.player2.totalPoints ?? null,
+        player1Gross: p1Record?.grossScore ?? null,
+        player1Net: p1Record ? p1Record.adjustedGrossScore - player1MatchStrokes : null,
+        player2Gross: p2Record?.grossScore ?? null,
+        player2Net: p2Record ? p2Record.adjustedGrossScore - player2MatchStrokes : null,
         strokeSummary:
           match.matchPlayLeadBy === null
             ? 'Pending'
@@ -170,6 +209,7 @@ export async function getPublicWeekData(weekId: string) {
         matchPlaySummary: formatMatchPlaySummary({
           matchPlayWinnerId: match.matchPlayWinnerId,
           matchPlayLeadBy: match.matchPlayLeadBy,
+          matchPlayHolesRemaining: match.matchPlayHolesRemaining,
           player1Id: match.player1Id,
           player1Name: match.player1.name,
           player2Id: match.player2Id,

@@ -8,6 +8,10 @@ function phoenixStartOfDay(isoDate: string) {
   return new Date(`${isoDate}T00:00:00-07:00`)
 }
 
+export function isWeekOverdue(date: Date, isoDate: string) {
+  return date < phoenixStartOfDay(isoDate)
+}
+
 function getActiveWeekWhere() {
   return {
     season: {
@@ -175,7 +179,6 @@ export async function getNextScheduledWeekRecord() {
     return null
   }
 
-  const { isoDate } = getPhoenixDateParts()
   const baseWhere = {
     season: {
       is: {
@@ -194,23 +197,6 @@ export async function getNextScheduledWeekRecord() {
       }
     }
   } satisfies Prisma.WeekWhereInput
-
-  const nextFutureWeek = await prisma.week.findFirst({
-    where: {
-      ...baseWhere,
-      date: {
-        gte: phoenixStartOfDay(isoDate)
-      }
-    },
-    include: {
-      season: true
-    },
-    orderBy: { date: 'asc' }
-  })
-
-  if (nextFutureWeek) {
-    return nextFutureWeek
-  }
 
   return prisma.week.findFirst({
     where: baseWhere,
@@ -232,6 +218,8 @@ export async function getCurrentWeekPageData() {
       totalPlayers: 0
     }
   }
+
+  const { isoDate } = getPhoenixDateParts()
 
   const [currentWeek, upcomingWeek, players, courses] = await Promise.all([
     getCurrentWeekRecord(),
@@ -395,7 +383,8 @@ export async function getCurrentWeekPageData() {
           id: upcomingWeek.id,
           weekNumber: upcomingWeek.weekNumber,
           seasonName: upcomingWeek.season.name,
-          dateLabel: formatDate(upcomingWeek.date)
+          dateLabel: formatDate(upcomingWeek.date),
+          isOverdue: isWeekOverdue(upcomingWeek.date, isoDate)
         }
       : null,
     attendance,

@@ -4,6 +4,7 @@ import { getPhoenixDateParts } from '@/lib/phoenix-time'
 import { getCurrentWeekRecord, pickActiveSeason } from '@/lib/week'
 
 export const revalidate = 60
+export const dynamic = 'force-dynamic'
 
 function formatDate(date: Date) {
   return new Intl.DateTimeFormat('en-US', {

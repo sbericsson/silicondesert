@@ -3,6 +3,7 @@ import { PublicStandingsTable } from '@/app/public/standings/standings-table'
 import { getPublicStandingsData } from '@/lib/public-standings'
 
 export const revalidate = 60
+export const dynamic = 'force-dynamic'
 
 export default async function PublicStandingsPage({
   searchParams

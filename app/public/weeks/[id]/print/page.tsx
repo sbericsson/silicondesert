@@ -4,6 +4,7 @@ import { getPublicStandingsData } from '@/lib/public-standings'
 import { PrintButton } from './print-button'
 
 export const revalidate = 60
+export const dynamic = 'force-dynamic'
 
 export default async function PrintWeekPage({
   params

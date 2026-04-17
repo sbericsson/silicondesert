@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation'
 import { getPublicWeekData } from '@/lib/public-week'
 
 export const revalidate = 60
+export const dynamic = 'force-dynamic'
 
 function getStatusBanner(data: NonNullable<Awaited<ReturnType<typeof getPublicWeekData>>>) {
   if (!data.locked) {

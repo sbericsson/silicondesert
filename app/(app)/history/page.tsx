@@ -1,6 +1,8 @@
 import Link from 'next/link'
 import { getHistoryPageData } from '@/lib/history'
 
+export const dynamic = 'force-dynamic'
+
 export default async function HistoryPage() {
   const data = await getHistoryPageData()
 

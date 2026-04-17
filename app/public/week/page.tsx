@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { getLatestPublishedWeekId } from '@/lib/public-week'
 
 export const revalidate = 60
+export const dynamic = 'force-dynamic'
 
 export default async function PublicCurrentWeekPage() {
   const latestWeekId = await getLatestPublishedWeekId()

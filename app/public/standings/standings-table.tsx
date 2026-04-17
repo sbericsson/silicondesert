@@ -5,6 +5,7 @@ import { useMemo, useState } from 'react'
 type StandingRow = {
   playerId: string
   name: string
+  currentIndexDisplay: string
   totalPoints: number
   strokePoints: number
   matchPlayPoints: number
@@ -115,6 +116,7 @@ export function PublicStandingsTable({
                 }`}
               >
                 {row.name}
+                <span className="text-text-secondary"> - {row.currentIndexDisplay}</span>
               </td>
               <td className="px-4 py-3 text-sm text-text-primary">{row.totalPoints}</td>
               <td className="px-4 py-3 text-sm text-text-primary">{row.strokePoints}</td>

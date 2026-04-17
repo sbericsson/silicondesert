@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/db'
+import { getPlayerHandicapInlineLabel } from '@/lib/player-handicap-display'
 import { applyStoredMatchResult } from '@/lib/points'
 import { resolveStrokeWinnerId } from '@/lib/stroke-result'
 import { getCurrentWeekRecord, pickActiveSeason } from '@/lib/week'
@@ -62,6 +63,12 @@ export async function getStandingsPageData() {
 
   const players = await prisma.player.findMany({
     where: { active: true },
+    include: {
+      handicapRecords: {
+        orderBy: { date: 'desc' },
+        take: 20
+      }
+    },
     orderBy: { name: 'asc' }
   })
 
@@ -71,6 +78,7 @@ export async function getStandingsPageData() {
       {
         playerId: player.id,
         name: player.name,
+        currentIndexDisplay: getPlayerHandicapInlineLabel(player),
         totalPoints: 0,
         strokePoints: 0,
         matchPlayPoints: 0,

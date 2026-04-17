@@ -1,7 +1,7 @@
 import type { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/db'
-import { handicapIndex } from '@/lib/handicap'
 import { getPhoenixDateParts } from '@/lib/phoenix-time'
+import { getPlayerHandicapDisplay } from '@/lib/player-handicap-display'
 import {
   getCourseTee,
   getDefaultTeeColorForGender,
@@ -71,23 +71,6 @@ function compareNamesByLastName(a: string, b: string) {
   }
 
   return a.localeCompare(b, 'en-US')
-}
-
-function getPlayerDisplayHandicap(player: {
-  seedHandicap: number | null
-  handicapRecords: Array<{ courseDifferential: number }>
-}) {
-  if (player.handicapRecords.length === 0 && player.seedHandicap !== null) {
-    return { kind: 'EST' as const, value: player.seedHandicap.toFixed(1) }
-  }
-
-  if (player.handicapRecords.length === 0) {
-    return { kind: 'NEW' as const, value: null }
-  }
-
-  const value = handicapIndex(player.handicapRecords.map((record) => record.courseDifferential))
-
-  return { kind: 'HCP' as const, value: value?.toFixed(1) ?? null }
 }
 
 export function pickActiveSeason<T extends {
@@ -253,7 +236,7 @@ export async function getCurrentWeekPageData() {
 
   const attendance = players.map((player) => {
     const status = attendanceByPlayerId.get(player.id)
-    const handicap = getPlayerDisplayHandicap(player)
+    const handicap = getPlayerHandicapDisplay(player)
 
     return {
       playerId: player.id,

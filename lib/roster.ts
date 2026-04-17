@@ -1,5 +1,5 @@
 import { prisma } from '@/lib/db'
-import { handicapIndex } from '@/lib/handicap'
+import { getPlayerHandicapDisplay } from '@/lib/player-handicap-display'
 
 function getPlayerSortKey(name: string) {
   const normalized = name.trim().replace(/\s+/g, ' ')
@@ -7,22 +7,6 @@ function getPlayerSortKey(name: string) {
   const lastName = parts.at(-1) ?? normalized
   const firstNames = parts.slice(0, -1).join(' ')
   return `${lastName.toLocaleLowerCase()}|${firstNames.toLocaleLowerCase()}|${normalized.toLocaleLowerCase()}`
-}
-
-function getPlayerDisplay(player: {
-  seedHandicap: number | null
-  handicapRecords: Array<{ courseDifferential: number }>
-}) {
-  if (player.handicapRecords.length === 0 && player.seedHandicap !== null) {
-    return { kind: 'EST' as const, value: player.seedHandicap.toFixed(1) }
-  }
-
-  if (player.handicapRecords.length === 0) {
-    return { kind: 'NEW' as const, value: null }
-  }
-
-  const value = handicapIndex(player.handicapRecords.map((record) => record.courseDifferential))
-  return { kind: 'HCP' as const, value: value?.toFixed(1) ?? null }
 }
 
 export async function getRosterPageData() {
@@ -123,7 +107,7 @@ export async function getRosterPageData() {
           slopeRating: record.slopeRating,
           coursePar: record.coursePar
       })),
-      handicap: getPlayerDisplay(player)
+      handicap: getPlayerHandicapDisplay(player)
     })),
     courses: courses.map((course) => ({
       id: course.id,

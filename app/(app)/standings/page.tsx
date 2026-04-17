@@ -38,7 +38,10 @@ export default async function StandingsPage() {
                 className="grid grid-cols-[52px_1fr_72px_72px_72px_60px_60px] px-4 py-3 text-sm text-text-primary"
               >
                 <span>{index + 1}</span>
-                <span>{row.name}</span>
+                <span>
+                  {row.name}
+                  <span className="text-text-secondary"> - {row.currentIndexDisplay}</span>
+                </span>
                 <span>{row.totalPoints}</span>
                 <span>{row.strokePoints}</span>
                 <span>{row.matchPlayPoints}</span>

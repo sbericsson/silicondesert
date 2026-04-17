@@ -148,7 +148,10 @@ export default async function PrintWeekPage({
                   className="border-b border-surface-border print:border-gray-300"
                 >
                   <td className="py-2 pr-3 tabular-nums text-text-secondary">{i + 1}</td>
-                  <td className="py-2 pr-3 font-medium">{row.name}</td>
+                  <td className="py-2 pr-3 font-medium">
+                    {row.name}
+                    <span className="font-normal text-text-secondary"> - {row.currentIndexDisplay}</span>
+                  </td>
                   <td className="py-2 pr-3 text-right tabular-nums font-semibold">
                     {row.totalPoints}
                   </td>

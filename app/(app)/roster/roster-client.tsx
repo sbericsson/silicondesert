@@ -10,6 +10,7 @@ import {
   getImportedHandicapCourseTee,
   matchImportedHandicapRoundToCourse
 } from '@/lib/imported-handicap'
+import { getPlayerSortKey } from '@/lib/player-sort'
 
 const CUSTOM_COURSE_ID = '__custom__'
 
@@ -151,14 +152,6 @@ function isBlankImportedRound(round: ImportedRoundEditor) {
     (round.courseId !== CUSTOM_COURSE_ID ||
       (!round.courseRating.trim() && !round.slopeRating.trim() && !round.coursePar.trim()))
   )
-}
-
-function getPlayerSortKey(name: string) {
-  const normalized = name.trim().replace(/\s+/g, ' ')
-  const parts = normalized.split(' ')
-  const lastName = parts.at(-1) ?? normalized
-  const firstNames = parts.slice(0, -1).join(' ')
-  return `${lastName.toLocaleLowerCase()}|${firstNames.toLocaleLowerCase()}|${normalized.toLocaleLowerCase()}`
 }
 
 function sortPlayers(players: RosterPageData['players']) {

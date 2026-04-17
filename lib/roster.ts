@@ -1,13 +1,6 @@
 import { prisma } from '@/lib/db'
 import { getPlayerHandicapDisplay } from '@/lib/player-handicap-display'
-
-function getPlayerSortKey(name: string) {
-  const normalized = name.trim().replace(/\s+/g, ' ')
-  const parts = normalized.split(' ')
-  const lastName = parts.at(-1) ?? normalized
-  const firstNames = parts.slice(0, -1).join(' ')
-  return `${lastName.toLocaleLowerCase()}|${firstNames.toLocaleLowerCase()}|${normalized.toLocaleLowerCase()}`
-}
+import { getPlayerSortKey } from '@/lib/player-sort'
 
 export async function getRosterPageData() {
   if (!process.env.DATABASE_URL) {
@@ -25,8 +18,7 @@ export async function getRosterPageData() {
     prisma.player.findMany({
       include: {
         handicapRecords: {
-          orderBy: { date: 'desc' },
-          take: 20
+          orderBy: [{ date: 'desc' }, { createdAt: 'desc' }]
         },
         seasonTeeChoices: true
       },

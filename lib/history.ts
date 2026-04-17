@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/db'
+import { buildPublicUrl } from '@/lib/public-url'
 
 function formatDate(date: Date) {
   return new Intl.DateTimeFormat('en-US', {
@@ -38,10 +39,15 @@ export async function getHistoryPageData() {
       id: week.id,
       weekNumber: week.weekNumber,
       seasonName: week.season.name,
+      seasonArchived: Boolean(week.season.archivedAt),
       dateLabel: formatDate(week.date),
       courseName: week.course?.name ?? 'Course not selected',
       locked: week.locked,
       matchCount: week.matches.length,
+      publicResultsUrl:
+        week.matches.length > 0 && week.matches.every((match) => match.matchPlayLeadBy !== null)
+          ? buildPublicUrl(`/public/weeks/${week.id}`)
+          : null,
       ctpHoleNumber: week.ctpHoleNumber,
       ctpWinnerName: week.ctpWinner?.name ?? null,
       longestPuttHoleNumber: week.longestPuttHoleNumber,

@@ -62,6 +62,7 @@ type MatchScorePageData = {
 
 interface MatchScoreClientProps {
   initialData: MatchScorePageData
+  returnHref: string
 }
 
 function formatMatchPlayLabel(
@@ -118,8 +119,9 @@ function formatHoleList(holes: number[]) {
   return `Holes ${holes.join(', ')}`
 }
 
-export function MatchScoreClient({ initialData }: MatchScoreClientProps) {
+export function MatchScoreClient({ initialData, returnHref }: MatchScoreClientProps) {
   const router = useRouter()
+  const backLabel = returnHref === '/history' ? 'Back to History' : 'Back to Week'
   const [player1Scores, setPlayer1Scores] = useState<Record<number, string>>(
     Object.fromEntries(initialData.rows.map((row) => [row.holeNumber, row.player1Gross?.toString() ?? '']))
   )
@@ -228,9 +230,11 @@ export function MatchScoreClient({ initialData }: MatchScoreClientProps) {
     const payload = await response.json().catch(() => null)
 
     router.push(
-      payload?.nextPendingMatchId
-        ? `/week/matches/${payload.nextPendingMatchId}`
-        : '/week'
+      initialData.match.weekCompleted
+        ? returnHref
+        : payload?.nextPendingMatchId
+          ? `/week/matches/${payload.nextPendingMatchId}`
+          : returnHref
     )
     router.refresh()
   }
@@ -285,8 +289,8 @@ export function MatchScoreClient({ initialData }: MatchScoreClientProps) {
               </div>
             ) : null}
           </div>
-          <Link className="text-sm text-accent-text" href="/week">
-            Back to Week
+          <Link className="text-sm text-accent-text" href={returnHref}>
+            {backLabel}
           </Link>
         </div>
       </div>
@@ -303,7 +307,7 @@ export function MatchScoreClient({ initialData }: MatchScoreClientProps) {
         </div>
       ) : initialData.match.weekCompleted ? (
         <div className="rounded-md border border-warning bg-warning/10 px-4 py-3 text-sm text-warning-text">
-          This week has been closed. Scores remain visible, but edits are disabled.
+          This week has been closed. You can still correct saved scores here, and the history and public results pages will update after you save.
         </div>
       ) : null}
 
@@ -428,20 +432,20 @@ export function MatchScoreClient({ initialData }: MatchScoreClientProps) {
       <button
         type="button"
         className="font-condensed w-full rounded-lg bg-accent px-4 py-4 text-base font-bold uppercase tracking-wide text-white disabled:cursor-not-allowed disabled:bg-surface-sunken disabled:text-text-disabled"
-        disabled={!isComplete || isSubmitting || initialData.match.seasonArchived || initialData.match.weekCompleted}
+        disabled={!isComplete || isSubmitting || initialData.match.seasonArchived}
         onClick={handleSubmit}
       >
         {initialData.match.seasonArchived
           ? 'Season Archived'
-          : initialData.match.weekCompleted
-            ? 'Week Closed'
           : !isComplete
-          ? `Submit Scores (${9 - completeHoleCount} holes remaining)`
-          : isSubmitting
-            ? 'Saving...'
-            : initialData.match.nextPendingMatchId
-              ? 'Save Scores & Next Match'
-              : 'Submit Scores'}
+            ? `Submit Scores (${9 - completeHoleCount} holes remaining)`
+            : isSubmitting
+              ? 'Saving...'
+              : initialData.match.weekCompleted
+                ? 'Save Corrected Scores'
+                : initialData.match.nextPendingMatchId
+                  ? 'Save Scores & Next Match'
+                  : 'Submit Scores'}
       </button>
     </section>
   )

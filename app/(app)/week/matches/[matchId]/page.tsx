@@ -5,9 +5,12 @@ interface MatchPageProps {
   params: {
     matchId: string
   }
+  searchParams?: {
+    returnTo?: string
+  }
 }
 
-export default async function MatchPage({ params }: MatchPageProps) {
+export default async function MatchPage({ params, searchParams }: MatchPageProps) {
   const data = await getMatchScorePageDataByMatchId(params.matchId)
 
   if (!data) {
@@ -26,5 +29,13 @@ export default async function MatchPage({ params }: MatchPageProps) {
     )
   }
 
-  return <MatchScoreClient initialData={data} />
+  const requestedReturnHref = searchParams?.returnTo
+  const returnHref =
+    requestedReturnHref && requestedReturnHref.startsWith('/')
+      ? requestedReturnHref
+      : data.match.weekCompleted
+        ? '/history'
+        : '/week'
+
+  return <MatchScoreClient initialData={data} returnHref={returnHref} />
 }

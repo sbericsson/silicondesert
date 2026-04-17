@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { getHistoryPageData } from '@/lib/history'
 
 export default async function HistoryPage() {
@@ -31,6 +32,18 @@ export default async function HistoryPage() {
               <p className="mt-1 text-sm text-text-secondary">
                 {week.courseName} · {week.matchCount} matches · {week.locked ? 'Locked' : 'Open'}
               </p>
+              {week.publicResultsUrl ? (
+                <div className="mt-3">
+                  <a
+                    className="text-sm font-semibold text-accent-text"
+                    href={week.publicResultsUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    View Public Results
+                  </a>
+                </div>
+              ) : null}
             </div>
 
             <div className="px-4 py-3">
@@ -42,34 +55,47 @@ export default async function HistoryPage() {
             <div className="divide-y divide-surface-border">
               {week.matches.map((match, index) => (
                 <div key={match.id} className="px-4 py-3">
-                  <p className="font-condensed text-xs font-bold uppercase tracking-widest text-text-muted">
-                    Match {index + 1}
-                  </p>
-                  <p className="mt-1 text-sm text-text-primary">
-                    {match.player1Name} vs {match.player2Name}
-                    {match.player2ScorecardOnly ? ' · Reference scorecard' : ''}
-                  </p>
-                  <p className="mt-1 text-xs text-text-secondary">
-                    Stroke:{' '}
-                    {match.strokeWinnerId === match.player1Id
-                      ? match.player1Name
-                      : match.strokeWinnerId === match.player2Id
-                        ? match.player2Name
-                        : match.matchPlayLeadBy !== null
-                          ? 'Tie'
-                          : 'Pending'}
-                    {' · '}
-                    Match play:{' '}
-                    {match.matchPlayLeadBy === null
-                      ? 'Pending'
-                      : match.matchPlayWinnerId === match.player1Id
-                        ? `${match.player1Name} ${match.matchPlayLeadBy} up`
-                        : match.matchPlayWinnerId === match.player2Id
-                          ? `${match.player2Name} ${match.matchPlayLeadBy} up`
-                          : match.matchPlayLeadBy === 0
-                            ? 'All square'
-                            : 'Halved'}
-                  </p>
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="font-condensed text-xs font-bold uppercase tracking-widest text-text-muted">
+                        Match {index + 1}
+                      </p>
+                      <p className="mt-1 text-sm text-text-primary">
+                        {match.player1Name} vs {match.player2Name}
+                        {match.player2ScorecardOnly ? ' · Reference scorecard' : ''}
+                      </p>
+                      <p className="mt-1 text-xs text-text-secondary">
+                        Stroke:{' '}
+                        {match.strokeWinnerId === match.player1Id
+                          ? match.player1Name
+                          : match.strokeWinnerId === match.player2Id
+                            ? match.player2Name
+                            : match.matchPlayLeadBy !== null
+                              ? 'Tie'
+                              : 'Pending'}
+                        {' · '}
+                        Match play:{' '}
+                        {match.matchPlayLeadBy === null
+                          ? 'Pending'
+                          : match.matchPlayWinnerId === match.player1Id
+                            ? `${match.player1Name} ${match.matchPlayLeadBy} up`
+                            : match.matchPlayWinnerId === match.player2Id
+                              ? `${match.player2Name} ${match.matchPlayLeadBy} up`
+                              : match.matchPlayLeadBy === 0
+                                ? 'All square'
+                                : 'Halved'}
+                      </p>
+                    </div>
+
+                    {!week.seasonArchived && week.locked ? (
+                      <Link
+                        className="shrink-0 text-sm font-semibold text-accent-text"
+                        href={`/week/matches/${match.id}?returnTo=%2Fhistory`}
+                      >
+                        Edit Scores
+                      </Link>
+                    ) : null}
+                  </div>
                 </div>
               ))}
             </div>

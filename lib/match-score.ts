@@ -340,10 +340,6 @@ export async function submitMatchScores(input: {
     throw new Error('Archived seasons cannot be edited')
   }
 
-  if (match.week.completedAt) {
-    throw new Error('Closed weeks cannot be edited')
-  }
-
   const course = match.week.course
 
   if (!match.locked || !match.week.locked) {

@@ -3,6 +3,7 @@ import { handicapIndex } from '@/lib/handicap'
 import { getCourseTee, getPlayerMatchTeeColor } from '@/lib/course-tee'
 import { getHandicapModeLabel, getPlayingHandicap } from '@/lib/playing-handicap'
 import { applyStoredMatchResult } from '@/lib/points'
+import { resolveStrokeWinnerId } from '@/lib/stroke-result'
 
 function formatDate(date: Date) {
   return new Intl.DateTimeFormat('en-US', {
@@ -167,19 +168,6 @@ export async function getPublicWeekData(weekId: string) {
     longestPuttHoleNumber: week.longestPuttHoleNumber,
     longestPuttWinnerName: week.longestPuttWinner?.name ?? null,
     matches: week.matches.map((match, index) => {
-      const points = match.matchPlayLeadBy === null
-        ? null
-        : applyStoredMatchResult({
-            player1Id: match.player1Id,
-            player2Id: match.player2Id,
-            strokeWinnerId: match.strokeWinnerId,
-            matchPlayWinnerId: match.matchPlayWinnerId,
-            matchPlayLeadBy: match.matchPlayLeadBy,
-            player2ScorecardOnly: match.player2ScorecardOnly,
-            player1Present: attendanceMap.get(match.player1Id) ?? false,
-            player2Present: attendanceMap.get(match.player2Id) ?? false
-          })
-
       const player1Index = getDisplayHandicapIndex(match.player1, match.player1HandicapIndex)
       const player2Index = getDisplayHandicapIndex(match.player2, match.player2HandicapIndex)
       const p1Record = handicapRecordMap.get(match.player1Id)
@@ -225,6 +213,28 @@ export async function getPublicWeekData(weekId: string) {
       const matchStrokeDiff = Math.abs(player1PlayingHandicap - player2PlayingHandicap)
       const player1MatchStrokes = player1PlayingHandicap > player2PlayingHandicap ? matchStrokeDiff : 0
       const player2MatchStrokes = player2PlayingHandicap > player1PlayingHandicap ? matchStrokeDiff : 0
+      const resolvedStrokeWinnerId = resolveStrokeWinnerId({
+        player1Id: match.player1Id,
+        player2Id: match.player2Id,
+        player1Gross: p1Record?.grossScore ?? null,
+        player2Gross: p2Record?.grossScore ?? null,
+        player1PlayingHandicap,
+        player2PlayingHandicap,
+        player2ScorecardOnly: match.player2ScorecardOnly,
+        storedStrokeWinnerId: match.strokeWinnerId
+      })
+      const points = match.matchPlayLeadBy === null
+        ? null
+        : applyStoredMatchResult({
+            player1Id: match.player1Id,
+            player2Id: match.player2Id,
+            strokeWinnerId: resolvedStrokeWinnerId,
+            matchPlayWinnerId: match.matchPlayWinnerId,
+            matchPlayLeadBy: match.matchPlayLeadBy,
+            player2ScorecardOnly: match.player2ScorecardOnly,
+            player1Present: attendanceMap.get(match.player1Id) ?? false,
+            player2Present: attendanceMap.get(match.player2Id) ?? false
+          })
 
       return {
         id: match.id,
@@ -239,15 +249,15 @@ export async function getPublicWeekData(weekId: string) {
         player1Points: points?.player1.totalPoints ?? null,
         player2Points: points?.player2.totalPoints ?? null,
         player1Gross: p1Record?.grossScore ?? null,
-        player1Net: p1Record ? p1Record.adjustedGrossScore - player1MatchStrokes : null,
+        player1Net: p1Record ? p1Record.grossScore - player1MatchStrokes : null,
         player2Gross: p2Record?.grossScore ?? null,
-        player2Net: p2Record ? p2Record.adjustedGrossScore - player2MatchStrokes : null,
+        player2Net: p2Record ? p2Record.grossScore - player2MatchStrokes : null,
         strokeSummary:
           match.matchPlayLeadBy === null
             ? 'Pending'
-            : match.strokeWinnerId === match.player1Id
+            : resolvedStrokeWinnerId === match.player1Id
               ? match.player1.name
-              : match.strokeWinnerId === match.player2Id
+              : resolvedStrokeWinnerId === match.player2Id
                 ? match.player2.name
                 : 'Halved',
         matchPlaySummary: formatMatchPlaySummary({

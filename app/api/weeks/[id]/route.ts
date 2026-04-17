@@ -4,7 +4,7 @@ import { prisma } from '@/lib/db'
 import { getApiSession, unauthorizedResponse } from '@/lib/api-auth'
 import { writeAuditLog } from '@/lib/audit'
 import { getCourseTee, getPlayerMatchTeeColor } from '@/lib/course-tee'
-import { calculateMatchOutcomeFromAdjustedScores } from '@/lib/match-net-scoring'
+import { calculateMatchOutcomeFromGrossScores } from '@/lib/match-net-scoring'
 import { getPlayerHandicapIndexValue, getPlayingHandicap } from '@/lib/playing-handicap'
 
 function parseOptionalInt(value: unknown) {
@@ -77,7 +77,7 @@ async function rescoreLockedWeekMatchesForHandicapMode(
             select: {
               playerId: true,
               holeNumber: true,
-              adjustedScore: true
+              grossScore: true
             }
           }
         }
@@ -124,12 +124,12 @@ async function rescoreLockedWeekMatchesForHandicapMode(
     })
     const player1PlayingHandicap = getPlayingHandicap(handicapMode, player1HandicapIndex, player1Tee)
     const player2PlayingHandicap = getPlayingHandicap(handicapMode, player2HandicapIndex, player2Tee)
-    const adjustedScoreByKey = new Map(
-      match.holeScores.map((score) => [`${score.playerId}:${score.holeNumber}`, score.adjustedScore])
+    const grossScoreByKey = new Map(
+      match.holeScores.map((score) => [`${score.playerId}:${score.holeNumber}`, score.grossScore])
     )
     const hasSavedScores = match.holeScores.length > 0
     const outcome = hasSavedScores
-      ? calculateMatchOutcomeFromAdjustedScores({
+      ? calculateMatchOutcomeFromGrossScores({
           player1Id: match.player1Id,
           player2Id: match.player2Id,
           player1PlayingHandicap,
@@ -138,8 +138,8 @@ async function rescoreLockedWeekMatchesForHandicapMode(
           holes: week.course.holes.map((hole) => ({
             holeNumber: hole.holeNumber,
             strokeIndex: hole.strokeIndex,
-            player1AdjustedScore: adjustedScoreByKey.get(`${match.player1Id}:${hole.holeNumber}`) ?? null,
-            player2AdjustedScore: adjustedScoreByKey.get(`${match.player2Id}:${hole.holeNumber}`) ?? null
+            player1GrossScore: grossScoreByKey.get(`${match.player1Id}:${hole.holeNumber}`) ?? null,
+            player2GrossScore: grossScoreByKey.get(`${match.player2Id}:${hole.holeNumber}`) ?? null
           }))
         })
       : null

@@ -142,10 +142,10 @@ export function MatchScoreClient({ initialData, returnHref }: MatchScoreClientPr
         ...row,
         player1Gross: p1Gross,
         player1Adj: p1Adj,
-        player1Net: p1Adj === null ? null : p1Adj - row.player1StrokesReceived,
+        player1Net: p1Gross === null ? null : p1Gross - row.player1StrokesReceived,
         player2Gross: p2Gross,
         player2Adj: p2Adj,
-        player2Net: p2Adj === null ? null : p2Adj - row.player2StrokesReceived
+        player2Net: p2Gross === null ? null : p2Gross - row.player2StrokesReceived
       }
     })
   }, [initialData.rows, player1Scores, player2Scores])
@@ -266,7 +266,7 @@ export function MatchScoreClient({ initialData, returnHref }: MatchScoreClientPr
               {initialData.match.courseName} · {initialData.match.player1.teeColor.toUpperCase()} / {initialData.match.player2.teeColor.toUpperCase()}
             </p>
             <p className="mt-1 text-xs text-text-secondary">
-              Competition basis: {initialData.match.handicapModeLabel}. ESC still uses each player's course handicap.
+              Competition basis: {initialData.match.handicapModeLabel}. Adjusted gross is for handicap posting only; match net and points use gross scores with pops.
             </p>
             {player1PopHoles.length > 0 || player2PopHoles.length > 0 ? (
               <div className="mt-2 space-y-1 text-xs text-text-secondary">

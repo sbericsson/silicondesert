@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/db'
 import { buildPublicUrl } from '@/lib/public-url'
+import { resolveStrokeWinnerId } from '@/lib/stroke-result'
 
 function formatDate(date: Date) {
   return new Intl.DateTimeFormat('en-US', {
@@ -56,6 +57,12 @@ export async function getHistoryPageData() {
     include: {
       season: true,
       course: true,
+      handicapRecords: {
+        select: {
+          playerId: true,
+          grossScore: true
+        }
+      },
       ctpWinner: true,
       longestPuttWinner: true,
       matches: {
@@ -87,27 +94,43 @@ export async function getHistoryPageData() {
       ctpWinnerName: week.ctpWinner?.name ?? null,
       longestPuttHoleNumber: week.longestPuttHoleNumber,
       longestPuttWinnerName: week.longestPuttWinner?.name ?? null,
-      matches: week.matches.map((match) => ({
-        id: match.id,
-        player1Name: match.player1.name,
-        player1Id: match.player1.id,
-        player2Name: match.player2.name,
-        player2Id: match.player2.id,
-        strokeWinnerId: match.strokeWinnerId,
-        matchPlayWinnerId: match.matchPlayWinnerId,
-        matchPlayLeadBy: match.matchPlayLeadBy,
-        matchPlayHolesRemaining: match.matchPlayHolesRemaining,
-        matchPlaySummary: formatMatchPlaySummary({
+      matches: week.matches.map((match) => {
+        const adjustedScoreByPlayerId = new Map(
+          week.handicapRecords.map((record) => [record.playerId, record.grossScore])
+        )
+        const strokeWinnerId = resolveStrokeWinnerId({
           player1Id: match.player1.id,
-          player1Name: match.player1.name,
           player2Id: match.player2.id,
+          player1Gross: adjustedScoreByPlayerId.get(match.player1.id) ?? null,
+          player2Gross: adjustedScoreByPlayerId.get(match.player2.id) ?? null,
+          player1PlayingHandicap: match.player1PlayingHandicap,
+          player2PlayingHandicap: match.player2PlayingHandicap,
+          player2ScorecardOnly: match.player2ScorecardOnly,
+          storedStrokeWinnerId: match.strokeWinnerId
+        })
+
+        return {
+          id: match.id,
+          player1Name: match.player1.name,
+          player1Id: match.player1.id,
           player2Name: match.player2.name,
+          player2Id: match.player2.id,
+          strokeWinnerId,
           matchPlayWinnerId: match.matchPlayWinnerId,
           matchPlayLeadBy: match.matchPlayLeadBy,
-          matchPlayHolesRemaining: match.matchPlayHolesRemaining
-        }),
-        player2ScorecardOnly: match.player2ScorecardOnly
-      }))
+          matchPlayHolesRemaining: match.matchPlayHolesRemaining,
+          matchPlaySummary: formatMatchPlaySummary({
+            player1Id: match.player1.id,
+            player1Name: match.player1.name,
+            player2Id: match.player2.id,
+            player2Name: match.player2.name,
+            matchPlayWinnerId: match.matchPlayWinnerId,
+            matchPlayLeadBy: match.matchPlayLeadBy,
+            matchPlayHolesRemaining: match.matchPlayHolesRemaining
+          }),
+          player2ScorecardOnly: match.player2ScorecardOnly
+        }
+      })
     }))
   }
 }

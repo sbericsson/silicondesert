@@ -3,8 +3,7 @@ import {
   applyESC,
   courseHandicap,
   handicapIndex,
-  scoreDifferential,
-  strokesReceivedOnHole
+  scoreDifferential
 } from '@/lib/handicap'
 import { getCourseTee, getPlayerMatchTeeColor } from '@/lib/course-tee'
 import { getMatchStrokeAllocation } from '@/lib/match-net-scoring'
@@ -195,8 +194,6 @@ export async function getMatchScorePageData(weekId: string, matchId: string) {
   const rows = match.week.course.holes.map((hole) => {
     const p1 = scoreMap.get(`${match.player1Id}:${hole.holeNumber}`)
     const p2 = scoreMap.get(`${match.player2Id}:${hole.holeNumber}`)
-    const p1EscStrokes = strokesReceivedOnHole(player1CourseHandicap, hole.strokeIndex)
-    const p2EscStrokes = strokesReceivedOnHole(player2CourseHandicap, hole.strokeIndex)
     const { player1MatchStrokes, player2MatchStrokes } = getMatchStrokeAllocation(
       player1PlayingHandicap,
       player2PlayingHandicap,
@@ -211,10 +208,10 @@ export async function getMatchScorePageData(weekId: string, matchId: string) {
       player2StrokesReceived: player2MatchStrokes,
       player1Gross: p1?.grossScore ?? null,
       player1Adj: p1?.adjustedScore ?? null,
-      player1Net: p1 ? p1.adjustedScore - player1MatchStrokes : null,
+      player1Net: p1 ? p1.grossScore - player1MatchStrokes : null,
       player2Gross: p2?.grossScore ?? null,
       player2Adj: p2?.adjustedScore ?? null,
-      player2Net: p2 ? p2.adjustedScore - player2MatchStrokes : null
+      player2Net: p2 ? p2.grossScore - player2MatchStrokes : null
     }
   })
 
@@ -383,18 +380,6 @@ export async function submitMatchScores(input: {
     nineHoleRating: course.nineHoleRating,
     nineHoleSlope: course.nineHoleSlope
   })
-  const player1CourseHandicap = courseHandicap(
-    player1Index,
-    player1Tee.nineHoleSlope,
-    player1Tee.nineHoleRating,
-    player1Tee.nineHolePar
-  )
-  const player2CourseHandicap = courseHandicap(
-    player2Index,
-    player2Tee.nineHoleSlope,
-    player2Tee.nineHoleRating,
-    player2Tee.nineHolePar
-  )
   const player1PlayingHandicap =
     match.player1PlayingHandicap ??
     getPlayingHandicap(match.week.handicapMode, player1Index, player1Tee)
@@ -410,19 +395,18 @@ export async function submitMatchScores(input: {
       throw new Error('Invalid hole')
     }
 
-    const escStrokes = strokesReceivedOnHole(player1CourseHandicap, hole.strokeIndex)
     const { player1MatchStrokes } = getMatchStrokeAllocation(
       player1PlayingHandicap,
       player2PlayingHandicap,
       hole.strokeIndex
     )
-    const adjustedScore = applyESC(score.grossScore, hole.par, escStrokes)
+    const adjustedScore = applyESC(score.grossScore, hole.par, player1MatchStrokes)
 
     return {
       holeNumber: score.holeNumber,
       grossScore: score.grossScore,
       adjustedScore,
-      netScore: adjustedScore - player1MatchStrokes
+      netScore: score.grossScore - player1MatchStrokes
     }
   })
 
@@ -432,19 +416,18 @@ export async function submitMatchScores(input: {
       throw new Error('Invalid hole')
     }
 
-    const escStrokes = strokesReceivedOnHole(player2CourseHandicap, hole.strokeIndex)
     const { player2MatchStrokes } = getMatchStrokeAllocation(
       player1PlayingHandicap,
       player2PlayingHandicap,
       hole.strokeIndex
     )
-    const adjustedScore = applyESC(score.grossScore, hole.par, escStrokes)
+    const adjustedScore = applyESC(score.grossScore, hole.par, player2MatchStrokes)
 
     return {
       holeNumber: score.holeNumber,
       grossScore: score.grossScore,
       adjustedScore,
-      netScore: adjustedScore - player2MatchStrokes
+      netScore: score.grossScore - player2MatchStrokes
     }
   })
 

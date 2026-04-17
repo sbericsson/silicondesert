@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { getApiSession, unauthorizedResponse } from '@/lib/api-auth'
 import { applyStoredMatchResult } from '@/lib/points'
+import { resolveStrokeWinnerId } from '@/lib/stroke-result'
 
 export async function GET(request: NextRequest) {
   const session = await getApiSession()
@@ -18,6 +19,12 @@ export async function GET(request: NextRequest) {
     where: { seasonId },
     include: {
       attendance: true,
+      handicapRecords: {
+        select: {
+          playerId: true,
+          grossScore: true
+        }
+      },
       matches: true
     }
   })
@@ -43,16 +50,30 @@ export async function GET(request: NextRequest) {
 
   for (const week of weeks) {
     const attendanceMap = new Map(week.attendance.map((entry) => [entry.playerId, entry.present]))
+    const adjustedScoreByPlayerId = new Map(
+      week.handicapRecords.map((record) => [record.playerId, record.grossScore])
+    )
 
     for (const match of week.matches) {
       if (match.matchPlayLeadBy === null) {
         continue
       }
 
+      const strokeWinnerId = resolveStrokeWinnerId({
+        player1Id: match.player1Id,
+        player2Id: match.player2Id,
+        player1Gross: adjustedScoreByPlayerId.get(match.player1Id) ?? null,
+        player2Gross: adjustedScoreByPlayerId.get(match.player2Id) ?? null,
+        player1PlayingHandicap: match.player1PlayingHandicap,
+        player2PlayingHandicap: match.player2PlayingHandicap,
+        player2ScorecardOnly: match.player2ScorecardOnly,
+        storedStrokeWinnerId: match.strokeWinnerId
+      })
+
       const points = applyStoredMatchResult({
         player1Id: match.player1Id,
         player2Id: match.player2Id,
-        strokeWinnerId: match.strokeWinnerId,
+        strokeWinnerId,
         matchPlayWinnerId: match.matchPlayWinnerId,
         matchPlayLeadBy: match.matchPlayLeadBy,
         player2ScorecardOnly: match.player2ScorecardOnly,

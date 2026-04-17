@@ -35,11 +35,11 @@ export function getMatchStrokeAllocation(
 export interface AdjustedMatchHoleInput {
   holeNumber: number
   strokeIndex: number
-  player1AdjustedScore: number | null
-  player2AdjustedScore: number | null
+  player1GrossScore: number | null
+  player2GrossScore: number | null
 }
 
-export function calculateMatchOutcomeFromAdjustedScores(input: {
+export function calculateMatchOutcomeFromGrossScores(input: {
   player1Id: string
   player2Id: string
   player1PlayingHandicap: number
@@ -57,8 +57,8 @@ export function calculateMatchOutcomeFromAdjustedScores(input: {
       )
 
       return {
-        player1Net: hole.player1AdjustedScore === null ? null : hole.player1AdjustedScore - player1MatchStrokes,
-        player2Net: hole.player2AdjustedScore === null ? null : hole.player2AdjustedScore - player2MatchStrokes
+        player1Net: hole.player1GrossScore === null ? null : hole.player1GrossScore - player1MatchStrokes,
+        player2Net: hole.player2GrossScore === null ? null : hole.player2GrossScore - player2MatchStrokes
       }
     })
 

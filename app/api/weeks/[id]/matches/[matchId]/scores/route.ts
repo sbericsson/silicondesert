@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getApiSession, unauthorizedResponse } from '@/lib/api-auth'
 import { getMatchScorePageData, submitMatchScores } from '@/lib/match-score'
+import { revalidateWeekPages } from '@/lib/revalidate-week-pages'
 
 export async function GET(
   _request: Request,
@@ -37,6 +38,8 @@ export async function POST(
       player1Scores: body.player1Scores ?? [],
       player2Scores: body.player2Scores ?? []
     })
+
+    revalidateWeekPages(params.id)
 
     return NextResponse.json(result)
   } catch (error) {

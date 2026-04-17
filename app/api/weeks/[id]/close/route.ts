@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { getApiSession, unauthorizedResponse } from '@/lib/api-auth'
 import { writeAuditLog } from '@/lib/audit'
+import { revalidateWeekPages } from '@/lib/revalidate-week-pages'
 
 export async function POST(
   _request: Request,
@@ -77,6 +78,8 @@ export async function POST(
 
     return nextWeek
   })
+
+  revalidateWeekPages(params.id)
 
   return NextResponse.json(updatedWeek)
 }

@@ -6,15 +6,15 @@ type StandingRow = {
   playerId: string
   name: string
   totalPoints: number
-  strokeWins: number
-  matchPlayWins: number
+  strokePoints: number
+  matchPlayPoints: number
   ctpWins: number
   lpWins: number
 }
 
 type SortKey = keyof Pick<
   StandingRow,
-  'name' | 'totalPoints' | 'strokeWins' | 'matchPlayWins' | 'ctpWins' | 'lpWins'
+  'name' | 'totalPoints' | 'strokePoints' | 'matchPlayPoints' | 'ctpWins' | 'lpWins'
 >
 
 const columns: Array<{
@@ -23,8 +23,8 @@ const columns: Array<{
 }> = [
   { key: 'name', label: 'Player' },
   { key: 'totalPoints', label: 'Pts' },
-  { key: 'strokeWins', label: 'Stroke' },
-  { key: 'matchPlayWins', label: 'Match' },
+  { key: 'strokePoints', label: 'Stroke' },
+  { key: 'matchPlayPoints', label: 'Match' },
   { key: 'ctpWins', label: 'CTP' },
   { key: 'lpWins', label: 'LP' }
 ]
@@ -117,8 +117,8 @@ export function PublicStandingsTable({
                 {row.name}
               </td>
               <td className="px-4 py-3 text-sm text-text-primary">{row.totalPoints}</td>
-              <td className="px-4 py-3 text-sm text-text-primary">{row.strokeWins}</td>
-              <td className="px-4 py-3 text-sm text-text-primary">{row.matchPlayWins}</td>
+              <td className="px-4 py-3 text-sm text-text-primary">{row.strokePoints}</td>
+              <td className="px-4 py-3 text-sm text-text-primary">{row.matchPlayPoints}</td>
               <td className="px-4 py-3 text-sm text-text-primary">{row.ctpWins}</td>
               <td className="px-4 py-3 text-sm text-text-primary">{row.lpWins}</td>
             </tr>

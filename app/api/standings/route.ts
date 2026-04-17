@@ -1,68 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { getApiSession, unauthorizedResponse } from '@/lib/api-auth'
-
-function applyStoredMatchResult(input: {
-  player1Id: string
-  player2Id: string
-  strokeWinnerId: string | null
-  matchPlayWinnerId: string | null
-  matchPlayLeadBy: number | null
-  player2ScorecardOnly: boolean
-  player1Present: boolean
-  player2Present: boolean
-}) {
-  const player1 = {
-    totalPoints: input.player1Present ? 1 : 0,
-    strokeWins: 0,
-    matchPlayWins: 0
-  }
-  const player2 = {
-    totalPoints: input.player2Present && !input.player2ScorecardOnly ? 1 : 0,
-    strokeWins: 0,
-    matchPlayWins: 0
-  }
-
-  if (input.player2ScorecardOnly) {
-    if (input.strokeWinnerId === input.player1Id) {
-      player1.totalPoints += 2
-      player1.strokeWins += 1
-    } else if (input.strokeWinnerId === null) {
-      player1.totalPoints += 1
-    }
-  } else if (input.strokeWinnerId === input.player1Id) {
-    player1.totalPoints += 2
-    player1.strokeWins += 1
-  } else if (input.strokeWinnerId === input.player2Id) {
-    player2.totalPoints += 2
-    player2.strokeWins += 1
-  } else {
-    player1.totalPoints += 1
-    player2.totalPoints += 1
-  }
-
-  if (input.matchPlayLeadBy !== null) {
-    if (input.player2ScorecardOnly) {
-      if (input.matchPlayWinnerId === input.player1Id) {
-        player1.totalPoints += 2
-        player1.matchPlayWins += 1
-      } else if (input.matchPlayLeadBy === 0) {
-        player1.totalPoints += 1
-      }
-    } else if (input.matchPlayWinnerId === input.player1Id) {
-      player1.totalPoints += 2
-      player1.matchPlayWins += 1
-    } else if (input.matchPlayWinnerId === input.player2Id) {
-      player2.totalPoints += 2
-      player2.matchPlayWins += 1
-    } else {
-      player1.totalPoints += 1
-      player2.totalPoints += 1
-    }
-  }
-
-  return { player1, player2 }
-}
+import { applyStoredMatchResult } from '@/lib/points'
 
 export async function GET(request: NextRequest) {
   const session = await getApiSession()
@@ -94,8 +33,8 @@ export async function GET(request: NextRequest) {
         playerId: player.id,
         name: player.name,
         totalPoints: 0,
-        strokeWins: 0,
-        matchPlayWins: 0,
+        strokePoints: 0,
+        matchPlayPoints: 0,
         ctpWins: 0,
         lpWins: 0
       }
@@ -126,14 +65,14 @@ export async function GET(request: NextRequest) {
 
       if (player1) {
         player1.totalPoints += points.player1.totalPoints
-        player1.strokeWins += points.player1.strokeWins
-        player1.matchPlayWins += points.player1.matchPlayWins
+        player1.strokePoints += points.player1.strokePoints
+        player1.matchPlayPoints += points.player1.matchPlayPoints
       }
 
       if (player2) {
         player2.totalPoints += points.player2.totalPoints
-        player2.strokeWins += points.player2.strokeWins
-        player2.matchPlayWins += points.player2.matchPlayWins
+        player2.strokePoints += points.player2.strokePoints
+        player2.matchPlayPoints += points.player2.matchPlayPoints
       }
     }
 

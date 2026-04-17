@@ -23,7 +23,7 @@ export default async function PublicStandingsPage({
           {data.selectedLabel ?? 'Season Standings'}
         </h2>
         <p className="mt-2 text-sm text-text-secondary">
-          Live points, stroke wins, and match wins from completed league weeks.
+          Live points, stroke points, and match-play points from completed league weeks.
         </p>
         {data.standings[0] ? (
           <div className="mt-4 rounded-2xl border border-accent/20 bg-accent-dim px-4 py-3">

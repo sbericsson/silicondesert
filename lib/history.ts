@@ -10,6 +10,41 @@ function formatDate(date: Date) {
   }).format(date)
 }
 
+function formatMatchPlaySummary(match: {
+  player1Id: string
+  player1Name: string
+  player2Id: string
+  player2Name: string
+  matchPlayWinnerId: string | null
+  matchPlayLeadBy: number | null
+  matchPlayHolesRemaining: number | null
+}) {
+  if (match.matchPlayLeadBy === null) {
+    return 'Pending'
+  }
+
+  const winnerName =
+    match.matchPlayWinnerId === match.player1Id
+      ? match.player1Name
+      : match.matchPlayWinnerId === match.player2Id
+        ? match.player2Name
+        : null
+
+  if (!winnerName) {
+    return match.matchPlayLeadBy === 0 ? 'Halved' : 'All square'
+  }
+
+  const holesRemaining = match.matchPlayHolesRemaining ?? 0
+
+  if (holesRemaining > 0 && match.matchPlayLeadBy > holesRemaining) {
+    return `${winnerName} ${match.matchPlayLeadBy} & ${holesRemaining}`
+  }
+
+  return holesRemaining === 0
+    ? `${winnerName} ${match.matchPlayLeadBy} up`
+    : `${winnerName} ${match.matchPlayLeadBy} up`
+}
+
 export async function getHistoryPageData() {
   if (!process.env.DATABASE_URL) {
     return {
@@ -61,6 +96,16 @@ export async function getHistoryPageData() {
         strokeWinnerId: match.strokeWinnerId,
         matchPlayWinnerId: match.matchPlayWinnerId,
         matchPlayLeadBy: match.matchPlayLeadBy,
+        matchPlayHolesRemaining: match.matchPlayHolesRemaining,
+        matchPlaySummary: formatMatchPlaySummary({
+          player1Id: match.player1.id,
+          player1Name: match.player1.name,
+          player2Id: match.player2.id,
+          player2Name: match.player2.name,
+          matchPlayWinnerId: match.matchPlayWinnerId,
+          matchPlayLeadBy: match.matchPlayLeadBy,
+          matchPlayHolesRemaining: match.matchPlayHolesRemaining
+        }),
         player2ScorecardOnly: match.player2ScorecardOnly
       }))
     }))

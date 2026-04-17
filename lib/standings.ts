@@ -65,8 +65,8 @@ export async function getStandingsPageData() {
         playerId: player.id,
         name: player.name,
         totalPoints: 0,
-        strokeWins: 0,
-        matchPlayWins: 0,
+        strokePoints: 0,
+        matchPlayPoints: 0,
         ctpWins: 0,
         lpWins: 0
       }
@@ -97,14 +97,14 @@ export async function getStandingsPageData() {
 
       if (player1) {
         player1.totalPoints += points.player1.totalPoints
-        player1.strokeWins += points.player1.strokeWins
-        player1.matchPlayWins += points.player1.matchPlayWins
+        player1.strokePoints += points.player1.strokePoints
+        player1.matchPlayPoints += points.player1.matchPlayPoints
       }
 
       if (player2) {
         player2.totalPoints += points.player2.totalPoints
-        player2.strokeWins += points.player2.strokeWins
-        player2.matchPlayWins += points.player2.matchPlayWins
+        player2.strokePoints += points.player2.strokePoints
+        player2.matchPlayPoints += points.player2.matchPlayPoints
       }
     }
 

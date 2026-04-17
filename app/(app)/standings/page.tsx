@@ -14,7 +14,7 @@ export default async function StandingsPage() {
         </h2>
         <p className="mt-2 text-sm text-text-secondary">
           {data.selectedSeasonName
-            ? 'Current season points, stroke wins, and match wins update from submitted scorecards.'
+            ? 'Current season points, stroke points, and match-play points update from submitted scorecards.'
             : 'Create a season and submit match scores to populate standings.'}
         </p>
       </div>
@@ -40,8 +40,8 @@ export default async function StandingsPage() {
                 <span>{index + 1}</span>
                 <span>{row.name}</span>
                 <span>{row.totalPoints}</span>
-                <span>{row.strokeWins}</span>
-                <span>{row.matchPlayWins}</span>
+                <span>{row.strokePoints}</span>
+                <span>{row.matchPlayPoints}</span>
                 <span>{row.ctpWins}</span>
                 <span>{row.lpWins}</span>
               </div>

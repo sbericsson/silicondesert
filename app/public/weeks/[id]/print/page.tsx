@@ -151,8 +151,8 @@ export default async function PrintWeekPage({
                   <td className="py-2 pr-3 text-right tabular-nums font-semibold">
                     {row.totalPoints}
                   </td>
-                  <td className="py-2 pr-3 text-right tabular-nums">{row.strokeWins}</td>
-                  <td className="py-2 pr-3 text-right tabular-nums">{row.matchPlayWins}</td>
+                  <td className="py-2 pr-3 text-right tabular-nums">{row.strokePoints}</td>
+                  <td className="py-2 pr-3 text-right tabular-nums">{row.matchPlayPoints}</td>
                   <td className="py-2 pr-3 text-right tabular-nums">{row.ctpWins}</td>
                   <td className="py-2 text-right tabular-nums">{row.lpWins}</td>
                 </tr>

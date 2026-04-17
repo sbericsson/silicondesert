@@ -6,6 +6,7 @@ import { writeAuditLog } from '@/lib/audit'
 import { getCourseTee, getPlayerMatchTeeColor } from '@/lib/course-tee'
 import { submitMatchScores } from '@/lib/match-score'
 import { getPlayerHandicapIndexValue, getPlayingHandicap } from '@/lib/playing-handicap'
+import { revalidateWeekPages } from '@/lib/revalidate-week-pages'
 
 function parseTeeOverrideColor(value: unknown) {
   if (value === null || value === '') {
@@ -205,6 +206,8 @@ export async function PATCH(
       player2Scores
     })
   }
+
+  revalidateWeekPages(params.id)
 
   return NextResponse.json({
     ok: true,

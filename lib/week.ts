@@ -2,7 +2,12 @@ import type { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/db'
 import { handicapIndex } from '@/lib/handicap'
 import { getPhoenixDateParts } from '@/lib/phoenix-time'
-import { getCourseTee, getDefaultTeeColorForGender, getPlayerSeasonTeeColor } from '@/lib/course-tee'
+import {
+  getCourseTee,
+  getDefaultTeeColorForGender,
+  getPlayerMatchTeeColor,
+  getPlayerSeasonTeeColor
+} from '@/lib/course-tee'
 import { getHandicapModeLabel, getPlayerHandicapIndexValue, getPlayingHandicap } from '@/lib/playing-handicap'
 
 function phoenixStartOfDay(isoDate: string) {
@@ -305,8 +310,22 @@ export async function getCurrentWeekPageData() {
               match.player2.gender,
               match.player2.defaultTeeColor
             )
+            const player1ResolvedTeeColor = getPlayerMatchTeeColor(
+              match.player1.seasonTeeChoices,
+              currentWeek.seasonId,
+              match.player1.gender,
+              match.player1.defaultTeeColor,
+              match.player1TeeOverrideColor
+            )
+            const player2ResolvedTeeColor = getPlayerMatchTeeColor(
+              match.player2.seasonTeeChoices,
+              currentWeek.seasonId,
+              match.player2.gender,
+              match.player2.defaultTeeColor,
+              match.player2TeeOverrideColor
+            )
             const player1Tee = currentWeek.course
-              ? getCourseTee(currentWeek.course.tees, player1TeeColor, match.player1.gender, {
+              ? getCourseTee(currentWeek.course.tees, player1ResolvedTeeColor, match.player1.gender, {
                   color: 'white',
                   gender: 'man',
                   nineHolePar: currentWeek.course.nineHolePar,
@@ -315,7 +334,7 @@ export async function getCurrentWeekPageData() {
                 })
               : null
             const player2Tee = currentWeek.course
-              ? getCourseTee(currentWeek.course.tees, player2TeeColor, match.player2.gender, {
+              ? getCourseTee(currentWeek.course.tees, player2ResolvedTeeColor, match.player2.gender, {
                   color: 'white',
                   gender: 'man',
                   nineHolePar: currentWeek.course.nineHolePar,
@@ -347,8 +366,12 @@ export async function getCurrentWeekPageData() {
               player2Id: match.player2.id,
               player1Name: match.player1.name,
               player2Name: match.player2.name,
-              player1TeeColor,
-              player2TeeColor,
+              player1TeeColor: player1ResolvedTeeColor,
+              player2TeeColor: player2ResolvedTeeColor,
+              player1SeasonTeeColor: player1TeeColor,
+              player2SeasonTeeColor: player2TeeColor,
+              player1TeeOverrideColor: match.player1TeeOverrideColor,
+              player2TeeOverrideColor: match.player2TeeOverrideColor,
               player1DisplayHandicapIndex: Number(player1EffectiveIndex.toFixed(1)),
               player2DisplayHandicapIndex: Number(player2EffectiveIndex.toFixed(1)),
               player1PlayingHandicap,

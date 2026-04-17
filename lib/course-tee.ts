@@ -30,6 +30,19 @@ export function getPlayerSeasonTeeColor(
   )
 }
 
+export function getPlayerMatchTeeColor(
+  choices: SeasonTeeChoiceLike[],
+  seasonId: string,
+  gender: Gender,
+  defaultTeeColor?: TeeColor | null,
+  matchTeeOverrideColor?: TeeColor | null
+): TeeColor {
+  return (
+    matchTeeOverrideColor ??
+    getPlayerSeasonTeeColor(choices, seasonId, gender, defaultTeeColor)
+  )
+}
+
 export function getCourseTee(
   tees: CourseTeeLike[],
   color: TeeColor,

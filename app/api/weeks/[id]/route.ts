@@ -3,7 +3,7 @@ import type { HandicapMode, Prisma } from '@prisma/client'
 import { prisma } from '@/lib/db'
 import { getApiSession, unauthorizedResponse } from '@/lib/api-auth'
 import { writeAuditLog } from '@/lib/audit'
-import { getCourseTee, getPlayerSeasonTeeColor } from '@/lib/course-tee'
+import { getCourseTee, getPlayerMatchTeeColor } from '@/lib/course-tee'
 import { calculateMatchOutcomeFromAdjustedScores } from '@/lib/match-net-scoring'
 import { getPlayerHandicapIndexValue, getPlayingHandicap } from '@/lib/playing-handicap'
 
@@ -94,17 +94,19 @@ async function rescoreLockedWeekMatchesForHandicapMode(
   for (const match of week.matches) {
     const player1HandicapIndex = match.player1HandicapIndex ?? getPlayerHandicapIndexValue(match.player1)
     const player2HandicapIndex = match.player2HandicapIndex ?? getPlayerHandicapIndexValue(match.player2)
-    const player1TeeColor = getPlayerSeasonTeeColor(
+    const player1TeeColor = getPlayerMatchTeeColor(
       match.player1.seasonTeeChoices,
       week.season.id,
       match.player1.gender,
-      match.player1.defaultTeeColor
+      match.player1.defaultTeeColor,
+      match.player1TeeOverrideColor
     )
-    const player2TeeColor = getPlayerSeasonTeeColor(
+    const player2TeeColor = getPlayerMatchTeeColor(
       match.player2.seasonTeeChoices,
       week.season.id,
       match.player2.gender,
-      match.player2.defaultTeeColor
+      match.player2.defaultTeeColor,
+      match.player2TeeOverrideColor
     )
     const player1Tee = getCourseTee(week.course.tees, player1TeeColor, match.player1.gender, {
       color: 'white',

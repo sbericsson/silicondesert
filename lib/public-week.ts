@@ -1,6 +1,6 @@
 import { prisma } from '@/lib/db'
 import { handicapIndex } from '@/lib/handicap'
-import { getCourseTee, getPlayerSeasonTeeColor } from '@/lib/course-tee'
+import { getCourseTee, getPlayerMatchTeeColor } from '@/lib/course-tee'
 import { getHandicapModeLabel, getPlayingHandicap } from '@/lib/playing-handicap'
 import { applyStoredMatchResult } from '@/lib/points'
 
@@ -184,17 +184,19 @@ export async function getPublicWeekData(weekId: string) {
       const player2Index = getDisplayHandicapIndex(match.player2, match.player2HandicapIndex)
       const p1Record = handicapRecordMap.get(match.player1Id)
       const p2Record = handicapRecordMap.get(match.player2Id)
-      const player1TeeColor = getPlayerSeasonTeeColor(
+      const player1TeeColor = getPlayerMatchTeeColor(
         match.player1.seasonTeeChoices,
         week.season.id,
         match.player1.gender,
-        match.player1.defaultTeeColor
+        match.player1.defaultTeeColor,
+        match.player1TeeOverrideColor
       )
-      const player2TeeColor = getPlayerSeasonTeeColor(
+      const player2TeeColor = getPlayerMatchTeeColor(
         match.player2.seasonTeeChoices,
         week.season.id,
         match.player2.gender,
-        match.player2.defaultTeeColor
+        match.player2.defaultTeeColor,
+        match.player2TeeOverrideColor
       )
       const player1Tee = week.course
         ? getCourseTee(week.course.tees, player1TeeColor, match.player1.gender, {

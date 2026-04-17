@@ -158,6 +158,8 @@ model Match {
   weekId                   String
   player1Id                String
   player2Id                String
+  player1TeeOverrideColor  TeeColor?
+  player2TeeOverrideColor  TeeColor?
   player1HandicapIndex     Float?
   player2HandicapIndex     Float?
   player1PlayingHandicap   Int?

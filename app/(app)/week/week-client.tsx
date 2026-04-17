@@ -34,7 +34,11 @@ type WeekPageData = {
       player1Name: string
       player2Name: string
       player1TeeColor: TeeColor
+      player1SeasonTeeColor: TeeColor
+      player1TeeOverrideColor: TeeColor | null
       player2TeeColor: TeeColor
+      player2SeasonTeeColor: TeeColor
+      player2TeeOverrideColor: TeeColor | null
       player1DisplayHandicapIndex: number
       player2DisplayHandicapIndex: number
       player1PlayingHandicap: number
@@ -413,6 +417,33 @@ export function WeekClient({ initialData }: WeekClientProps) {
     }, 'Pairing removed.')
   }
 
+  async function updateMatchTee(
+    matchId: string,
+    field: 'player1TeeOverrideColor' | 'player2TeeOverrideColor',
+    value: string
+  ) {
+    if (!data.currentWeek) {
+      return
+    }
+
+    await runAction(async () => {
+      const response = await fetch(`/api/weeks/${data.currentWeek?.id}/pairings/${matchId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          [field]: value === '' ? null : value
+        })
+      })
+
+      if (!response.ok) {
+        const payload = await response.json().catch(() => null)
+        throw new Error(payload?.error ?? 'Unable to update match tee')
+      }
+    }, 'Match tee updated.')
+  }
+
   async function setLockState(locked: boolean) {
     if (!data.currentWeek) {
       return
@@ -605,6 +636,9 @@ export function WeekClient({ initialData }: WeekClientProps) {
     data.currentWeek.courseId
       ? data.courses.find((course) => course.id === data.currentWeek?.courseId) ?? null
       : null
+  const currentCourseTeeOptions = Array.from(
+    new Set(selectedCourse?.tees.map((tee) => tee.color) ?? [])
+  )
   const ctpHoleOptions =
     selectedCourse?.holes.filter((hole) => hole.par === 3).map((hole) => hole.holeNumber) ??
     data.currentWeek.ctpHoleOptions
@@ -1024,6 +1058,28 @@ export function WeekClient({ initialData }: WeekClientProps) {
                     {match.player1PlayingHandicap}
                   </span>
                 </div>
+                {currentCourseTeeOptions.length > 0 ? (
+                  <label className="mt-2 block">
+                    <span className="font-condensed text-[11px] font-semibold uppercase tracking-widest text-text-muted">
+                      {match.player1Name} Tee
+                    </span>
+                    <select
+                      className="mt-1 w-full rounded-md border border-surface-border bg-surface-base px-3 py-2 text-sm text-text-primary"
+                      value={match.player1TeeOverrideColor ?? ''}
+                      onChange={(event) => updateMatchTee(match.id, 'player1TeeOverrideColor', event.target.value)}
+                      disabled={isRefreshing}
+                    >
+                      <option value="">
+                        Season default ({match.player1SeasonTeeColor.toUpperCase()})
+                      </option>
+                      {currentCourseTeeOptions.map((teeColor) => (
+                        <option key={`player1-${match.id}-${teeColor}`} value={teeColor}>
+                          {teeColor.toUpperCase()}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                ) : null}
                 <div className="font-condensed mt-1 text-center text-xs font-bold uppercase tracking-widest text-text-muted">vs</div>
                 <div className="mt-1 flex items-center justify-between text-sm text-text-primary">
                   <span>
@@ -1035,6 +1091,28 @@ export function WeekClient({ initialData }: WeekClientProps) {
                     {match.player2ScorecardOnly ? ' · Reference scorecard' : ''}
                   </span>
                 </div>
+                {currentCourseTeeOptions.length > 0 ? (
+                  <label className="mt-2 block">
+                    <span className="font-condensed text-[11px] font-semibold uppercase tracking-widest text-text-muted">
+                      {match.player2Name} Tee
+                    </span>
+                    <select
+                      className="mt-1 w-full rounded-md border border-surface-border bg-surface-base px-3 py-2 text-sm text-text-primary"
+                      value={match.player2TeeOverrideColor ?? ''}
+                      onChange={(event) => updateMatchTee(match.id, 'player2TeeOverrideColor', event.target.value)}
+                      disabled={isRefreshing}
+                    >
+                      <option value="">
+                        Season default ({match.player2SeasonTeeColor.toUpperCase()})
+                      </option>
+                      {currentCourseTeeOptions.map((teeColor) => (
+                        <option key={`player2-${match.id}-${teeColor}`} value={teeColor}>
+                          {teeColor.toUpperCase()}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                ) : null}
                 <p className="mt-2 text-xs text-text-secondary">
                   {match.popDifference === 0
                     ? 'No pops in this match.'

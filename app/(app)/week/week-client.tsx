@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { buildPublicUrl } from '@/lib/public-url'
 import { DEFAULT_TRAILING_PLAYER_NAME } from '@/lib/week-commissioner'
+import { DesktopScoreEntry } from '@/app/(app)/week/desktop-score-entry'
 
 type WeekPageData = {
   currentWeek: {
@@ -659,7 +660,7 @@ export function WeekClient({ initialData }: WeekClientProps) {
   )
 
   return (
-    <section className="space-y-4 px-4 py-6">
+    <section className="space-y-4 px-4 py-6 xl:px-6">
       <header className="rounded-xl border border-surface-border bg-surface-elevated p-4">
         <p className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
           Silicon Desert Golf League
@@ -1171,7 +1172,7 @@ export function WeekClient({ initialData }: WeekClientProps) {
                     : `${match.popRecipientId === match.player1Id ? match.player1Name : match.player2Name} gets ${match.popDifference} pop${match.popDifference === 1 ? '' : 's'}${match.player2ScorecardOnly ? ' against the reference scorecard' : ''}.`}
                 </p>
                 {data.currentWeek?.locked ? (
-                  <div className="mt-3">
+                  <div className="mt-3 xl:hidden">
                     <Link
                       href={`/week/matches/${match.id}`}
                       className="text-sm font-semibold text-accent-text"
@@ -1193,6 +1194,28 @@ export function WeekClient({ initialData }: WeekClientProps) {
                 )}
               </div>
             ))}
+          </div>
+        ) : null}
+
+        {data.currentWeek.locked && data.currentWeek.matches.length > 0 ? (
+          <div className="mt-4 hidden xl:block">
+            <div className="rounded-xl border border-surface-border bg-surface-elevated">
+              <div className="border-b border-surface-border px-6 py-3">
+                <p className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
+                  Score Entry
+                </p>
+              </div>
+              <DesktopScoreEntry
+                matches={data.currentWeek.matches.map((match) => ({
+                  id: match.id,
+                  player1Name: match.player1Name,
+                  player2Name: match.player2Name,
+                  scoreComplete: match.scoreComplete,
+                  player2ScorecardOnly: match.player2ScorecardOnly,
+                  weekId: data.currentWeek!.id
+                }))}
+              />
+            </div>
           </div>
         ) : null}
 

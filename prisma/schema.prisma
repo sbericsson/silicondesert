@@ -71,6 +71,7 @@ model Player {
   matchesAsP2     Match[]          @relation("Player2Matches")
   weeksCtp        Week[]           @relation("CtpWinner")
   weeksLp         Week[]           @relation("LpWinner")
+  weeksCommissioner Week[]         @relation("WeekCommissioner")
   holeScores      HoleScore[]
   auditLogs       AuditLog[]
   createdAt       DateTime         @default(now())
@@ -123,11 +124,13 @@ model Week {
   longestPuttHoleNumber Int?
   ctpWinnerId           String?
   longestPuttWinnerId   String?
+  commissionerPlayerId  String?
   locked                Boolean          @default(false)
   season                Season           @relation(fields: [seasonId], references: [id], onDelete: Cascade)
   course                Course?          @relation(fields: [courseId], references: [id])
   ctpWinner             Player?          @relation("CtpWinner", fields: [ctpWinnerId], references: [id])
   longestPuttWinner     Player?          @relation("LpWinner", fields: [longestPuttWinnerId], references: [id])
+  commissionerPlayer    Player?          @relation("WeekCommissioner", fields: [commissionerPlayerId], references: [id], onDelete: SetNull)
   attendance            Attendance[]
   matches               Match[]
   handicapRecords       HandicapRecord[]

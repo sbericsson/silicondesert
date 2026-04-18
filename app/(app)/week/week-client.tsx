@@ -5,6 +5,7 @@ import { startTransition, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { buildPublicUrl } from '@/lib/public-url'
+import { DEFAULT_TRAILING_PLAYER_NAME } from '@/lib/week-commissioner'
 
 type WeekPageData = {
   currentWeek: {
@@ -21,6 +22,8 @@ type WeekPageData = {
     ctpHoleOptions: number[]
     ctpHoleNumber: number | null
     longestPuttHoleNumber: number | null
+    commissionerPlayerId: string | null
+    commissionerPlayerName: string | null
     ctpWinnerId: string | null
     ctpWinnerName: string | null
     longestPuttWinnerId: string | null
@@ -325,6 +328,7 @@ export function WeekClient({ initialData }: WeekClientProps) {
       | 'handicapMode'
       | 'ctpHoleNumber'
       | 'longestPuttHoleNumber'
+      | 'commissionerPlayerId'
       | 'ctpWinnerId'
       | 'longestPuttWinnerId',
     value: string
@@ -345,6 +349,7 @@ export function WeekClient({ initialData }: WeekClientProps) {
               ? null
               : field === 'courseId' ||
                   field === 'handicapMode' ||
+                  field === 'commissionerPlayerId' ||
                   field === 'ctpWinnerId' ||
                   field === 'longestPuttWinnerId'
                 ? value
@@ -646,6 +651,9 @@ export function WeekClient({ initialData }: WeekClientProps) {
   const eligibleLongestPuttPlayers = data.attendance.filter(
     (player) => player.present && player.longestPuttPoolPaid
   )
+  const isDefaultTrailingPlayerCheckedIn = data.attendance.some(
+    (player) => player.present && player.name === DEFAULT_TRAILING_PLAYER_NAME
+  )
 
   return (
     <section className="space-y-4 px-4 py-6">
@@ -714,7 +722,7 @@ export function WeekClient({ initialData }: WeekClientProps) {
         {data.currentWeek.locked ? ' - Pairings locked' : ''}
       </div>
 
-      <section className="grid gap-3 md:grid-cols-4">
+      <section className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
         <label className="rounded-xl border border-surface-border bg-surface-elevated p-4">
           <p className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">Course</p>
           <select
@@ -758,6 +766,32 @@ export function WeekClient({ initialData }: WeekClientProps) {
             </p>
           ) : null}
         </label>
+
+        {!isDefaultTrailingPlayerCheckedIn ? (
+          <label className="rounded-xl border border-surface-border bg-surface-elevated p-4">
+            <p className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
+              Weekly Commish
+            </p>
+            <select
+              className="mt-2 w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
+              value={data.currentWeek.commissionerPlayerId ?? ''}
+              onChange={(event) => updateWeekField('commissionerPlayerId', event.target.value)}
+              disabled={isRefreshing || data.currentWeek.locked}
+            >
+              <option value="">No alternate selected</option>
+              {data.attendance.map((player) => (
+                <option key={player.playerId} value={player.playerId}>
+                  {player.name}
+                  {player.present ? ' · checked in' : ''}
+                </option>
+              ))}
+            </select>
+            <p className="mt-2 text-xs text-text-secondary">
+              Peter Pestalozzi is not checked in, so the selected weekly commissioner will be used
+              for the last group when pairings generate.
+            </p>
+          </label>
+        ) : null}
 
         <label className="rounded-xl border border-surface-border bg-surface-elevated p-4">
           <p className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">

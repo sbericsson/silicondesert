@@ -106,6 +106,11 @@ export async function getCurrentWeekRecord() {
           name: true
         }
       },
+      commissionerPlayer: {
+        select: {
+          name: true
+        }
+      },
       course: {
         include: {
           tees: true,
@@ -274,6 +279,8 @@ export async function getCurrentWeekPageData() {
             currentWeek.course?.holes.filter((hole) => hole.par === 3).map((hole) => hole.holeNumber) ?? [],
           ctpHoleNumber: currentWeek.ctpHoleNumber,
           longestPuttHoleNumber: currentWeek.longestPuttHoleNumber,
+          commissionerPlayerId: currentWeek.commissionerPlayerId,
+          commissionerPlayerName: currentWeek.commissionerPlayer?.name ?? null,
           ctpWinnerId: currentWeek.ctpWinnerId,
           ctpWinnerName: currentWeek.ctpWinner?.name ?? null,
           longestPuttWinnerId: currentWeek.longestPuttWinnerId,

@@ -179,6 +179,7 @@ export async function PATCH(
     handicapMode?: HandicapMode
     ctpHoleNumber?: number | null
     longestPuttHoleNumber?: number | null
+    commissionerPlayerId?: string | null
     ctpWinnerId?: string | null
     longestPuttWinnerId?: string | null
   } = {}
@@ -204,6 +205,13 @@ export async function PATCH(
 
   if ('longestPuttHoleNumber' in body) {
     updates.longestPuttHoleNumber = parseOptionalInt(body.longestPuttHoleNumber)
+  }
+
+  if ('commissionerPlayerId' in body) {
+    updates.commissionerPlayerId =
+      typeof body.commissionerPlayerId === 'string' && body.commissionerPlayerId.trim().length > 0
+        ? body.commissionerPlayerId
+        : null
   }
 
   if ('ctpWinnerId' in body) {
@@ -253,10 +261,21 @@ export async function PATCH(
   // CTP/LP winner fields can be updated after lock (post-round data).
   // Course and prize-hole configuration stay fixed after lock, but handicap basis can
   // still change so saved matches can be rescored without reopening the week.
-  const lockedFields = ['courseId', 'ctpHoleNumber', 'longestPuttHoleNumber'] as const
+  const lockedFields = ['courseId', 'ctpHoleNumber', 'longestPuttHoleNumber', 'commissionerPlayerId'] as const
   const hasLockedFieldUpdate = lockedFields.some((field) => field in updates)
   if (existingWeek.locked && hasLockedFieldUpdate) {
     return NextResponse.json({ error: 'Locked weeks cannot be edited' }, { status: 409 })
+  }
+
+  if (updates.commissionerPlayerId) {
+    const commissionerPlayer = await prisma.player.findUnique({
+      where: { id: updates.commissionerPlayerId },
+      select: { id: true }
+    })
+
+    if (!commissionerPlayer) {
+      return NextResponse.json({ error: 'Selected weekly commissioner could not be found' }, { status: 400 })
+    }
   }
 
   const effectiveCourseId = updates.courseId !== undefined ? updates.courseId : existingWeek.courseId

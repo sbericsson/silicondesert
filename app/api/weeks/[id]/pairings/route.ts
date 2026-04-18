@@ -5,8 +5,7 @@ import { writeAuditLog } from '@/lib/audit'
 import { getCourseTee, getPlayerSeasonTeeColor } from '@/lib/course-tee'
 import { generatePairings } from '@/lib/matchmaking'
 import { getPlayerHandicapIndexValue, getPlayingHandicap } from '@/lib/playing-handicap'
-
-const COMMISSIONER_LAST_PLAYER_NAME = 'Peter Pestalozzi'
+import { getWeeklyTrailingPlayerId } from '@/lib/week-commissioner'
 
 export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
   const session = await getApiSession()
@@ -96,25 +95,24 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
   const alreadyPairedPlayerIds = new Set(
     week.matches.flatMap((match) => [match.player1Id, match.player2Id])
   )
-  const peterAttendance = week.attendance.find(
-    (entry) => entry.player.name === COMMISSIONER_LAST_PLAYER_NAME
-  )
-  const peterId = peterAttendance?.playerId ?? null
+  const trailingPlayerId = getWeeklyTrailingPlayerId(week.attendance, week.commissionerPlayerId)
   const requestedPlayerIdSet = requestedPlayerIds ? new Set(requestedPlayerIds) : null
-  const peterCurrentGroupMatches =
-    peterId && week.matches.length > 0
-      ? week.matches.filter((match) => match.player1Id === peterId || match.player2Id === peterId)
+  const trailingPlayerCurrentGroupMatches =
+    trailingPlayerId && week.matches.length > 0
+      ? week.matches.filter(
+          (match) => match.player1Id === trailingPlayerId || match.player2Id === trailingPlayerId
+        )
       : []
-  const peterCurrentGroupPlayerIds = new Set(
-    peterCurrentGroupMatches.flatMap((match) => [match.player1Id, match.player2Id])
+  const trailingPlayerCurrentGroupPlayerIds = new Set(
+    trailingPlayerCurrentGroupMatches.flatMap((match) => [match.player1Id, match.player2Id])
   )
-  const shouldRebuildPeterGroup =
-    Boolean(peterId) &&
-    peterCurrentGroupMatches.length > 0 &&
+  const shouldRebuildTrailingPlayerGroup =
+    Boolean(trailingPlayerId) &&
+    trailingPlayerCurrentGroupMatches.length > 0 &&
     week.attendance.some(
       (entry) =>
         !alreadyPairedPlayerIds.has(entry.playerId) &&
-        entry.playerId !== peterId &&
+        entry.playerId !== trailingPlayerId &&
         (!requestedPlayerIdSet || requestedPlayerIdSet.has(entry.playerId))
     )
 
@@ -122,7 +120,8 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
     (entry) =>
       ((!alreadyPairedPlayerIds.has(entry.playerId) &&
         (!requestedPlayerIdSet || requestedPlayerIdSet.has(entry.playerId))) ||
-        (shouldRebuildPeterGroup && peterCurrentGroupPlayerIds.has(entry.playerId)))
+        (shouldRebuildTrailingPlayerGroup &&
+          trailingPlayerCurrentGroupPlayerIds.has(entry.playerId)))
   )
 
   if (availableAttendance.length < 2) {
@@ -175,17 +174,17 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
   })
 
   const generated = generatePairings(pairingInput, priorMatches, {
-    trailingPlayerId: peterId
+    trailingPlayerId
   })
 
   const result = await prisma.$transaction(async (tx) => {
     const createdMatches = []
 
-    if (shouldRebuildPeterGroup && peterCurrentGroupMatches.length > 0) {
+    if (shouldRebuildTrailingPlayerGroup && trailingPlayerCurrentGroupMatches.length > 0) {
       await tx.match.deleteMany({
         where: {
           id: {
-            in: peterCurrentGroupMatches.map((match) => match.id)
+            in: trailingPlayerCurrentGroupMatches.map((match) => match.id)
           }
         }
       })
@@ -232,7 +231,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
       field: 'matchCount',
       oldValue: String(week.matches.length),
       newValue: String(
-        week.matches.length - peterCurrentGroupMatches.length + createdMatches.length
+        week.matches.length - trailingPlayerCurrentGroupMatches.length + createdMatches.length
       )
     })
 

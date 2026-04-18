@@ -61,6 +61,10 @@ export function handicapIndex(differentials: number[]) {
   return roundToTenth(average + adjustment)
 }
 
+export function handicapIndexFromRecords(records: Array<{ courseDifferential: number }>) {
+  return handicapIndex(records.map((record) => record.courseDifferential))
+}
+
 export function courseHandicap(
   handicapIndexValue: number,
   slopeRating: number,

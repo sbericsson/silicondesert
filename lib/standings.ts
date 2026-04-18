@@ -46,31 +46,32 @@ export async function getStandingsPageData() {
     }
   }
 
-  const weeks = await prisma.week.findMany({
-    where: { seasonId: selectedSeason.id },
-    include: {
-      attendance: true,
-      handicapRecords: {
-        select: {
-          playerId: true,
-          grossScore: true
+  const [weeks, players] = await Promise.all([
+    prisma.week.findMany({
+      where: { seasonId: selectedSeason.id },
+      include: {
+        attendance: true,
+        handicapRecords: {
+          select: {
+            playerId: true,
+            grossScore: true
+          }
+        },
+        matches: true
+      },
+      orderBy: { date: 'asc' }
+    }),
+    prisma.player.findMany({
+      where: { active: true },
+      include: {
+        handicapRecords: {
+          orderBy: { date: 'desc' },
+          take: 20
         }
       },
-      matches: true
-    },
-    orderBy: { date: 'asc' }
-  })
-
-  const players = await prisma.player.findMany({
-    where: { active: true },
-    include: {
-      handicapRecords: {
-        orderBy: { date: 'desc' },
-        take: 20
-      }
-    },
-    orderBy: { name: 'asc' }
-  })
+      orderBy: { name: 'asc' }
+    })
+  ])
 
   const totals = new Map(
     players.map((player) => [

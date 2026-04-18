@@ -1,29 +1,9 @@
 import { prisma } from '@/lib/db'
-import { handicapIndex } from '@/lib/handicap'
 import { getCourseTee, getPlayerMatchTeeColor } from '@/lib/course-tee'
-import { getHandicapModeLabel, getPlayingHandicap } from '@/lib/playing-handicap'
+import { getHandicapModeLabel, getPlayerHandicapIndexValue, getPlayingHandicap } from '@/lib/playing-handicap'
 import { applyStoredMatchResult } from '@/lib/points'
 import { resolveStrokeWinnerId } from '@/lib/stroke-result'
-
-function formatDate(date: Date) {
-  return new Intl.DateTimeFormat('en-US', {
-    timeZone: 'America/Phoenix',
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric'
-  }).format(date)
-}
-
-function getDisplayHandicapIndex(player: {
-  seedHandicap: number | null
-  handicapRecords: Array<{ courseDifferential: number }>
-}, snapshot: number | null) {
-  if (snapshot !== null) {
-    return snapshot
-  }
-
-  return handicapIndex(player.handicapRecords.map((record) => record.courseDifferential)) ?? player.seedHandicap ?? 0
-}
+import { formatDate } from '@/lib/week'
 
 function formatMatchPlaySummary(input: {
   matchPlayWinnerId: string | null
@@ -168,8 +148,8 @@ export async function getPublicWeekData(weekId: string) {
     longestPuttHoleNumber: week.longestPuttHoleNumber,
     longestPuttWinnerName: week.longestPuttWinner?.name ?? null,
     matches: week.matches.map((match, index) => {
-      const player1Index = getDisplayHandicapIndex(match.player1, match.player1HandicapIndex)
-      const player2Index = getDisplayHandicapIndex(match.player2, match.player2HandicapIndex)
+      const player1Index = match.player1HandicapIndex ?? getPlayerHandicapIndexValue(match.player1)
+      const player2Index = match.player2HandicapIndex ?? getPlayerHandicapIndexValue(match.player2)
       const p1Record = handicapRecordMap.get(match.player1Id)
       const p2Record = handicapRecordMap.get(match.player2Id)
       const player1TeeColor = getPlayerMatchTeeColor(

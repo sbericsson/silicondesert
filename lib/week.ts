@@ -51,7 +51,7 @@ function getActiveWeekWhere() {
   } satisfies Prisma.WeekWhereInput
 }
 
-function formatDate(date: Date) {
+export function formatDate(date: Date) {
   return new Intl.DateTimeFormat('en-US', {
     timeZone: 'America/Phoenix',
     month: 'short',

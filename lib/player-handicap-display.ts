@@ -1,4 +1,4 @@
-import { handicapIndex } from '@/lib/handicap'
+import { handicapIndexFromRecords } from '@/lib/handicap'
 
 type PlayerHandicapSource = {
   seedHandicap: number | null
@@ -14,7 +14,7 @@ export function getPlayerHandicapDisplay(player: PlayerHandicapSource) {
     return { kind: 'NEW' as const, value: null }
   }
 
-  const value = handicapIndex(player.handicapRecords.map((record) => record.courseDifferential))
+  const value = handicapIndexFromRecords(player.handicapRecords)
 
   return { kind: 'HCP' as const, value: value?.toFixed(1) ?? null }
 }

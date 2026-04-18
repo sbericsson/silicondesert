@@ -626,8 +626,10 @@ export async function submitMatchScores(input: {
       }
     })
 
-    await recomputeUsedInIndex(tx, match.player1Id)
-    await recomputeUsedInIndex(tx, match.player2Id)
+    await Promise.all([
+      recomputeUsedInIndex(tx, match.player1Id),
+      recomputeUsedInIndex(tx, match.player2Id)
+    ])
   })
 
   const pointsSummary = calculateMatchPoints(

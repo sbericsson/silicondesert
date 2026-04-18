@@ -1,5 +1,5 @@
 import type { HandicapMode } from '@prisma/client'
-import { courseHandicap, handicapIndex } from '@/lib/handicap'
+import { courseHandicap, handicapIndexFromRecords } from '@/lib/handicap'
 
 type TeeData = {
   nineHoleSlope: number
@@ -11,7 +11,7 @@ export function getPlayerHandicapIndexValue(player: {
   seedHandicap: number | null
   handicapRecords: Array<{ courseDifferential: number }>
 }) {
-  return handicapIndex(player.handicapRecords.map((record) => record.courseDifferential)) ?? player.seedHandicap ?? 0
+  return handicapIndexFromRecords(player.handicapRecords) ?? player.seedHandicap ?? 0
 }
 
 export function getPlayingHandicap(

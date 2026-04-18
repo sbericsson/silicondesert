@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { getPublicWeekData } from '@/lib/public-week'
 import { getPublicStandingsData } from '@/lib/public-standings'
@@ -5,6 +6,25 @@ import { PrintButton } from './print-button'
 
 export const revalidate = 60
 export const dynamic = 'force-dynamic'
+
+export async function generateMetadata({
+  params
+}: {
+  params: { id: string }
+}): Promise<Metadata> {
+  const data = await getPublicWeekData(params.id)
+
+  if (!data) {
+    return {
+      title: 'Print Results - Silicon Desert Golf League'
+    }
+  }
+
+  return {
+    title: `Week ${data.weekNumber} Results - ${data.dateLabel} - Silicon Desert Golf`,
+    description: `${data.courseName} - ${data.dateLabel}`
+  }
+}
 
 export default async function PrintWeekPage({
   params
@@ -29,10 +49,10 @@ export default async function PrintWeekPage({
           Silicon Desert Golf League
         </p>
         <h1 className="font-condensed mt-1 text-2xl font-bold uppercase tracking-wide">
-          Week {data.weekNumber} &mdash; {data.seasonName}
+          Week {data.weekNumber} &mdash; {data.seasonName} &mdash; {data.dateLabel}
         </h1>
         <p className="mt-1 text-sm text-text-secondary print:text-black">
-          {data.courseName} &middot; {data.dateLabel}
+          {data.courseName}
         </p>
         <p className="mt-1 text-xs text-text-secondary print:text-black">
           Handicap basis: {data.handicapModeLabel}

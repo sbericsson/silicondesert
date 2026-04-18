@@ -109,7 +109,6 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
   const shouldRebuildTrailingPlayerGroup =
     Boolean(trailingPlayerId) &&
     trailingPlayerCurrentGroupMatches.length > 0 &&
-    (!requestedPlayerIdSet || requestedPlayerIdSet.has(trailingPlayerId)) &&
     week.attendance.some(
       (entry) =>
         !alreadyPairedPlayerIds.has(entry.playerId) &&

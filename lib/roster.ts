@@ -88,6 +88,18 @@ export async function getRosterPageData() {
         seasonId: choice.seasonId,
         teeColor: choice.teeColor
       })),
+      recentHandicapRounds: player.handicapRecords
+        .slice(0, 20)
+        .map((record) => ({
+          date: record.date.toISOString().slice(0, 10),
+          grossScore: record.grossScore,
+          adjustedGrossScore: record.adjustedGrossScore,
+          courseRating: record.courseRating,
+          slopeRating: record.slopeRating,
+          coursePar: record.coursePar,
+          isImported: record.isImported,
+          weekId: record.weekId
+        })),
       importedHandicapRounds: player.handicapRecords
         .filter((record) => record.isImported && record.weekId === null)
         .sort((a, b) => a.date.getTime() - b.date.getTime())

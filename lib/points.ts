@@ -75,3 +75,14 @@ export function applyStoredMatchResult(input: {
 
   return { player1, player2 }
 }
+
+export function getUnpairedPresentPlayerIds(
+  attendance: Array<{ playerId: string; present: boolean }>,
+  matches: Array<{ player1Id: string; player2Id: string }>
+) {
+  const matchedPlayerIds = new Set(matches.flatMap((match) => [match.player1Id, match.player2Id]))
+
+  return attendance
+    .filter((entry) => entry.present && !matchedPlayerIds.has(entry.playerId))
+    .map((entry) => entry.playerId)
+}

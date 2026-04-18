@@ -1,6 +1,6 @@
 import { prisma } from '@/lib/db'
 import { getPlayerHandicapInlineLabel } from '@/lib/player-handicap-display'
-import { applyStoredMatchResult } from '@/lib/points'
+import { applyStoredMatchResult, getUnpairedPresentPlayerIds } from '@/lib/points'
 import { resolveStrokeWinnerId } from '@/lib/stroke-result'
 
 function formatTimestamp(date: Date) {
@@ -159,6 +159,13 @@ export async function getPublicStandingsData(selectedView?: string) {
         player2.totalPoints += points.player2.totalPoints
         player2.strokePoints += points.player2.strokePoints
         player2.matchPlayPoints += points.player2.matchPlayPoints
+      }
+    }
+
+    for (const playerId of getUnpairedPresentPlayerIds(week.attendance, week.matches)) {
+      const player = totals.get(playerId)
+      if (player) {
+        player.totalPoints += 1
       }
     }
 

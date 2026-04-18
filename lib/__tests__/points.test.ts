@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { applyStoredMatchResult } from '@/lib/points'
+import { applyStoredMatchResult, getUnpairedPresentPlayerIds } from '@/lib/points'
 
 describe('applyStoredMatchResult', () => {
   it('tracks actual stroke and match-play points, including ties', () => {
@@ -48,5 +48,19 @@ describe('applyStoredMatchResult', () => {
       strokePoints: 0,
       matchPlayPoints: 0
     })
+  })
+
+  it('identifies checked-in players who are not in any match', () => {
+    expect(
+      getUnpairedPresentPlayerIds(
+        [
+          { playerId: 'p1', present: true },
+          { playerId: 'p2', present: true },
+          { playerId: 'p3', present: true },
+          { playerId: 'p4', present: false }
+        ],
+        [{ player1Id: 'p1', player2Id: 'p2' }]
+      )
+    ).toEqual(['p3'])
   })
 })

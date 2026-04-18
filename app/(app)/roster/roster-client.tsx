@@ -43,6 +43,16 @@ type RosterPageData = {
       seasonId: string
       teeColor: TeeColor
     }>
+    recentHandicapRounds: Array<{
+      date: string
+      grossScore: number
+      adjustedGrossScore: number
+      courseRating: number
+      slopeRating: number
+      coursePar: number
+      isImported: boolean
+      weekId: string | null
+    }>
     importedHandicapRounds: Array<{
       date: string
       grossScore: number
@@ -162,6 +172,19 @@ function sortPlayers(players: RosterPageData['players']) {
 
     return getPlayerSortKey(left.name).localeCompare(getPlayerSortKey(right.name))
   })
+}
+
+function formatRosterRoundLabel(
+  round: RosterPageData['players'][number]['recentHandicapRounds'][number]
+) {
+  const scoreLabel =
+    round.adjustedGrossScore === round.grossScore
+      ? `${round.grossScore}`
+      : `${round.grossScore} / Adj ${round.adjustedGrossScore}`
+
+  const sourceLabel = round.isImported ? 'Imported' : 'League'
+
+  return `${round.date} · ${scoreLabel} · ${round.courseRating}/${round.slopeRating}/Par ${round.coursePar} · ${sourceLabel}`
 }
 
 export function RosterClient({ initialData }: RosterClientProps) {
@@ -1173,9 +1196,9 @@ export function RosterClient({ initialData }: RosterClientProps) {
                     {player.handicap.kind === 'HCP' ? player.handicap.value : player.handicap.kind}
                   </p>
                   <p className="mt-1 text-[11px] text-text-secondary">
-                    {player.importedHandicapRounds.length > 0
-                      ? `${player.importedHandicapRounds.length} imported handicap round${player.importedHandicapRounds.length === 1 ? '' : 's'}`
-                      : 'No imported handicap history'}
+                    {player.recentHandicapRounds.length > 0
+                      ? `${player.recentHandicapRounds.length} most recent round${player.recentHandicapRounds.length === 1 ? '' : 's'} available · ${player.importedHandicapRounds.length} imported`
+                      : 'No handicap rounds on file'}
                   </p>
                 </div>
                 <div className="flex flex-wrap justify-end gap-2">
@@ -1348,10 +1371,52 @@ export function RosterClient({ initialData }: RosterClientProps) {
                     <div className="flex items-center justify-between gap-3">
                       <div>
                         <p className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
-                          Prior Handicap Rounds
+                          Last 20 Handicap Rounds
                         </p>
                         <p className="mt-2 text-xs text-text-secondary">
-                          Add up to 20 prior 9-hole rounds with the date picker, course, tee, and gross score.
+                          Read-only view of the player&apos;s latest handicap rounds from both imported history and league-entered scorecards.
+                        </p>
+                      </div>
+                      <span className="rounded bg-surface-elevated px-2 py-1 text-[11px] font-semibold text-text-secondary">
+                        {player.recentHandicapRounds.length} shown
+                      </span>
+                    </div>
+                    <div className="mt-4">
+                      {player.recentHandicapRounds.length > 0 ? (
+                        <div className="space-y-2">
+                          {player.recentHandicapRounds.map((round, index) => (
+                            <div
+                              key={`${round.date}-${round.weekId ?? 'imported'}-${index}`}
+                              className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-surface-border bg-surface-elevated px-3 py-2 text-sm"
+                            >
+                              <span className="text-text-primary">{formatRosterRoundLabel(round)}</span>
+                              <span
+                                className={`rounded px-2 py-1 text-[11px] font-semibold ${
+                                  round.isImported
+                                    ? 'bg-surface-sunken text-text-secondary'
+                                    : 'bg-accent-dim text-accent-text'
+                                }`}
+                              >
+                                {round.isImported ? 'Imported' : 'League'}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="rounded-lg border border-dashed border-surface-border px-4 py-6 text-sm text-text-secondary">
+                          No handicap rounds on file yet.
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  <div className="mt-4 rounded-lg border border-surface-border bg-surface-sunken p-3">
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <p className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
+                          Editable Imported Rounds
+                        </p>
+                        <p className="mt-2 text-xs text-text-secondary">
+                          Add or correct up to 20 imported 9-hole rounds with the date picker, course, tee, and gross score.
                         </p>
                         <p className="mt-1 text-xs text-text-secondary">
                           Leave adjusted blank when gross and adjusted are the same. Choose custom only when the round does not match one of the configured courses.

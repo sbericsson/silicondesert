@@ -875,7 +875,6 @@ export function WeekClient({ initialData }: WeekClientProps) {
                 disabled={
                   isRefreshing ||
                   pendingAttendancePlayerIds.includes(player.playerId) ||
-                  data.currentWeek?.locked ||
                   (player.present && matchedPlayerIds.has(player.playerId))
                 }
               >
@@ -914,7 +913,6 @@ export function WeekClient({ initialData }: WeekClientProps) {
                   disabled={
                     isRefreshing ||
                     pendingAttendancePlayerIds.includes(player.playerId) ||
-                    data.currentWeek?.locked ||
                     !player.present
                   }
                 />
@@ -934,7 +932,6 @@ export function WeekClient({ initialData }: WeekClientProps) {
                   disabled={
                     isRefreshing ||
                     pendingAttendancePlayerIds.includes(player.playerId) ||
-                    data.currentWeek?.locked ||
                     !player.present
                   }
                 />
@@ -943,6 +940,10 @@ export function WeekClient({ initialData }: WeekClientProps) {
               {player.present && matchedPlayerIds.has(player.playerId) ? (
                 <span className="rounded bg-surface-sunken px-2 py-1 text-[11px] font-semibold text-text-secondary">
                   Paired
+                </span>
+              ) : player.present && data.currentWeek?.locked ? (
+                <span className="rounded bg-surface-sunken px-2 py-1 text-[11px] font-semibold text-text-secondary">
+                  Attendance only
                 </span>
               ) : null}
             </div>
@@ -961,11 +962,15 @@ export function WeekClient({ initialData }: WeekClientProps) {
                 ? `${data.currentWeek.matchCount} ${data.currentWeek.locked ? 'locked' : 'tentative'} matches created.`
                 : 'No pairings generated yet.'}
             </p>
-            {!data.currentWeek.locked ? (
+            {unmatchedPresentPlayers.length > 0 ? (
               <p className="mt-1 text-xs text-text-secondary">
-                {unmatchedPresentPlayers.length > 0
-                  ? `${unmatchedPresentPlayers.length} checked-in player${unmatchedPresentPlayers.length === 1 ? '' : 's'} still unpaired.`
-                  : 'All checked-in players are currently assigned to matches.'}
+                {data.currentWeek.locked
+                  ? `${unmatchedPresentPlayers.length} checked-in player${unmatchedPresentPlayers.length === 1 ? '' : 's'} not in a match. They still receive ${unmatchedPresentPlayers.length === 1 ? 'their attendance point' : 'attendance points'} for the week.`
+                  : `${unmatchedPresentPlayers.length} checked-in player${unmatchedPresentPlayers.length === 1 ? '' : 's'} still unpaired.`}
+              </p>
+            ) : !data.currentWeek.locked ? (
+              <p className="mt-1 text-xs text-text-secondary">
+                All checked-in players are currently assigned to matches.
               </p>
             ) : null}
           </div>

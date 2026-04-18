@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { getApiSession, unauthorizedResponse } from '@/lib/api-auth'
-import { applyStoredMatchResult } from '@/lib/points'
+import { applyStoredMatchResult, getUnpairedPresentPlayerIds } from '@/lib/points'
 import { resolveStrokeWinnerId } from '@/lib/stroke-result'
 
 export async function GET(request: NextRequest) {
@@ -94,6 +94,13 @@ export async function GET(request: NextRequest) {
         player2.totalPoints += points.player2.totalPoints
         player2.strokePoints += points.player2.strokePoints
         player2.matchPlayPoints += points.player2.matchPlayPoints
+      }
+    }
+
+    for (const playerId of getUnpairedPresentPlayerIds(week.attendance, week.matches)) {
+      const player = totals.get(playerId)
+      if (player) {
+        player.totalPoints += 1
       }
     }
 

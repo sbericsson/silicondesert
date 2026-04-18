@@ -15,13 +15,38 @@ export async function POST(
   const body = await request.json().catch(() => null)
   const player1Id = typeof body?.player1Id === 'string' ? body.player1Id : null
   const player2Id = typeof body?.player2Id === 'string' ? body.player2Id : null
+  const referencePlayerId =
+    typeof body?.referencePlayerId === 'string' ? body.referencePlayerId : null
+  const requestedPlayerIds = [player1Id, player2Id, referencePlayerId].filter(
+    (playerId): playerId is string => Boolean(playerId)
+  )
+  const isManualLastGroup = referencePlayerId !== null
 
-  if (!player1Id || !player2Id || player1Id === player2Id) {
+  if (isManualLastGroup) {
+    if (
+      !player1Id ||
+      !player2Id ||
+      !referencePlayerId ||
+      new Set(requestedPlayerIds).size !== 3
+    ) {
+      return NextResponse.json(
+        {
+          error:
+            'Select three different checked-in players to create a manual last group'
+        },
+        { status: 400 }
+      )
+    }
+  } else if (!player1Id || !player2Id || player1Id === player2Id) {
     return NextResponse.json(
       { error: 'Select two different checked-in players for a manual match' },
       { status: 400 }
     )
   }
+
+  const livePlayerId = player1Id as string
+  const anchorPlayerId = player2Id as string
+  const referenceMatchPlayerId = referencePlayerId as string | null
 
   const week = await prisma.week.findUnique({
     where: { id: params.id },
@@ -35,7 +60,7 @@ export async function POST(
         where: {
           present: true,
           playerId: {
-            in: [player1Id, player2Id]
+            in: requestedPlayerIds
           }
         },
         select: {
@@ -69,27 +94,70 @@ export async function POST(
     return NextResponse.json({ error: 'Week is locked' }, { status: 409 })
   }
 
-  if (week.attendance.length !== 2) {
+  if (week.attendance.length !== requestedPlayerIds.length) {
     return NextResponse.json(
-      { error: 'Both manual pairing players must be checked in for this week' },
+      {
+        error: isManualLastGroup
+          ? 'All three manual last-group players must be checked in for this week'
+          : 'Both manual pairing players must be checked in for this week'
+      },
       { status: 400 }
     )
   }
 
   const pairedPlayerIds = new Set(week.matches.flatMap((match) => [match.player1Id, match.player2Id]))
-  if (pairedPlayerIds.has(player1Id) || pairedPlayerIds.has(player2Id)) {
+  if (requestedPlayerIds.some((playerId) => pairedPlayerIds.has(playerId))) {
     return NextResponse.json(
       { error: 'One of those players is already assigned to a match. Remove that match first.' },
       { status: 409 }
     )
   }
 
-  const createdMatch = await prisma.$transaction(async (tx) => {
+  const createdMatches = await prisma.$transaction(async (tx) => {
+    if (isManualLastGroup && referenceMatchPlayerId) {
+      const liveMatch = await tx.match.create({
+        data: {
+          weekId: params.id,
+          player1Id: livePlayerId,
+          player2Id: anchorPlayerId
+        }
+      })
+
+      const referenceMatch = await tx.match.create({
+        data: {
+          weekId: params.id,
+          player1Id: referenceMatchPlayerId,
+          player2Id: anchorPlayerId,
+          player2ScorecardOnly: true
+        }
+      })
+
+      await writeAuditLog(tx, {
+        weekId: params.id,
+        action: 'pairings_manual_last_group_create',
+        field: 'players',
+        oldValue: null,
+        newValue: JSON.stringify({
+          liveMatch: {
+            player1Id: livePlayerId,
+            player2Id: anchorPlayerId
+          },
+          referenceMatch: {
+            player1Id: referenceMatchPlayerId,
+            player2Id: anchorPlayerId,
+            player2ScorecardOnly: true
+          }
+        })
+      })
+
+      return [liveMatch, referenceMatch]
+    }
+
     const match = await tx.match.create({
       data: {
         weekId: params.id,
-        player1Id,
-        player2Id
+        player1Id: livePlayerId,
+        player2Id: anchorPlayerId
       }
     })
 
@@ -99,11 +167,15 @@ export async function POST(
       action: 'pairings_manual_create',
       field: 'players',
       oldValue: null,
-      newValue: `${player1Id}:${player2Id}`
+      newValue: `${livePlayerId}:${anchorPlayerId}`
     })
 
-    return match
+    return [match]
   })
 
-  return NextResponse.json({ matchId: createdMatch.id })
+  return NextResponse.json({
+    matchId: createdMatches[0]?.id ?? null,
+    matchIds: createdMatches.map((match) => match.id),
+    matchesCreated: createdMatches.length
+  })
 }

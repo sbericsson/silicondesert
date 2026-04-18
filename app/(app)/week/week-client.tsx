@@ -95,12 +95,55 @@ interface WeekClientProps {
 }
 
 const holeOptions = Array.from({ length: 9 }, (_, index) => index + 1)
+const SIDE_GAME_ENTRY_FEE = 5
+
+function pickDistinctPlayerIds(
+  playerIds: string[],
+  preferredIds: string[],
+  count: number
+) {
+  const chosen: string[] = []
+
+  for (const preferredId of preferredIds) {
+    if (
+      preferredId &&
+      playerIds.includes(preferredId) &&
+      !chosen.includes(preferredId)
+    ) {
+      chosen.push(preferredId)
+    }
+  }
+
+  for (const playerId of playerIds) {
+    if (chosen.length >= count) {
+      break
+    }
+
+    if (!chosen.includes(playerId)) {
+      chosen.push(playerId)
+    }
+  }
+
+  while (chosen.length < count) {
+    chosen.push('')
+  }
+
+  return chosen
+}
+
+function areStringArraysEqual(left: string[], right: string[]) {
+  return left.length === right.length && left.every((value, index) => value === right[index])
+}
 
 export function WeekClient({ initialData }: WeekClientProps) {
   const router = useRouter()
   const [data, setData] = useState(initialData)
+  const [heldOutPlayerIds, setHeldOutPlayerIds] = useState<string[]>([])
   const [manualPlayer1Id, setManualPlayer1Id] = useState('')
   const [manualPlayer2Id, setManualPlayer2Id] = useState('')
+  const [manualLastGroupPlayerId, setManualLastGroupPlayerId] = useState('')
+  const [manualLastGroupAnchorPlayerId, setManualLastGroupAnchorPlayerId] = useState('')
+  const [manualLastGroupReferencePlayerId, setManualLastGroupReferencePlayerId] = useState('')
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [pendingAttendancePlayerIds, setPendingAttendancePlayerIds] = useState<string[]>([])
   const [message, setMessage] = useState<string | null>(null)
@@ -113,8 +156,24 @@ export function WeekClient({ initialData }: WeekClientProps) {
 
   useEffect(() => {
     if (!data.currentWeek) {
-      setManualPlayer1Id('')
-      setManualPlayer2Id('')
+      if (heldOutPlayerIds.length > 0) {
+        setHeldOutPlayerIds([])
+      }
+      if (manualPlayer1Id !== '') {
+        setManualPlayer1Id('')
+      }
+      if (manualPlayer2Id !== '') {
+        setManualPlayer2Id('')
+      }
+      if (manualLastGroupPlayerId !== '') {
+        setManualLastGroupPlayerId('')
+      }
+      if (manualLastGroupAnchorPlayerId !== '') {
+        setManualLastGroupAnchorPlayerId('')
+      }
+      if (manualLastGroupReferencePlayerId !== '') {
+        setManualLastGroupReferencePlayerId('')
+      }
       return
     }
 
@@ -124,21 +183,56 @@ export function WeekClient({ initialData }: WeekClientProps) {
     const unmatchedPresentPlayers = data.attendance.filter(
       (player) => player.present && !matchedPlayerIds.has(player.playerId)
     )
+    const unmatchedPlayerIds = unmatchedPresentPlayers.map((player) => player.playerId)
+    const nextHeldOutPlayerIds = heldOutPlayerIds.filter((playerId) =>
+      unmatchedPlayerIds.includes(playerId)
+    )
+    const [nextManualPlayer1Id, nextManualPlayer2Id] = pickDistinctPlayerIds(
+      unmatchedPlayerIds,
+      [manualPlayer1Id, manualPlayer2Id],
+      2
+    )
+    const [
+      nextManualLastGroupPlayerId,
+      nextManualLastGroupAnchorPlayerId,
+      nextManualLastGroupReferencePlayerId
+    ] = pickDistinctPlayerIds(
+      unmatchedPlayerIds,
+      [
+        manualLastGroupPlayerId,
+        manualLastGroupAnchorPlayerId,
+        manualLastGroupReferencePlayerId
+      ],
+      3
+    )
 
-    setManualPlayer1Id((current) =>
-      current && unmatchedPresentPlayers.some((player) => player.playerId === current)
-        ? current
-        : unmatchedPresentPlayers[0]?.playerId ?? ''
-    )
-    setManualPlayer2Id((current) =>
-      current &&
-      current !== unmatchedPresentPlayers[0]?.playerId &&
-      unmatchedPresentPlayers.some((player) => player.playerId === current)
-        ? current
-        : unmatchedPresentPlayers.find((player) => player.playerId !== unmatchedPresentPlayers[0]?.playerId)
-            ?.playerId ?? ''
-    )
-  }, [data])
+    if (!areStringArraysEqual(nextHeldOutPlayerIds, heldOutPlayerIds)) {
+      setHeldOutPlayerIds(nextHeldOutPlayerIds)
+    }
+    if (nextManualPlayer1Id !== manualPlayer1Id) {
+      setManualPlayer1Id(nextManualPlayer1Id)
+    }
+    if (nextManualPlayer2Id !== manualPlayer2Id) {
+      setManualPlayer2Id(nextManualPlayer2Id)
+    }
+    if (nextManualLastGroupPlayerId !== manualLastGroupPlayerId) {
+      setManualLastGroupPlayerId(nextManualLastGroupPlayerId)
+    }
+    if (nextManualLastGroupAnchorPlayerId !== manualLastGroupAnchorPlayerId) {
+      setManualLastGroupAnchorPlayerId(nextManualLastGroupAnchorPlayerId)
+    }
+    if (nextManualLastGroupReferencePlayerId !== manualLastGroupReferencePlayerId) {
+      setManualLastGroupReferencePlayerId(nextManualLastGroupReferencePlayerId)
+    }
+  }, [
+    data,
+    heldOutPlayerIds,
+    manualLastGroupAnchorPlayerId,
+    manualLastGroupPlayerId,
+    manualLastGroupReferencePlayerId,
+    manualPlayer1Id,
+    manualPlayer2Id
+  ])
 
   function applyAttendanceRecord(record: {
     playerId: string
@@ -364,21 +458,47 @@ export function WeekClient({ initialData }: WeekClientProps) {
     })
   }
 
+  function toggleHeldOutPlayer(playerId: string) {
+    setHeldOutPlayerIds((current) =>
+      current.includes(playerId)
+        ? current.filter((currentPlayerId) => currentPlayerId !== playerId)
+        : [...current, playerId]
+    )
+  }
+
   async function generatePairings() {
     if (!data.currentWeek) {
       return
     }
 
+    const matchedPlayerIds = new Set(
+      data.currentWeek.matches.flatMap((match) => [match.player1Id, match.player2Id])
+    )
+    const playerIds = data.attendance
+      .filter(
+        (player) =>
+          player.present &&
+          !matchedPlayerIds.has(player.playerId) &&
+          !heldOutPlayerIds.includes(player.playerId)
+      )
+      .map((player) => player.playerId)
+
     await runAction(async () => {
       const response = await fetch(`/api/weeks/${data.currentWeek?.id}/pairings`, {
-        method: 'POST'
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          playerIds
+        })
       })
 
       if (!response.ok) {
         const payload = await response.json().catch(() => null)
         throw new Error(payload?.error ?? 'Unable to generate pairings')
       }
-    }, 'Pairings generated.')
+    }, heldOutPlayerIds.length > 0 ? 'Pairings generated for selected players.' : 'Pairings generated.')
   }
 
   async function createManualPairing() {
@@ -403,6 +523,36 @@ export function WeekClient({ initialData }: WeekClientProps) {
         throw new Error(payload?.error ?? 'Unable to create manual pairing')
       }
     }, 'Manual pairing created.')
+  }
+
+  async function createManualLastGroup() {
+    if (
+      !data.currentWeek ||
+      !manualLastGroupPlayerId ||
+      !manualLastGroupAnchorPlayerId ||
+      !manualLastGroupReferencePlayerId
+    ) {
+      return
+    }
+
+    await runAction(async () => {
+      const response = await fetch(`/api/weeks/${data.currentWeek?.id}/pairings/manual`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          player1Id: manualLastGroupPlayerId,
+          player2Id: manualLastGroupAnchorPlayerId,
+          referencePlayerId: manualLastGroupReferencePlayerId
+        })
+      })
+
+      if (!response.ok) {
+        const payload = await response.json().catch(() => null)
+        throw new Error(payload?.error ?? 'Unable to create manual last group')
+      }
+    }, 'Manual last group created.')
   }
 
   async function removePairing(matchId: string) {
@@ -622,8 +772,17 @@ export function WeekClient({ initialData }: WeekClientProps) {
   const unmatchedPresentPlayers = data.attendance.filter(
     (player) => player.present && !matchedPlayerIds.has(player.playerId)
   )
+  const autoPairPlayers = unmatchedPresentPlayers.filter(
+    (player) => !heldOutPlayerIds.includes(player.playerId)
+  )
+  const heldOutPlayers = unmatchedPresentPlayers.filter((player) =>
+    heldOutPlayerIds.includes(player.playerId)
+  )
+  const manualLastGroupPreviewPlayers = new Map(
+    unmatchedPresentPlayers.map((player) => [player.playerId, player.name])
+  )
   const canGeneratePairings =
-    unmatchedPresentPlayers.length >= 2 &&
+    autoPairPlayers.length >= 2 &&
     !!data.currentWeek.courseId &&
     !!data.currentWeek.ctpHoleNumber &&
     !data.currentWeek.locked
@@ -635,6 +794,17 @@ export function WeekClient({ initialData }: WeekClientProps) {
     manualPlayer1Id.length > 0 &&
     manualPlayer2Id.length > 0 &&
     manualPlayer1Id !== manualPlayer2Id
+  const canCreateManualLastGroup =
+    !data.currentWeek.locked &&
+    unmatchedPresentPlayers.length >= 3 &&
+    manualLastGroupPlayerId.length > 0 &&
+    manualLastGroupAnchorPlayerId.length > 0 &&
+    manualLastGroupReferencePlayerId.length > 0 &&
+    new Set([
+      manualLastGroupPlayerId,
+      manualLastGroupAnchorPlayerId,
+      manualLastGroupReferencePlayerId
+    ]).size === 3
   const canCloseWeek = data.currentWeek.locked && allScoresComplete && !data.currentWeek.completedAt
 
   const selectedCourse =
@@ -651,9 +821,17 @@ export function WeekClient({ initialData }: WeekClientProps) {
   const eligibleLongestPuttPlayers = data.attendance.filter(
     (player) => player.present && player.longestPuttPoolPaid
   )
+  const ctpPot = eligibleCtpPlayers.length * SIDE_GAME_ENTRY_FEE
+  const longestPuttPot = eligibleLongestPuttPlayers.length * SIDE_GAME_ENTRY_FEE
   const isDefaultTrailingPlayerCheckedIn = data.attendance.some(
     (player) => player.present && player.name === DEFAULT_TRAILING_PLAYER_NAME
   )
+  const generateButtonLabel =
+    autoPairPlayers.length !== unmatchedPresentPlayers.length
+      ? 'Generate Selected Pairings'
+      : data.currentWeek.matchCount > 0
+        ? 'Generate Next Pairings'
+        : 'Generate Pairings'
 
   return (
     <section className="space-y-4 px-4 py-6">
@@ -817,6 +995,10 @@ export function WeekClient({ initialData }: WeekClientProps) {
                 </option>
               )}
           </select>
+          <p className="mt-2 text-xs text-text-secondary">
+            {eligibleCtpPlayers.length} player{eligibleCtpPlayers.length === 1 ? '' : 's'} in the
+            CTP game · Pot ${ctpPot}
+          </p>
         </label>
 
         <label className="rounded-xl border border-surface-border bg-surface-elevated p-4">
@@ -836,6 +1018,10 @@ export function WeekClient({ initialData }: WeekClientProps) {
               </option>
             ))}
           </select>
+          <p className="mt-2 text-xs text-text-secondary">
+            {eligibleLongestPuttPlayers.length} player{eligibleLongestPuttPlayers.length === 1 ? '' : 's'} in the
+            LPM game · Pot ${longestPuttPot}
+          </p>
         </label>
       </section>
 
@@ -846,7 +1032,8 @@ export function WeekClient({ initialData }: WeekClientProps) {
               CTP Winner · Hole {data.currentWeek.ctpHoleNumber ?? '—'}
             </p>
             <p className="mt-2 text-xs text-text-secondary">
-              Only checked-in players with the weekly `CTP` box checked are eligible.
+              Only checked-in players with the weekly `CTP` box checked are eligible. Current pot:
+              {' '}${ctpPot} from {eligibleCtpPlayers.length} player{eligibleCtpPlayers.length === 1 ? '' : 's'}.
             </p>
             <select
               className="mt-2 w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
@@ -868,7 +1055,8 @@ export function WeekClient({ initialData }: WeekClientProps) {
               LP Winner · Hole {data.currentWeek.longestPuttHoleNumber ?? '—'}
             </p>
             <p className="mt-2 text-xs text-text-secondary">
-              Only checked-in players with the weekly `LPM` box checked are eligible.
+              Only checked-in players with the weekly `LPM` box checked are eligible. Current pot:
+              {' '}${longestPuttPot} from {eligibleLongestPuttPlayers.length} player{eligibleLongestPuttPlayers.length === 1 ? '' : 's'}.
             </p>
             <select
               className="mt-2 w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
@@ -986,6 +1174,63 @@ export function WeekClient({ initialData }: WeekClientProps) {
       </section>
 
       <section className="rounded-xl border border-surface-border bg-surface-elevated p-4">
+        {!data.currentWeek.locked && unmatchedPresentPlayers.length > 0 ? (
+          <div className="mb-4 rounded-lg border border-dashed border-surface-border bg-surface-base p-4">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
+                  Auto-Pair Pool
+                </p>
+                <p className="mt-2 text-sm text-text-secondary">
+                  Checked players will be included when pairings generate. Uncheck anyone you want
+                  to hold for the manual last group.
+                </p>
+              </div>
+              {heldOutPlayers.length > 0 ? (
+                <button
+                  type="button"
+                  className="text-sm font-semibold text-accent-text"
+                  onClick={() => setHeldOutPlayerIds([])}
+                  disabled={isRefreshing}
+                >
+                  Clear Holds
+                </button>
+              ) : null}
+            </div>
+            <div className="mt-4 flex flex-wrap gap-2">
+              {unmatchedPresentPlayers.map((player) => {
+                const includedInAutoPairing = !heldOutPlayerIds.includes(player.playerId)
+
+                return (
+                  <label
+                    key={`autopair-${player.playerId}`}
+                    className={`flex cursor-pointer items-center gap-2 rounded-full border px-3 py-2 text-sm ${
+                      includedInAutoPairing
+                        ? 'border-accent bg-accent-dim text-accent-text'
+                        : 'border-surface-border bg-surface-sunken text-text-secondary'
+                    }`}
+                  >
+                    <input
+                      type="checkbox"
+                      className="h-4 w-4"
+                      checked={includedInAutoPairing}
+                      onChange={() => toggleHeldOutPlayer(player.playerId)}
+                      disabled={isRefreshing}
+                    />
+                    <span>{player.name}</span>
+                  </label>
+                )
+              })}
+            </div>
+            <p className="mt-3 text-xs text-text-secondary">
+              {autoPairPlayers.length} selected for auto-pairing
+              {heldOutPlayers.length > 0
+                ? ` · ${heldOutPlayers.length} held out for manual setup`
+                : ''}
+            </p>
+          </div>
+        ) : null}
+
         <div className="flex items-center justify-between gap-3">
           <div>
             <p className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
@@ -1015,7 +1260,7 @@ export function WeekClient({ initialData }: WeekClientProps) {
               onClick={generatePairings}
               disabled={!canGeneratePairings || isRefreshing}
             >
-              {isRefreshing ? 'Working...' : data.currentWeek.matchCount > 0 ? 'Generate Next Pairings' : 'Generate Pairings'}
+              {isRefreshing ? 'Working...' : generateButtonLabel}
             </button>
             {data.currentWeek.matchCount > 0 ? (
               <button
@@ -1184,50 +1429,155 @@ export function WeekClient({ initialData }: WeekClientProps) {
         ) : null}
 
         {!data.currentWeek.locked ? (
-          <div className="mt-4 rounded-lg border border-dashed border-surface-border bg-surface-base p-4">
-            <p className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
-              Manual Pairing
-            </p>
-            <p className="mt-2 text-sm text-text-secondary">
-              Use this when you want to hand-build a specific match. Only unmatched checked-in players are shown.
-            </p>
-            <div className="mt-4 grid gap-3 md:grid-cols-[1fr_1fr_auto]">
-              <select
-                className="rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
-                value={manualPlayer1Id}
-                onChange={(event) => setManualPlayer1Id(event.target.value)}
-                disabled={isRefreshing || unmatchedPresentPlayers.length < 2}
-              >
-                <option value="">Select player 1</option>
-                {unmatchedPresentPlayers.map((player) => (
-                  <option key={player.playerId} value={player.playerId}>
-                    {player.name}
-                  </option>
-                ))}
-              </select>
-              <select
-                className="rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
-                value={manualPlayer2Id}
-                onChange={(event) => setManualPlayer2Id(event.target.value)}
-                disabled={isRefreshing || unmatchedPresentPlayers.length < 2}
-              >
-                <option value="">Select player 2</option>
-                {unmatchedPresentPlayers
-                  .filter((player) => player.playerId !== manualPlayer1Id)
-                  .map((player) => (
+          <div className="mt-4 space-y-4">
+            <div className="rounded-lg border border-dashed border-surface-border bg-surface-base p-4">
+              <p className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
+                Manual Pairing
+              </p>
+              <p className="mt-2 text-sm text-text-secondary">
+                Use this when you want to hand-build a standard two-player match. Only unmatched
+                checked-in players are shown.
+              </p>
+              <div className="mt-4 grid gap-3 md:grid-cols-[1fr_1fr_auto]">
+                <select
+                  className="rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
+                  value={manualPlayer1Id}
+                  onChange={(event) => setManualPlayer1Id(event.target.value)}
+                  disabled={isRefreshing || unmatchedPresentPlayers.length < 2}
+                >
+                  <option value="">Select player 1</option>
+                  {unmatchedPresentPlayers.map((player) => (
                     <option key={player.playerId} value={player.playerId}>
                       {player.name}
                     </option>
                   ))}
-              </select>
-              <button
-                type="button"
-                className="font-condensed rounded-lg bg-surface-sunken px-4 py-3 text-sm font-bold uppercase tracking-wide text-text-primary disabled:cursor-not-allowed disabled:text-text-disabled"
-                onClick={createManualPairing}
-                disabled={!canCreateManualPairing || isRefreshing}
-              >
-                Create Match
-              </button>
+                </select>
+                <select
+                  className="rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
+                  value={manualPlayer2Id}
+                  onChange={(event) => setManualPlayer2Id(event.target.value)}
+                  disabled={isRefreshing || unmatchedPresentPlayers.length < 2}
+                >
+                  <option value="">Select player 2</option>
+                  {unmatchedPresentPlayers
+                    .filter((player) => player.playerId !== manualPlayer1Id)
+                    .map((player) => (
+                      <option key={player.playerId} value={player.playerId}>
+                        {player.name}
+                      </option>
+                    ))}
+                </select>
+                <button
+                  type="button"
+                  className="font-condensed rounded-lg bg-surface-sunken px-4 py-3 text-sm font-bold uppercase tracking-wide text-text-primary disabled:cursor-not-allowed disabled:text-text-disabled"
+                  onClick={createManualPairing}
+                  disabled={!canCreateManualPairing || isRefreshing}
+                >
+                  Create Match
+                </button>
+              </div>
+            </div>
+
+            <div className="rounded-lg border border-dashed border-surface-border bg-surface-base p-4">
+              <p className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
+                Manual Last Group
+              </p>
+              <p className="mt-2 text-sm text-text-secondary">
+                Use this when you want to hand-build the threesome and choose who plays against the
+                reference scorecard.
+              </p>
+              <div className="mt-4 grid gap-3 md:grid-cols-3">
+                <label className="block">
+                  <span className="font-condensed text-[11px] font-semibold uppercase tracking-widest text-text-muted">
+                    Live Match Player
+                  </span>
+                  <select
+                    className="mt-1 w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
+                    value={manualLastGroupPlayerId}
+                    onChange={(event) => setManualLastGroupPlayerId(event.target.value)}
+                    disabled={isRefreshing || unmatchedPresentPlayers.length < 3}
+                  >
+                    <option value="">Select player</option>
+                    {unmatchedPresentPlayers.map((player) => (
+                      <option key={`last-group-player-${player.playerId}`} value={player.playerId}>
+                        {player.name}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label className="block">
+                  <span className="font-condensed text-[11px] font-semibold uppercase tracking-widest text-text-muted">
+                    Opponent And Reference Card
+                  </span>
+                  <select
+                    className="mt-1 w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
+                    value={manualLastGroupAnchorPlayerId}
+                    onChange={(event) => setManualLastGroupAnchorPlayerId(event.target.value)}
+                    disabled={isRefreshing || unmatchedPresentPlayers.length < 3}
+                  >
+                    <option value="">Select player</option>
+                    {unmatchedPresentPlayers
+                      .filter((player) => player.playerId !== manualLastGroupPlayerId)
+                      .map((player) => (
+                        <option key={`last-group-anchor-${player.playerId}`} value={player.playerId}>
+                          {player.name}
+                        </option>
+                      ))}
+                  </select>
+                </label>
+                <label className="block">
+                  <span className="font-condensed text-[11px] font-semibold uppercase tracking-widest text-text-muted">
+                    Reference-Scorecard Player
+                  </span>
+                  <select
+                    className="mt-1 w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
+                    value={manualLastGroupReferencePlayerId}
+                    onChange={(event) => setManualLastGroupReferencePlayerId(event.target.value)}
+                    disabled={isRefreshing || unmatchedPresentPlayers.length < 3}
+                  >
+                    <option value="">Select player</option>
+                    {unmatchedPresentPlayers
+                      .filter(
+                        (player) =>
+                          player.playerId !== manualLastGroupPlayerId &&
+                          player.playerId !== manualLastGroupAnchorPlayerId
+                      )
+                      .map((player) => (
+                        <option key={`last-group-reference-${player.playerId}`} value={player.playerId}>
+                          {player.name}
+                        </option>
+                      ))}
+                  </select>
+                </label>
+              </div>
+              {canCreateManualLastGroup ? (
+                <div className="mt-4 rounded-md bg-surface-sunken px-3 py-3 text-sm text-text-secondary">
+                  <p>
+                    {manualLastGroupPreviewPlayers.get(manualLastGroupPlayerId)} vs{' '}
+                    {manualLastGroupPreviewPlayers.get(manualLastGroupAnchorPlayerId)}
+                  </p>
+                  <p className="mt-1">
+                    {manualLastGroupPreviewPlayers.get(manualLastGroupReferencePlayerId)} plays
+                    against{' '}
+                    {`${manualLastGroupPreviewPlayers.get(manualLastGroupAnchorPlayerId) ?? ''}'s`}{' '}
+                    reference scorecard
+                  </p>
+                </div>
+              ) : (
+                <p className="mt-4 text-xs text-text-secondary">
+                  Select three unmatched checked-in players to create the final threesome.
+                </p>
+              )}
+              <div className="mt-4 flex justify-end">
+                <button
+                  type="button"
+                  className="font-condensed rounded-lg bg-surface-sunken px-4 py-3 text-sm font-bold uppercase tracking-wide text-text-primary disabled:cursor-not-allowed disabled:text-text-disabled"
+                  onClick={createManualLastGroup}
+                  disabled={!canCreateManualLastGroup || isRefreshing}
+                >
+                  Create Last Group
+                </button>
+              </div>
             </div>
           </div>
         ) : null}

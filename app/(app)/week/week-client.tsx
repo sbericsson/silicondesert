@@ -95,6 +95,7 @@ interface WeekClientProps {
 }
 
 const holeOptions = Array.from({ length: 9 }, (_, index) => index + 1)
+const SIDE_GAME_ENTRY_FEE = 5
 
 export function WeekClient({ initialData }: WeekClientProps) {
   const router = useRouter()
@@ -651,6 +652,8 @@ export function WeekClient({ initialData }: WeekClientProps) {
   const eligibleLongestPuttPlayers = data.attendance.filter(
     (player) => player.present && player.longestPuttPoolPaid
   )
+  const ctpPot = eligibleCtpPlayers.length * SIDE_GAME_ENTRY_FEE
+  const longestPuttPot = eligibleLongestPuttPlayers.length * SIDE_GAME_ENTRY_FEE
   const isDefaultTrailingPlayerCheckedIn = data.attendance.some(
     (player) => player.present && player.name === DEFAULT_TRAILING_PLAYER_NAME
   )
@@ -738,6 +741,10 @@ export function WeekClient({ initialData }: WeekClientProps) {
               </option>
             ))}
           </select>
+          <p className="mt-2 text-xs text-text-secondary">
+            {eligibleCtpPlayers.length} player{eligibleCtpPlayers.length === 1 ? '' : 's'} in the
+            CTP game · Pot ${ctpPot}
+          </p>
         </label>
 
         <label className="rounded-xl border border-surface-border bg-surface-elevated p-4">
@@ -836,6 +843,10 @@ export function WeekClient({ initialData }: WeekClientProps) {
               </option>
             ))}
           </select>
+          <p className="mt-2 text-xs text-text-secondary">
+            {eligibleLongestPuttPlayers.length} player{eligibleLongestPuttPlayers.length === 1 ? '' : 's'} in the
+            LPM game · Pot ${longestPuttPot}
+          </p>
         </label>
       </section>
 
@@ -846,7 +857,8 @@ export function WeekClient({ initialData }: WeekClientProps) {
               CTP Winner · Hole {data.currentWeek.ctpHoleNumber ?? '—'}
             </p>
             <p className="mt-2 text-xs text-text-secondary">
-              Only checked-in players with the weekly `CTP` box checked are eligible.
+              Only checked-in players with the weekly `CTP` box checked are eligible. Current pot:
+              {' '}${ctpPot} from {eligibleCtpPlayers.length} player{eligibleCtpPlayers.length === 1 ? '' : 's'}.
             </p>
             <select
               className="mt-2 w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
@@ -868,7 +880,8 @@ export function WeekClient({ initialData }: WeekClientProps) {
               LP Winner · Hole {data.currentWeek.longestPuttHoleNumber ?? '—'}
             </p>
             <p className="mt-2 text-xs text-text-secondary">
-              Only checked-in players with the weekly `LPM` box checked are eligible.
+              Only checked-in players with the weekly `LPM` box checked are eligible. Current pot:
+              {' '}${longestPuttPot} from {eligibleLongestPuttPlayers.length} player{eligibleLongestPuttPlayers.length === 1 ? '' : 's'}.
             </p>
             <select
               className="mt-2 w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"

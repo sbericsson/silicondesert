@@ -1,6 +1,6 @@
 # DESIGN.md — Silicon Desert Golf League Commissioner App
 
-Generated from `/plan-design-review` on 2026-03-29. This is the design source of truth.
+Last updated 2026-04-18. This is the design source of truth.
 All implementation decisions calibrate against this file.
 
 ---
@@ -9,57 +9,63 @@ All implementation decisions calibrate against this file.
 
 **APP UI** — commissioner workspace tool. Data-dense, task-focused, single user. Not a marketing page. No hero sections, no feature grids, no decorative elements.
 
-Primary use context:
+Primary use contexts:
 - **Check-in + Pairings:** phone, outdoors, bright sunlight, Friday afternoon
 - **Score Entry:** desktop or laptop, home, Friday evening or Saturday morning
+
+The UI ships two distinct layouts: mobile (below 1280px) and desktop (1280px and above). They coexist in the same codebase via Tailwind's `xl:` breakpoint — no JS viewport detection, no UA sniffing, no separate routes.
 
 ---
 
 ## Color System
 
-All tokens live in `tailwind.config.ts` under `extend.colors`. Do not use Tailwind's default palette directly for brand/UI colors.
+**Light theme only.** All tokens live in `globals.css` as CSS variables and map to Tailwind classes via `tailwind.config.ts`. Do not use Tailwind's default palette directly for brand/UI colors.
 
-```ts
-// tailwind.config.ts
-extend: {
-  colors: {
-    surface: {
-      base:     '#0f1117', // body background
-      elevated: '#1a1f2e', // cards, nav bar, modals
-      sunken:   '#131720', // table headers, input backgrounds, dividers
-      border:   '#2a3040', // all borders
-    },
-    text: {
-      primary:   '#f0f0f0',
-      secondary: '#9ca3af',
-      muted:     '#4b5563',
-      disabled:  '#3a4050',
-    },
-    accent: {
-      DEFAULT: '#4b9e6f', // primary CTA, checked state, success — muted fairway green
-      hover:   '#3d8a5e',
-      dim:     '#1a2818', // accent-tinted surface (CTP row, success states)
-      text:    '#6fcf97', // accent-colored text on dark backgrounds
-    },
-    warning: {
-      DEFAULT: '#f59e0b', // ESC-adjusted scores, handicap gap flags
-      dim:     '#2d1f0e', // warning-tinted surface
-      text:    '#fcd34d', // warning text on dark backgrounds
-    },
-    danger: {
-      DEFAULT: '#ef4444',
-      dim:     '#2d1010',
-      text:    '#fca5a5',
-    },
-    info: {
-      dim:  '#1e3a5f', // threesome badge background
-      text: '#93c5fd', // threesome badge text
-    },
-  },
+```css
+/* globals.css */
+:root {
+  --surface-base:     #ffffff;   /* body background */
+  --surface-elevated: #f8fafc;   /* cards, nav bar, modals */
+  --surface-sunken:   #f1f5f9;   /* table headers, input backgrounds, dividers */
+  --surface-border:   #e2e8f0;   /* all borders */
+
+  --text-primary:     #0f172a;
+  --text-secondary:   #475569;
+  --text-muted:       #94a3b8;
+  --text-disabled:    #cbd5e1;
+
+  --accent:           #16a34a;   /* primary CTA, checked state, success — green */
+  --accent-hover:     #15803d;
+  --accent-bright:    #22c55e;
+  --accent-dim:       #dcfce7;   /* accent-tinted surface */
+  --accent-text:      #166534;   /* accent-colored text on light backgrounds */
+
+  --warning:          #d97706;
+  --warning-dim:      #fef3c7;
+  --warning-text:     #92400e;
+
+  --danger:           #dc2626;
+  --danger-dim:       #fee2e2;
+  --danger-text:      #991b1b;
+
+  --info-dim:         #dbeafe;   /* threesome badge background */
+  --info-text:        #1e40af;   /* threesome badge text */
 }
 ```
 
-**Color mode:** Dark only in v1. No `prefers-color-scheme` handling. All components assume dark surface.
+```ts
+// tailwind.config.ts — token mapping (do not hard-code hex values in components)
+extend: {
+  colors: {
+    surface: { base, elevated, sunken, border },
+    text: { primary, secondary, muted, disabled },
+    accent: { DEFAULT, hover, bright, dim, text },
+    warning: { DEFAULT, dim, text },
+    danger: { DEFAULT, dim, text },
+    info: { dim, text },
+  }
+}
+```
 
 ---
 
@@ -67,23 +73,26 @@ extend: {
 
 ```ts
 // tailwind.config.ts + app/layout.tsx
-import { Inter } from 'next/font/google'
-const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
+fontFamily: {
+  sans:      ['var(--font-barlow)', 'system-ui', 'sans-serif'],
+  condensed: ['var(--font-barlow-condensed)', 'system-ui', 'sans-serif'],
+}
 ```
 
-No system font stacks. No `font-sans` default. Use `font-[Inter]` or set `fontFamily.sans` to `['Inter', ...defaultTheme.fontFamily.sans]` in config.
+Two fonts: **Barlow** (body, table cells, UI text) and **Barlow Condensed** (labels, nav items, section headers, scores). Use `font-condensed` for uppercase tracking labels. Never `font-sans` for labels that need tight letter-spacing.
 
-| Role | Size | Weight | Color |
-|------|------|--------|-------|
-| Screen title | 20px / `text-xl` | 700 | `text-primary` |
-| Section label | 11px / `text-xs` | 600 | `text-muted`, uppercase, 0.06em tracking |
-| Player name | 15px / `text-sm` | 500–600 | `text-primary` |
-| Handicap index | 13px | 500 | `text-secondary` |
-| Table header | 11px | 600 | `text-muted`, uppercase |
-| Table cell | 14–15px | 400–500 | `text-primary` |
-| Score input | 18px | 700 | `text-primary` |
-| Meta / subtext | 12px | 400–500 | `text-secondary` |
-| Badge / flag | 11px | 600 | varies by badge type |
+| Role | Size | Weight | Font | Color |
+|------|------|--------|------|-------|
+| Screen title | 24px / `text-2xl` (mobile), `text-lg` (desktop) | 700 | Condensed | `text-primary` |
+| Section label | 11px / `text-xs` | 600 | Condensed | `text-muted`, uppercase, widest tracking |
+| Nav items | 11px (mobile), 14px / `text-sm` (desktop) | 600 | Condensed | uppercase |
+| Player name | 15px / `text-sm` | 500–600 | Sans | `text-primary` |
+| Handicap index | 13px | 500 | Sans | `text-secondary` |
+| Table header | 11px | 600 | Condensed | `text-muted`, uppercase |
+| Table cell | 14–15px | 400–500 | Sans | `text-primary` |
+| Score input | 14px / `text-sm` | 700 | Sans | `text-primary` |
+| Meta / subtext | 12px | 400–500 | Sans | `text-secondary` |
+| Badge / flag | 11px | 600 | Sans | varies by badge type |
 
 ---
 
@@ -91,54 +100,71 @@ No system font stacks. No `font-sans` default. Use `font-[Inter]` or set `fontFa
 
 Base unit: 4px (Tailwind default).
 
+### Mobile
 | Context | Padding |
 |---------|---------|
 | Screen horizontal padding | 16px (`px-4`) |
-| Player row (mobile) | `py-2.5` (10px top/bottom) |
-| Card inner padding | `p-3` (12px) or `p-4` (16px) |
-| Section header gap | `mb-2.5` (10px) |
-| Bottom nav item | `py-2.5 pb-2` |
+| Player row | `py-2.5` (10px top/bottom) |
+| Card inner padding | `p-3` or `p-4` |
+| Section header gap | `mb-2.5` |
+| Bottom nav item | `py-3` |
 
-Touch targets: minimum 44×44px on all interactive elements (mobile).
+Touch targets: minimum 44×44px on all interactive elements.
+
+### Desktop (≥1280px / `xl:`)
+| Element | Spec |
+|---------|------|
+| Screen horizontal padding | 24px (`xl:px-6`) |
+| Table row height | 36px |
+| Score input cell | 40px wide (`w-10`), 32px tall (`h-8`) |
+| Sidebar nav item | 32px tall, `px-3 py-1.5` |
+| Section header gap | `mb-3` |
+| Touch targets | N/A — keyboard + mouse. Min 28px for clickable elements. |
 
 ---
 
 ## Border Radius
 
-Consistent scale — not uniform bubbly on everything:
-
 | Element | Radius |
 |---------|--------|
-| Cards, match cards | `rounded-xl` (10–12px) |
-| Buttons | `rounded-lg` (8–10px) |
-| Input fields | `rounded-md` (6px) |
-| Badges, flags | `rounded` (4px) |
-| Score input cells | `rounded-md` (6px) |
-| Toggle checkboxes | `rounded-md` (6px) |
+| Cards, match cards | `rounded-xl` |
+| Buttons | `rounded-lg` |
+| Input fields | `rounded-md` |
+| Badges, flags | `rounded` |
+| Score input cells | `rounded` |
+| Toggle checkboxes | `rounded-md` |
 | Progress dots | `rounded-full` |
 
 ---
 
 ## Navigation
 
-**Bottom nav (4 items):**
+### Mobile (below 1280px)
 
-```
-[🗓 Week] [🏆 Standings] [👥 Roster] [📜 History]
-```
+**Bottom nav (4 items):** Week, Standings, Roster, History
 
-- Fixed at bottom, `max-w-[430px]` on mobile, full-width above
-- Active item: `accent.DEFAULT` color + `accent.DEFAULT` border-top
-- Inactive: `text-muted`
-- Icon size: 18px, label: 10px
+- Fixed at bottom, full-width, `xl:hidden`
+- `max-w-md` inner grid centered
+- Active item: `accent-text` color
+- Inactive: `text-secondary`
+- Font: Condensed, 11px, uppercase, semibold
+- No icons — text labels only
 
-**Week tab has two sub-tabs:**
-- `Check-in | Pairings`
-- Commissioner bounces between these all Friday afternoon
-- Both always accessible once a week is active
-- Sub-tab indicator: `accent.DEFAULT` bottom border on active tab
+**Week tab has two sub-tabs:** `Check-in | Pairings`
 
-**Score Entry** is not a nav destination. It's a full-screen push launched by tapping "Enter Scores →" on a match card in the Pairings sub-tab.
+**Score Entry** on mobile: full-screen push launched by "Enter Scores →" link on a match card. Not a persistent nav destination.
+
+### Desktop (1280px and above / `xl:`)
+
+**Persistent left sidebar** instead of bottom nav.
+
+- `hidden xl:flex fixed left-0 top-0 bottom-0 w-[200px]`
+- Branding at top: "Silicon Desert" (10px muted) + "Commissioner" (14px bold) — both Condensed uppercase
+- Nav items: text-only, no icons, no colored-circle wrappers
+- Active item: 3px left border (`border-l-[3px] border-accent`) + `bg-accent-dim` tint + `text-accent-text`
+- Inactive: `border-l-[3px] border-transparent text-secondary hover:text-primary`
+- Content area offset: `xl:ml-[200px]`
+- Main content: `xl:max-w-none` (full remaining width, not capped at 5xl)
 
 ---
 
@@ -149,153 +175,125 @@ Consistent scale — not uniform bubbly on everything:
 **Header:**
 ```
 Silicon Desert Golf League           (11px, muted, uppercase)
-Week 4 — Spring 2026                 (20px, bold, primary)
+Week 4 — Spring 2026                 (20px, bold)
 Oakwood CC · Course A · Today        (12px, accent.text)
 ```
 
-Course selector: dropdown in header, required before "Generate Pairings" activates.
-
-**Status bar** (shown when ≥1 player checked in):
-- Accent-tinted background (`accent.dim`), left border `accent.DEFAULT`
-- Text: "12 players checked in · Threesome will form" (odd count warning inline)
-
 **Attendance list:**
 - Checked-in players first (sorted to top), bold name, filled green dot
-- Not-yet-arrived below: muted name, empty circle dot
+- Not-yet-arrived: muted name, empty circle dot
 - Tap anywhere on row to toggle
 - Player row: `[dot] [Name] [HCP or PRO badge]`
-- PRO badge: amber (`warning.text`) italic — players with < 3 rounds
+- PRO badge: amber (`warning.text`) — players with < 3 rounds
+- Attendance-only check-ins (players who show up but aren't paired): supported; they appear in attendance without generating a match
 
 **CTP + LP selectors:**
 - 2-column grid below the player list
-- Each: label (11px muted uppercase) + selected value (17px bold) or "— Select" (muted)
-- Tap to open hole picker (1–9, must be a par-3 for CTP — invalid holes should be marked)
+- Each: label (11px muted uppercase) + selected value or "— Select" (muted)
 
 **Generate Pairings CTA:**
 - Full-width, `accent.DEFAULT` background, 16px bold
-- Disabled state: `surface.elevated` bg, `text-disabled` text
-- Disabled label explains why: "Need ≥2 players" or "Select CTP hole first"
-
-**Empty state (no week yet):**
-```
-Week 5 — Spring 2026
-Friday, Apr 17
-
-Course: [Oakwood A ▼]
-
-[Start Week 5 →]
-```
+- Disabled state: explains why ("Need ≥2 players", etc.)
 
 ---
 
 ### Week / Pairings Tab
 
 **Match cards:**
-
 ```
 ┌─────────────────────────────────┐
-│ Match 1              [flag]     │  ← header bar (sunken bg)
+│ Match 1              [flag]     │  ← header bar
 │─────────────────────────────────│
-│ Mike Sanderson           HCP 14 │  ← player row + swap button
-│          vs                     │  ← divider (sunken bg, tiny)
+│ Mike Sanderson           HCP 14 │
+│          vs                     │
 │ Dave Torres              HCP 11 │
 │─────────────────────────────────│
-│ Gap: 2.8  [▓▓▓░░░░░░░]          │  ← gap indicator bar
+│ Gap: 2.8  [▓▓▓░░░░░░░]          │
 └─────────────────────────────────┘
 ```
 
-**Flags:**
-- Repeat match: `danger.dim` card border + `danger.text` badge "⚠ Played 2× this season"
-- Handicap gap > 6: `warning.dim` card border + `warning.text` badge "Gap: 8.1"
-- Threesome: `info.dim` border + `info.text` badge "Threesome" + subtext explaining pivot
+**Flags:** Repeat match (danger), HCP gap > 6 (warning), threesome (info).
 
-**After lock — match cards shift to score-entry mode:**
+**After lock — match cards:**
 ```
 ┌─────────────────────────────────┐
-│ Match 1          ✓ Complete     │  ← green checkmark when done
+│ Match 1          ✓ Complete     │  ← green when done
 │ Mike 3pts · Dave 2pts           │
-│                [Enter Scores →] │  ← primary action when pending
+│                [Enter Scores →] │  ← mobile only (xl:hidden)
 └─────────────────────────────────┘
 ```
 
-**Progress header:** "4 of 17 matches scored"
-
-**Threesome section:** Labeled "Threesome (last group out)" with `info.dim` section header. Pivot player labeled "(pivot)" in small muted text. Note: "Ray's scorecard also refs Match 5."
-
-**Action bar (before lock):**
-- `[🖨 Print]` secondary button (1/3 width) + `[Lock Pairings →]` primary (2/3 width)
-- After lock: `[Unlock]` secondary + `[Print]` secondary — no primary CTA needed
-
-**Week complete banner:**
-```
-✓ All 17 matches scored · Standings updated
-```
-Shown in `accent.dim` tinted banner when all match scores are submitted.
+The "Enter Scores →" link is `xl:hidden` — on desktop, score entry happens in the inline grid below the match cards.
 
 ---
 
-### Score Entry
+### Score Entry — Mobile
 
-**Responsive:**
-- Mobile (<768px): tabbed per-player
-- Desktop (≥768px): side-by-side scorecard table, `max-w-[900px]` centered
-
-**Desktop table columns:**
-`Hole | Par | SI | [Player 1] Gross | [Player 1] Net | [Player 2] Gross | [Player 2] Net`
-
-**Visual states for score cells:**
-- Empty: `text-disabled`, shows `—`
-- Filled: `accent.dim` background, `accent.text` text
-- ESC-adjusted (gross capped at net double bogey): `warning.dim` background, `warning.text` text
-- CTP hole row: entire row has `accent.dim` left-border highlight; CTP badge on hole number
-
-**Keyboard navigation (desktop):**
-Tab order: P1H1 → P2H1 → P1H2 → P2H2 → ... → P1H9 → P2H9 → match play dropdown → submit.
-Enter submits when submit button is focused. Escape closes without saving.
-
-**Match play result dropdown values:**
-`All square | 1 up | 2 & 1 | 3 & 2 | 4 & 3 | 5 & 4 | 6 & 5 | 7 & 6 | 8 & 7`
-
-**Submit button states:**
-- Incomplete: `surface.elevated` bg, `text-disabled`, shows remaining holes count: "Submit Scores (5 holes remaining)"
-- Ready: `accent.DEFAULT` bg, white text, "Submit Scores"
-- Saving: spinner + "Saving..."
+Full-screen push flow, per-player, per-hole. Each player's 9 holes on a scrollable card. Tap a hole to enter the score.
 
 ---
 
-### Standings
+### Score Entry — Desktop (`xl:`)
 
-**Three tabs:** `[Spring] [Summer] [Overall]`
+Inline grid below the match card list. Shown only when the card is locked and matches exist.
 
-- Active season tab highlighted with `accent.DEFAULT` underline
-- Spring tab always accessible (even during Summer season)
-- Overall tab = combined Spring + Summer points for year champion
+**Match tabs:** Horizontal tab row above the scorecard. Each tab = one match, abbreviated as "Last, F. / Last, F.". Active tab has accent underline. Checkmark icon when complete, amber dot when pending.
 
-**Table columns:** `# | Player | Pts | Stroke W | Match W | CTP | LP`
+**Scorecard grid:**
+```
+Player       | H1 | H2 | H3 | H4 | H5 | H6 | H7 | H8 | H9 | Total
+Smith, J.    | [  | [  | [  | [  | [  | [  | [  | [  | [  |  —
+Jones, K.    | [  | [  | [  | [  | [  | [  | [  | [  | [  |  —
+Par          | 4  | 3  | 5  | 4  | 3  | 4  | 5  | 4  | 3  |  35
+```
 
-Sortable by all numeric columns. Default sort: Pts descending.
+Green dot indicator on holes where the player receives strokes (based on playing handicap vs SI).
 
-**Empty state:** "No matches played this season yet."
+**Score cell specs:**
+- `h-8 w-10 rounded border text-center text-sm font-bold`
+- Focus: `border-accent` ring
+- Warning: amber color if score > 12
+- Empty: placeholder `—`
+- `inputMode="numeric"`, auto-select on focus
+
+**Keyboard navigation:**
+- Tab / Enter: advance to next cell
+- Shift+Tab: go back
+- Escape: clear current cell
+- ArrowRight / ArrowLeft: adjacent hole, same player
+- ArrowDown / ArrowUp: same hole, other player
+- Tab order: P1H1 → P1H2 → ... → P1H9 → P2H1 → P2H2 → ... → P2H9 → Save button
+- Tab past H9 of Player 2: moves to Save button
+- Save button enabled when all 18 inputs are filled
+
+**Live scoring:**
+- Running net totals update as holes are entered (via `applyESC`)
+- Match play result shown as you type (`calculateMatchPlayResult`)
+- Match points shown (`calculateMatchPoints`)
+
+**Data loading:** Per-tab, lazy. Fetches from `GET /api/weeks/[id]/matches/[matchId]/scores` on tab click. Cached in component state for the session.
+
+**Save:** `POST /api/weeks/[id]/matches/[matchId]/scores`. On success, cache is invalidated and next incomplete match tab is auto-selected.
 
 ---
 
 ### Roster
 
-**Two sections:**
+**Mobile:** Player list with name, HCP index, active/inactive toggle. Tap to view handicap history.
 
-1. **Players (N)** — list with name, HCP index, active/inactive toggle, tap to view history
-2. **⚙ Admin** — collapsed by default, expands to:
-   - Manage Seasons (create season, view schedule)
-   - Import CSV (historical differentials)
-   - Course Setup (name, par, rating, slope for each of the 3 Oakwood courses)
+**Desktop (`xl:`):** Full data table — Name, Tee, HCP, Rounds, Status columns. Click a row to open a 360px slide-in panel from the right. Table stays visible and scrollable in the background. Panel contains the edit form. ESC or X button closes without saving; Save closes with update. Add Player: same panel, empty form.
 
-**PRO indicator:** Players with < 3 rounds show "PRO" badge (amber) instead of HCP number. Players with 0 rounds and a seed index show "EST" badge (muted).
+**PRO indicator:** Players with < 3 rounds show "PRO" badge (amber) instead of HCP number. 0 rounds + seed index shows "EST" badge (muted).
 
-**Season Setup flow (via Manage Seasons):**
-1. Create season: name, type (spring/summer), start date, end date
-2. Enter all Friday dates (date picker, weekly frequency helper)
-3. Week records pre-created with no course assigned
-4. Each Friday: course selected on Check-in tab header
+---
+
+### Standings
+
+**Three tabs:** Spring · Summer · Overall
+
+**Table columns:** # | Player | Pts | Stroke W | Match W | CTP | LP
+
+Default sort: Pts descending. Sortable by all numeric columns.
 
 ---
 
@@ -303,9 +301,7 @@ Sortable by all numeric columns. Default sort: Pts descending.
 
 **Week list:** Each row = week number, date, course, match count, locked status.
 
-Tap a week to expand: match results, pair list, CTP/LP winners.
-
-**Pair history view:** Shows per-season and cross-season pair counts. Informational only — the pairing algorithm only uses current season history.
+Expand a week: match results, pair list, CTP/LP winners.
 
 ---
 
@@ -327,7 +323,7 @@ Tap a week to expand: match results, pair list, CTP/LP winners.
 
 | Variant | Use | Style |
 |---------|-----|-------|
-| Primary | Main CTA (Generate, Lock, Submit) | `accent.DEFAULT` bg, white, `rounded-lg`, full-width on mobile |
+| Primary | Main CTA (Generate, Lock, Submit) | `accent.DEFAULT` bg, white text, `rounded-lg` |
 | Secondary | Supporting actions (Print, Regenerate) | `surface.elevated` bg, `text-secondary`, border |
 | Destructive | Unlock | `danger.dim` bg, `danger.text` |
 | Ghost | Swap, close | Transparent, `text-muted`, icon-only |
@@ -335,22 +331,21 @@ Tap a week to expand: match results, pair list, CTP/LP winners.
 ### Status / Info Bars
 
 Left-border accent bars for contextual status:
-```css
-background: accent.dim;
-border-left: 3px solid accent.DEFAULT;
-padding: 10px 14px;
-border-radius: 4px;
-font-size: 13px;
+```
+background: accent.dim (#dcfce7)
+border-left: 3px solid accent (#16a34a)
+padding: 10px 14px
+border-radius: 4px
+font-size: 13px
 ```
 
 Use for: check-in count, threesome flag, week complete, informational notes.
 
 ### Empty States
 
-Every empty state needs: an icon or illustration (simple, not stock), a one-line description, and a primary action.
+Every empty state: one-line description + primary action.
 
 ```
-[icon]
 No players yet.
 Add the first player to get started.
 [Add Player →]
@@ -358,47 +353,24 @@ Add the first player to get started.
 
 ---
 
-## Print Stylesheet
-
-`@media print` required for pairings sheet:
-
-- White background, black text (`#000`)
-- Match cards: 2-column grid, clean borders
-- Flags (repeat, gap) omitted — informational only, not needed on paper
-- Page title: "Week 4 — Spring 2026 · Oakwood CC · Apr 10"
-- Font: Inter or fallback system serif — no icon fonts
-- Hide: nav bar, swap buttons, action bar, status indicators
-
----
-
 ## Accessibility
 
 - All form inputs have `aria-label` or associated `<label>`
-- Minimum contrast: 4.5:1 on all body text (the token palette above meets this)
-- Touch targets: 44×44px minimum on mobile
-- Score entry grid (desktop): full keyboard navigation (see Score Entry spec above)
+- Minimum contrast: 4.5:1 on all body text (light palette meets this)
+- Touch targets: 44×44px minimum on mobile; 28px minimum on desktop
+- Score entry grid: full keyboard navigation (see Score Entry spec above)
 - Attendance list: each toggle has `role="checkbox"` and `aria-checked`
-- Match cards: `role="listitem"` within a `role="list"`
+- Match cards: `role="listitem"` within `role="list"`
 
 ---
 
-## Wireframes
+## Print Stylesheet
 
-HTML wireframes (reference, not final):
+`@media print` for pairings sheet (defined in `globals.css`):
 
-```
-~/.gstack/projects/silicon/designs/wireframes-20260329/
-  weekly-dashboard.html
-  pairings-generator.html
-  score-entry.html
-```
-
-Open in browser to see the visual direction. These reflect the dark palette, layout, and component style described above.
-
-To generate high-fidelity mockups, set `OPENAI_API_KEY` and run:
-```bash
-~/.claude/skills/gstack/design/dist/design variants \
-  --brief "..." \
-  --count 3 \
-  --output-dir ~/.gstack/projects/silicon/designs/
-```
+- White background, black text
+- Match cards: 2-column grid, clean borders
+- Flags (repeat, gap) omitted
+- Page title: "Week 4 — Spring 2026 · Oakwood CC · Apr 10"
+- Font: Barlow (already loaded)
+- Hide: nav bar, swap buttons, action bar, status indicators

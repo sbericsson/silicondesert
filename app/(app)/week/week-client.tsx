@@ -741,10 +741,6 @@ export function WeekClient({ initialData }: WeekClientProps) {
               </option>
             ))}
           </select>
-          <p className="mt-2 text-xs text-text-secondary">
-            {eligibleCtpPlayers.length} player{eligibleCtpPlayers.length === 1 ? '' : 's'} in the
-            CTP game · Pot ${ctpPot}
-          </p>
         </label>
 
         <label className="rounded-xl border border-surface-border bg-surface-elevated p-4">
@@ -824,6 +820,10 @@ export function WeekClient({ initialData }: WeekClientProps) {
                 </option>
               )}
           </select>
+          <p className="mt-2 text-xs text-text-secondary">
+            {eligibleCtpPlayers.length} player{eligibleCtpPlayers.length === 1 ? '' : 's'} in the
+            CTP game · Pot ${ctpPot}
+          </p>
         </label>
 
         <label className="rounded-xl border border-surface-border bg-surface-elevated p-4">

@@ -496,32 +496,37 @@ export function scoreDifferential(
 ### handicapIndex
 
 ```typescript
-/**
- * WHS lookup table: how many differentials to use based on round count.
- * Returns [best N differentials to average, then multiply by 0.96]
- */
-const WHS_LOOKUP: Record<number, number> = {
-  1: 1, 2: 1, 3: 2, 4: 2, 5: 2, 6: 2, 7: 3, 8: 3,
-  9: 4, 10: 4, 11: 4, 12: 5, 13: 5, 14: 5, 15: 6,
-  16: 6, 17: 7, 18: 7, 19: 8, 20: 8,
-}
+// League rule: for 1-3 rounds, use lowest 1 differential with -2.0 adjustment.
+// After that, standard WHS Rule 5.2a table.
+// [max round count, differentials to use, adjustment]
+const WHS_TABLE: Array<[number, number, number]> = [
+  [3, 1, -2.0],
+  [4, 1, -1.0],
+  [5, 1, 0],
+  [6, 2, -1.0],
+  [8, 2, 0],
+  [11, 3, 0],
+  [14, 4, 0],
+  [16, 5, 0],
+  [18, 6, 0],
+  [19, 7, 0],
+  [20, 8, 0],
+]
 
 /**
  * Compute Handicap Index from an array of score differentials.
- * Input: all available differentials for the player (up to last 20).
- * Uses most recent 20, picks best N per WHS table, multiplies by 0.96.
+ * Uses most recent 20, picks best N per WHS Rule 5.2a table, applies adjustment.
  * Returns null if no rounds (player has seed index only).
  */
 export function handicapIndex(differentials: number[]): number | null {
   if (differentials.length === 0) return null
   const recent = differentials.slice(-20)
-  const count = recent.length
-  const useCount = WHS_LOOKUP[Math.min(count, 20)]
-  const sorted = [...recent].sort((a, b) => a - b)
-  const best = sorted.slice(0, useCount)
+  const row = WHS_TABLE.find(([maxCount]) => recent.length <= maxCount)
+  if (!row) return null
+  const [, useCount, adjustment] = row
+  const best = [...recent].sort((a, b) => a - b).slice(0, useCount)
   const avg = best.reduce((s, d) => s + d, 0) / best.length
-  const raw = avg * 0.96
-  return Math.round(raw * 10) / 10
+  return Math.round((avg + adjustment) * 10) / 10
 }
 ```
 

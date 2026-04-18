@@ -950,8 +950,373 @@ export function RosterClient({ initialData }: RosterClientProps) {
 
   const editingSeason = data.seasons.find((season) => season.id === editingSeasonId) ?? null
 
+  function renderPlayerEditFormBody(player: RosterPageData['players'][number]) {
+    return (
+      <>
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <p className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
+              Edit Player
+            </p>
+            <p className="mt-1 text-sm text-text-secondary">
+              Update player profile, contact info, and seeded handicap.
+            </p>
+          </div>
+          <button type="button" className="text-sm text-text-secondary" onClick={closeEditingPlayer}>
+            Close
+          </button>
+        </div>
+        <div className="sticky top-0 z-10 mt-4 flex items-center justify-between gap-3 rounded-lg border border-surface-border bg-surface-elevated/95 px-4 py-3 shadow-sm backdrop-blur">
+          <div>
+            <p className="text-sm font-semibold text-text-primary">{editingPlayerName || player.name}</p>
+            <p className="text-xs text-text-secondary">Quick save without scrolling.</p>
+          </div>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              className="rounded-lg border border-surface-border bg-surface-sunken px-3 py-2 text-sm font-semibold text-text-primary disabled:cursor-not-allowed disabled:text-text-disabled"
+              onClick={closeEditingPlayer}
+              disabled={isSubmitting}
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="font-condensed rounded-lg bg-accent px-4 py-2.5 text-sm font-bold uppercase tracking-wide text-white disabled:cursor-not-allowed disabled:bg-surface-sunken disabled:text-text-disabled"
+              disabled={isSubmitting}
+            >
+              Save Player
+            </button>
+          </div>
+        </div>
+        <div className="mt-4 grid gap-3 md:grid-cols-2">
+          <input
+            className="w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
+            placeholder="Name"
+            value={editingPlayerName}
+            onChange={(event) => setEditingPlayerName(event.target.value)}
+          />
+          <select
+            className="w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
+            value={editingPlayerGender}
+            onChange={(event) => {
+              const nextGender = event.target.value as Gender
+              setEditingPlayerGender(nextGender)
+              setEditingPlayerDefaultTeeColor(getDefaultTeeColorForGender(nextGender))
+            }}
+          >
+            <option value="man">Man</option>
+            <option value="woman">Woman</option>
+          </select>
+          <select
+            className="w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
+            value={editingPlayerDefaultTeeColor}
+            onChange={(event) => setEditingPlayerDefaultTeeColor(event.target.value as TeeColor)}
+          >
+            <option value="blue">Standard tee: Blue</option>
+            <option value="white">Standard tee: White</option>
+            <option value="yellow">Standard tee: Yellow</option>
+            <option value="silver">Standard tee: Silver</option>
+          </select>
+          <input
+            className="w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
+            placeholder="Email"
+            value={editingPlayerEmail}
+            onChange={(event) => setEditingPlayerEmail(event.target.value)}
+          />
+          <input
+            className="w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
+            inputMode="tel"
+            placeholder="Cell phone"
+            value={editingPlayerCellPhone}
+            onChange={(event) => handleEditingPlayerCellPhoneChange(event.target.value)}
+          />
+          <input
+            className="w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
+            inputMode="decimal"
+            placeholder="Seed handicap"
+            value={editingPlayerSeedHandicap}
+            onChange={(event) => setEditingPlayerSeedHandicap(event.target.value)}
+          />
+        </div>
+        <div className="mt-4 rounded-lg border border-surface-border bg-surface-sunken p-3">
+          <p className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
+            Season Tee Choice
+          </p>
+          <div className="mt-3 space-y-3">
+            {data.seasons.length > 0 ? (
+              data.seasons.map((season) => (
+                <div key={season.id} className="grid gap-2 md:grid-cols-[1fr_140px] md:items-center">
+                  <div>
+                    <p className="text-sm font-medium text-text-primary">{season.name}</p>
+                    <p className="text-xs text-text-secondary">
+                      {season.archivedAt ? 'Archived season' : 'Applies across this season'}
+                    </p>
+                  </div>
+                  <select
+                    className="w-full rounded-md border border-surface-border bg-surface-elevated px-3 py-2.5 text-sm text-text-primary"
+                    value={editingPlayerSeasonTeeChoices[season.id] ?? getDefaultTeeColorForGender(editingPlayerGender)}
+                    onChange={(event) =>
+                      updateEditingPlayerSeasonTeeChoice(season.id, event.target.value as TeeColor)
+                    }
+                  >
+                    <option value="blue">Blue</option>
+                    <option value="white">White</option>
+                    <option value="yellow">Yellow</option>
+                    <option value="silver">Silver</option>
+                  </select>
+                </div>
+              ))
+            ) : (
+              <p className="text-sm text-text-secondary">
+                Create a season first, then assign each player&apos;s tee color for that season.
+              </p>
+            )}
+          </div>
+        </div>
+        <div className="mt-4 rounded-lg border border-surface-border bg-surface-sunken p-3">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
+                Last 20 Handicap Rounds
+              </p>
+              <p className="mt-2 text-xs text-text-secondary">
+                Read-only view of the player&apos;s latest rounds from imported history and league scorecards.
+              </p>
+            </div>
+            <span className="rounded bg-surface-elevated px-2 py-1 text-[11px] font-semibold text-text-secondary">
+              {player.recentHandicapRounds.length} shown
+            </span>
+          </div>
+          <div className="mt-4">
+            {player.recentHandicapRounds.length > 0 ? (
+              <div className="space-y-2">
+                {player.recentHandicapRounds.map((round, index) => (
+                  <div
+                    key={`${round.date}-${round.weekId ?? 'imported'}-${index}`}
+                    className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-surface-border bg-surface-elevated px-3 py-2 text-sm"
+                  >
+                    <span className="text-text-primary">{formatRosterRoundLabel(round)}</span>
+                    <span
+                      className={`rounded px-2 py-1 text-[11px] font-semibold ${
+                        round.isImported
+                          ? 'bg-surface-sunken text-text-secondary'
+                          : 'bg-accent-dim text-accent-text'
+                      }`}
+                    >
+                      {round.isImported ? 'Imported' : 'League'}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="rounded-lg border border-dashed border-surface-border px-4 py-6 text-sm text-text-secondary">
+                No handicap rounds on file yet.
+              </div>
+            )}
+          </div>
+        </div>
+        <div className="mt-4 rounded-lg border border-surface-border bg-surface-sunken p-3">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
+                Editable Imported Rounds
+              </p>
+              <p className="mt-2 text-xs text-text-secondary">
+                Add or correct up to 20 imported 9-hole rounds with the date picker, course, tee, and gross score.
+              </p>
+              <p className="mt-1 text-xs text-text-secondary">
+                Leave adjusted blank when gross and adjusted are the same. Choose custom only when the round does not match one of the configured courses.
+              </p>
+              <p className="mt-1 text-xs font-semibold text-text-secondary">
+                {editingPlayerImportedRounds.length > 0
+                  ? `${editingPlayerImportedRounds.length} round${editingPlayerImportedRounds.length === 1 ? '' : 's'} loaded`
+                  : 'No prior rounds loaded yet'}
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                className="rounded-lg border border-surface-border bg-surface-elevated px-3 py-2 text-sm font-semibold text-text-primary"
+                onClick={() => setEditingPlayerRoundsExpanded((current) => !current)}
+              >
+                {editingPlayerRoundsExpanded ? 'Hide Rounds' : 'Show Rounds'}
+              </button>
+              <button
+                type="button"
+                className="rounded-lg border border-surface-border bg-surface-elevated px-3 py-2 text-sm font-semibold text-text-primary"
+                onClick={addEditingPlayerImportedRound}
+                disabled={isSubmitting || editingPlayerImportedRounds.length >= 20}
+              >
+                Add Round
+              </button>
+            </div>
+          </div>
+          {editingPlayerRoundsExpanded ? (
+            <div className="mt-4 space-y-3">
+              {editingPlayerImportedRounds.length > 0 ? (
+                editingPlayerImportedRounds.map((round, index) => {
+                  const selectedTee =
+                    round.courseId !== CUSTOM_COURSE_ID
+                      ? getImportedHandicapCourseTee(
+                          data.courses,
+                          round.courseId,
+                          round.teeColor,
+                          editingPlayerGender
+                        )
+                      : null
+
+                  return (
+                    <div key={round.id} className="rounded-lg border border-surface-border bg-surface-elevated p-3">
+                      <div className="flex items-center justify-between gap-3">
+                        <p className="text-sm font-semibold text-text-primary">Round {index + 1}</p>
+                        <button
+                          type="button"
+                          className="text-sm text-danger-text"
+                          onClick={() => removeEditingPlayerImportedRound(round.id)}
+                        >
+                          Remove
+                        </button>
+                      </div>
+                      <div className="mt-3 grid gap-3 md:grid-cols-2 xl:grid-cols-5">
+                        <label className="space-y-1">
+                          <span className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">Date</span>
+                          <input
+                            className="w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
+                            type="date"
+                            value={round.date}
+                            onChange={(event) => updateEditingPlayerImportedRound(round.id, { date: event.target.value })}
+                          />
+                        </label>
+                        <label className="space-y-1 xl:col-span-2">
+                          <span className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">Course</span>
+                          <select
+                            className="w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
+                            value={round.courseId}
+                            onChange={(event) => updateEditingPlayerImportedRound(round.id, { courseId: event.target.value })}
+                          >
+                            {data.courses.map((course) => (
+                              <option key={course.id} value={course.id}>{course.name}</option>
+                            ))}
+                            <option value={CUSTOM_COURSE_ID}>Custom course values</option>
+                          </select>
+                        </label>
+                        <label className="space-y-1">
+                          <span className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">Tee</span>
+                          <select
+                            className="w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary disabled:text-text-disabled"
+                            value={round.teeColor}
+                            onChange={(event) => updateEditingPlayerImportedRound(round.id, { teeColor: event.target.value as TeeColor })}
+                            disabled={round.courseId === CUSTOM_COURSE_ID}
+                          >
+                            <option value="blue">Blue</option>
+                            <option value="white">White</option>
+                            <option value="yellow">Yellow</option>
+                            <option value="silver">Silver</option>
+                          </select>
+                        </label>
+                        <label className="space-y-1">
+                          <span className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">Gross</span>
+                          <input
+                            className="w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
+                            inputMode="numeric"
+                            value={round.grossScore}
+                            onChange={(event) => updateEditingPlayerImportedRound(round.id, { grossScore: event.target.value })}
+                          />
+                        </label>
+                      </div>
+                      <div className="mt-3 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+                        <label className="space-y-1">
+                          <span className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">Adjusted</span>
+                          <input
+                            className="w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
+                            inputMode="numeric"
+                            placeholder="Same as gross"
+                            value={round.adjustedGrossScore}
+                            onChange={(event) => updateEditingPlayerImportedRound(round.id, { adjustedGrossScore: event.target.value })}
+                          />
+                        </label>
+                        {round.courseId === CUSTOM_COURSE_ID ? (
+                          <>
+                            <label className="space-y-1">
+                              <span className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">Rating</span>
+                              <input
+                                className="w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
+                                inputMode="decimal"
+                                value={round.courseRating}
+                                onChange={(event) => updateEditingPlayerImportedRound(round.id, { courseRating: event.target.value })}
+                              />
+                            </label>
+                            <label className="space-y-1">
+                              <span className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">Slope</span>
+                              <input
+                                className="w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
+                                inputMode="numeric"
+                                value={round.slopeRating}
+                                onChange={(event) => updateEditingPlayerImportedRound(round.id, { slopeRating: event.target.value })}
+                              />
+                            </label>
+                            <label className="space-y-1">
+                              <span className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">Par</span>
+                              <input
+                                className="w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
+                                inputMode="numeric"
+                                value={round.coursePar}
+                                onChange={(event) => updateEditingPlayerImportedRound(round.id, { coursePar: event.target.value })}
+                              />
+                            </label>
+                          </>
+                        ) : (
+                          <div className="xl:col-span-3 rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-secondary">
+                            {selectedTee ? (
+                              <>
+                                Uses {selectedTee.courseName} {selectedTee.teeColor} tee values:{' '}
+                                {selectedTee.nineHoleRating.toFixed(1)} / {selectedTee.nineHoleSlope} / Par {selectedTee.nineHolePar}
+                              </>
+                            ) : (
+                              'This course does not have tee values configured yet.'
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )
+                })
+              ) : (
+                <div className="rounded-lg border border-dashed border-surface-border px-4 py-6 text-sm text-text-secondary">
+                  No prior handicap rounds added yet.
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="mt-4 rounded-lg border border-dashed border-surface-border px-4 py-4 text-sm text-text-secondary">
+              Prior rounds are collapsed for quicker profile edits.
+            </div>
+          )}
+        </div>
+        <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:justify-end">
+          <button
+            type="button"
+            className="rounded-lg border border-surface-border bg-surface-sunken px-4 py-3 text-sm font-semibold text-text-primary disabled:cursor-not-allowed disabled:text-text-disabled"
+            onClick={closeEditingPlayer}
+            disabled={isSubmitting}
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            className="font-condensed rounded-lg bg-accent px-4 py-3 text-sm font-bold uppercase tracking-wide text-white disabled:cursor-not-allowed disabled:bg-surface-sunken disabled:text-text-disabled"
+            disabled={isSubmitting}
+          >
+            Save Player
+          </button>
+        </div>
+      </>
+    )
+  }
+
   return (
-    <section className="space-y-4 px-4 py-6">
+    <section className="space-y-4 px-4 py-6 xl:px-6">
       <div className="rounded-xl border border-surface-border bg-surface-elevated p-4">
         <p className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
           Roster
@@ -1161,20 +1526,32 @@ export function RosterClient({ initialData }: RosterClientProps) {
         </form>
       </section>
 
-      <section className="rounded-xl border border-surface-border bg-surface-elevated">
-        <div className="border-b border-surface-border px-4 py-3">
+      <section className="rounded-xl border border-surface-border bg-surface-elevated xl:flex xl:overflow-hidden">
+        {/* left: player table */}
+        <div className="xl:min-w-0 xl:flex-1">
+        <div className="border-b border-surface-border px-4 py-3 xl:flex xl:items-center xl:justify-between xl:px-6">
           <p className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
             Players ({data.players.length})
           </p>
-          <p className="mt-1 text-xs text-text-secondary">
-            Active players are listed first, with inactive players grouped at the bottom.
+          <p className="mt-1 text-xs text-text-secondary xl:mt-0">
+            Active players listed first.
           </p>
+        </div>
+        {/* desktop table header */}
+        <div className="hidden xl:grid xl:grid-cols-[1fr_72px_60px_52px_96px_188px] items-center border-b border-surface-border bg-surface-sunken px-6 py-2 font-condensed text-[11px] font-bold uppercase tracking-widest text-text-muted">
+          <span>Name</span>
+          <span>HCP</span>
+          <span>Tee</span>
+          <span>Rnds</span>
+          <span>Status</span>
+          <span />
         </div>
         <div className="divide-y divide-surface-border">
           {data.players.map((player) => (
             <div key={player.id}>
+              {/* mobile row */}
               <div
-                className={`flex items-center gap-3 px-4 py-3 ${
+                className={`xl:hidden flex items-center gap-3 px-4 py-3 ${
                   player.active ? '' : 'bg-surface-sunken/30'
                 }`}
               >
@@ -1192,12 +1569,11 @@ export function RosterClient({ initialData }: RosterClientProps) {
                   </div>
                   <p className="mt-1 text-xs text-text-secondary">
                     {player.email ?? 'No email'} · {formatUsPhoneNumber(player.cellPhone) ?? 'No cell'}{' '}
-                    ·{' '}
-                    {player.handicap.kind === 'HCP' ? player.handicap.value : player.handicap.kind}
+                    · {player.handicap.kind === 'HCP' ? player.handicap.value : player.handicap.kind}
                   </p>
                   <p className="mt-1 text-[11px] text-text-secondary">
                     {player.recentHandicapRounds.length > 0
-                      ? `${player.recentHandicapRounds.length} most recent round${player.recentHandicapRounds.length === 1 ? '' : 's'} available · ${player.importedHandicapRounds.length} imported`
+                      ? `${player.recentHandicapRounds.length} round${player.recentHandicapRounds.length === 1 ? '' : 's'} · ${player.importedHandicapRounds.length} imported`
                       : 'No handicap rounds on file'}
                   </p>
                 </div>
@@ -1213,9 +1589,7 @@ export function RosterClient({ initialData }: RosterClientProps) {
                   <button
                     type="button"
                     className={`rounded-lg px-3 py-2 text-sm font-semibold ${
-                      player.active
-                        ? 'bg-surface-sunken text-text-primary'
-                        : 'bg-accent-dim text-accent-text'
+                      player.active ? 'bg-surface-sunken text-text-primary' : 'bg-accent-dim text-accent-text'
                     }`}
                     onClick={() => handleTogglePlayer(player.id, !player.active)}
                     disabled={isSubmitting}
@@ -1232,54 +1606,63 @@ export function RosterClient({ initialData }: RosterClientProps) {
                   </button>
                 </div>
               </div>
+              {/* desktop row */}
+              <div
+                className={`hidden xl:grid xl:grid-cols-[1fr_72px_60px_52px_96px_188px] items-center px-6 py-2 cursor-pointer hover:bg-surface-sunken/50 ${
+                  editingPlayerId === player.id ? 'bg-accent-dim' : player.active ? '' : 'bg-surface-sunken/20'
+                }`}
+                onClick={() => editingPlayerId === player.id ? closeEditingPlayer() : beginEditingPlayer(player)}
+              >
+                <span className="text-sm font-medium text-text-primary">{player.name}</span>
+                <span className="text-sm text-text-secondary">
+                  {player.handicap.kind === 'HCP' ? player.handicap.value : player.handicap.kind}
+                </span>
+                <span className="text-sm capitalize text-text-secondary">{player.defaultTeeColor ?? '—'}</span>
+                <span className="text-sm text-text-secondary">{player.recentHandicapRounds.length}</span>
+                <span>
+                  {player.active ? (
+                    <span className="rounded bg-accent-dim px-2 py-0.5 font-condensed text-[11px] font-semibold uppercase tracking-widest text-accent-text">Active</span>
+                  ) : (
+                    <span className="rounded bg-warning-dim px-2 py-0.5 font-condensed text-[11px] font-semibold uppercase tracking-widest text-warning-text">Inactive</span>
+                  )}
+                </span>
+                <div className="flex justify-end gap-1.5" onClick={(e) => e.stopPropagation()}>
+                  <button
+                    type="button"
+                    className="rounded bg-surface-sunken px-2.5 py-1 text-xs font-semibold text-text-primary hover:bg-surface-border disabled:opacity-50"
+                    onClick={() => editingPlayerId === player.id ? closeEditingPlayer() : beginEditingPlayer(player)}
+                    disabled={isSubmitting}
+                  >
+                    {editingPlayerId === player.id ? 'Close' : 'Edit'}
+                  </button>
+                  <button
+                    type="button"
+                    className={`rounded px-2.5 py-1 text-xs font-semibold disabled:opacity-50 ${
+                      player.active ? 'bg-surface-sunken text-text-primary hover:bg-surface-border' : 'bg-accent-dim text-accent-text'
+                    }`}
+                    onClick={() => handleTogglePlayer(player.id, !player.active)}
+                    disabled={isSubmitting}
+                  >
+                    {player.active ? 'Deact.' : 'Activate'}
+                  </button>
+                  <button
+                    type="button"
+                    className="rounded bg-danger-dim px-2.5 py-1 text-xs font-semibold text-danger-text disabled:opacity-50"
+                    onClick={() => handleDeletePlayer(player)}
+                    disabled={isSubmitting}
+                  >
+                    Delete
+                  </button>
+                </div>
+              </div>
 
               {editingPlayerId === player.id ? (
                 <form
-                  className="border-t border-surface-border bg-surface-base px-4 py-4"
+                  className="xl:hidden border-t border-surface-border bg-surface-base px-4 py-4"
                   onSubmit={handleSavePlayer}
                 >
-                  <div className="flex items-center justify-between gap-3">
-                    <div>
-                      <p className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
-                        Edit Player
-                      </p>
-                      <p className="mt-1 text-sm text-text-secondary">
-                        Update player profile, contact info, and seeded handicap.
-                      </p>
-                    </div>
-                    <button
-                      type="button"
-                      className="text-sm text-text-secondary"
-                      onClick={closeEditingPlayer}
-                    >
-                      Close
-                    </button>
-                  </div>
-                  <div className="sticky top-4 z-10 mt-4 flex items-center justify-between gap-3 rounded-lg border border-surface-border bg-surface-elevated/95 px-4 py-3 shadow-sm backdrop-blur">
-                    <div>
-                      <p className="text-sm font-semibold text-text-primary">{editingPlayerName || player.name}</p>
-                      <p className="text-xs text-text-secondary">
-                        Save quick contact changes without scrolling through handicap history.
-                      </p>
-                    </div>
-                    <div className="flex gap-2">
-                      <button
-                        type="button"
-                        className="rounded-lg border border-surface-border bg-surface-sunken px-3 py-2 text-sm font-semibold text-text-primary disabled:cursor-not-allowed disabled:text-text-disabled"
-                        onClick={closeEditingPlayer}
-                        disabled={isSubmitting}
-                      >
-                        Cancel
-                      </button>
-                      <button
-                        type="submit"
-                        className="font-condensed rounded-lg bg-accent px-4 py-2.5 text-sm font-bold uppercase tracking-wide text-white disabled:cursor-not-allowed disabled:bg-surface-sunken disabled:text-text-disabled"
-                        disabled={isSubmitting}
-                      >
-                        Save Player
-                      </button>
-                    </div>
-                  </div>
+                  {renderPlayerEditFormBody(player)}
+                  {false && (<>
                   <div className="mt-4 grid gap-3 md:grid-cols-2">
                     <input
                       className="w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
@@ -1643,28 +2026,25 @@ export function RosterClient({ initialData }: RosterClientProps) {
                       </div>
                     )}
                   </div>
-                  <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:justify-end">
-                    <button
-                      type="button"
-                      className="rounded-lg border border-surface-border bg-surface-sunken px-4 py-3 text-sm font-semibold text-text-primary disabled:cursor-not-allowed disabled:text-text-disabled"
-                      onClick={closeEditingPlayer}
-                      disabled={isSubmitting}
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      type="submit"
-                      className="font-condensed rounded-lg bg-accent px-4 py-3 text-sm font-bold uppercase tracking-wide text-white disabled:cursor-not-allowed disabled:bg-surface-sunken disabled:text-text-disabled"
-                      disabled={isSubmitting}
-                    >
-                      Save Player
-                    </button>
-                  </div>
+                  </>)}
                 </form>
               ) : null}
             </div>
           ))}
         </div>
+        </div>
+        {/* desktop edit panel */}
+        {editingPlayerId ? (() => {
+          const editingPlayer = data.players.find((p) => p.id === editingPlayerId)
+          if (!editingPlayer) return null
+          return (
+            <div className="hidden xl:flex xl:w-[420px] xl:shrink-0 xl:flex-col xl:border-l xl:border-surface-border">
+              <form className="flex-1 overflow-y-auto px-6 py-5" onSubmit={handleSavePlayer}>
+                {renderPlayerEditFormBody(editingPlayer)}
+              </form>
+            </div>
+          )
+        })() : null}
       </section>
 
       <section className="rounded-xl border border-surface-border bg-surface-elevated">

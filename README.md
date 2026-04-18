@@ -17,6 +17,7 @@ Each Friday follows the same rhythm: players arrive, the commissioner checks the
 
 **The week workspace**
 - Check players in as they arrive — the check-in order feeds into pairing logic
+- Attendance-only check-ins for players who show up but don't play (earn attendance point, skipped in pairings)
 - Generate pairings automatically, tweak them manually, then lock the card
 - Set the CTP and longest-putt holes and record winners
 - Track odd-player-count weeks: one player plays as a threesome pivot with a live match and a scorecard-only reference match
@@ -120,12 +121,18 @@ app/
   (auth)/login/   commissioner login
   public/         public-facing league pages (no auth)
 lib/
-  handicap.ts     WHS index and course handicap calculations
-  scoring.ts      match play, stroke play, and point totals
-  matchmaking.ts  pairing algorithm
-  week.ts         week lifecycle queries
-  standings.ts    season standings aggregation
-  roster.ts       player and season queries
+  handicap.ts               WHS index and course handicap calculations
+  handicap-records.ts       DB-level usedInIndex marking per WHS Rule 5.2a
+  playing-handicap.ts       course handicap and index value helpers
+  player-handicap-display.ts  NEW / EST / HCP display labels
+  imported-handicap.ts      prior handicap round import and parsing
+  scoring.ts                match play, stroke play, and point totals
+  match-score.ts            match result recording, ESC, and handicap recomputation
+  matchmaking.ts            pairing algorithm
+  week.ts                   week lifecycle queries
+  history.ts                completed week summary queries
+  standings.ts              season standings aggregation
+  roster.ts                 player and season queries
 prisma/
   schema.prisma   data model
   migrations/     migration history

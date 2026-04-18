@@ -75,44 +75,49 @@ export async function getRosterPageData() {
 
         return getPlayerSortKey(left.name).localeCompare(getPlayerSortKey(right.name))
       })
-      .map((player) => ({
-      id: player.id,
-      name: player.name,
-      gender: player.gender,
-      defaultTeeColor: player.defaultTeeColor,
-      email: player.email,
-      cellPhone: player.cellPhone,
-      active: player.active,
-      seedHandicap: player.seedHandicap,
-      seasonTeeChoices: player.seasonTeeChoices.map((choice) => ({
-        seasonId: choice.seasonId,
-        teeColor: choice.teeColor
-      })),
-      recentHandicapRounds: player.handicapRecords
-        .slice(0, 20)
-        .map((record) => ({
-          date: record.date.toISOString().slice(0, 10),
-          grossScore: record.grossScore,
-          adjustedGrossScore: record.adjustedGrossScore,
-          courseRating: record.courseRating,
-          slopeRating: record.slopeRating,
-          coursePar: record.coursePar,
-          isImported: record.isImported,
-          weekId: record.weekId
-        })),
-      importedHandicapRounds: player.handicapRecords
-        .filter((record) => record.isImported && record.weekId === null)
-        .sort((a, b) => a.date.getTime() - b.date.getTime())
-        .map((record) => ({
-          date: record.date.toISOString().slice(0, 10),
-          grossScore: record.grossScore,
-          adjustedGrossScore: record.adjustedGrossScore,
-          courseRating: record.courseRating,
-          slopeRating: record.slopeRating,
-          coursePar: record.coursePar
-      })),
-      handicap: getPlayerHandicapDisplay(player)
-    })),
+      .map((player) => {
+        const recentHandicapRecords = player.handicapRecords.slice(0, 20)
+
+        return {
+          id: player.id,
+          name: player.name,
+          gender: player.gender,
+          defaultTeeColor: player.defaultTeeColor,
+          email: player.email,
+          cellPhone: player.cellPhone,
+          active: player.active,
+          seedHandicap: player.seedHandicap,
+          seasonTeeChoices: player.seasonTeeChoices.map((choice) => ({
+            seasonId: choice.seasonId,
+            teeColor: choice.teeColor
+          })),
+          recentHandicapRounds: recentHandicapRecords.map((record) => ({
+            date: record.date.toISOString().slice(0, 10),
+            grossScore: record.grossScore,
+            adjustedGrossScore: record.adjustedGrossScore,
+            courseRating: record.courseRating,
+            slopeRating: record.slopeRating,
+            coursePar: record.coursePar,
+            isImported: record.isImported,
+            weekId: record.weekId
+          })),
+          importedHandicapRounds: player.handicapRecords
+            .filter((record) => record.isImported && record.weekId === null)
+            .sort((a, b) => a.date.getTime() - b.date.getTime())
+            .map((record) => ({
+              date: record.date.toISOString().slice(0, 10),
+              grossScore: record.grossScore,
+              adjustedGrossScore: record.adjustedGrossScore,
+              courseRating: record.courseRating,
+              slopeRating: record.slopeRating,
+              coursePar: record.coursePar
+            })),
+          handicap: getPlayerHandicapDisplay({
+            seedHandicap: player.seedHandicap,
+            handicapRecords: recentHandicapRecords
+          })
+        }
+      }),
     courses: courses.map((course) => ({
       id: course.id,
       name: course.name,

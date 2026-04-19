@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { getApiSession, unauthorizedResponse } from '@/lib/api-auth'
+import { comparePlayerNamesByLastName } from '@/lib/player-sort'
 import { applyStoredMatchResult, getUnpairedPresentPlayerIds } from '@/lib/points'
 import { resolveStrokeWinnerId } from '@/lib/stroke-result'
 
@@ -127,7 +128,7 @@ export async function GET(request: NextRequest) {
         return b.totalPoints - a.totalPoints
       }
 
-      return a.name.localeCompare(b.name)
+      return comparePlayerNamesByLastName(a.name, b.name)
     })
   )
 }

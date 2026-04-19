@@ -2,6 +2,7 @@ import type { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/db'
 import { getPhoenixDateParts } from '@/lib/phoenix-time'
 import { getPlayerHandicapDisplay } from '@/lib/player-handicap-display'
+import { comparePlayerNamesByLastName } from '@/lib/player-sort'
 import {
   getCourseTee,
   getDefaultTeeColorForGender,
@@ -58,19 +59,6 @@ export function formatDate(date: Date) {
     day: 'numeric',
     year: 'numeric'
   }).format(date)
-}
-
-function compareNamesByLastName(a: string, b: string) {
-  const aParts = a.trim().split(/\s+/)
-  const bParts = b.trim().split(/\s+/)
-  const aLast = aParts[aParts.length - 1]?.toLocaleLowerCase('en-US') ?? ''
-  const bLast = bParts[bParts.length - 1]?.toLocaleLowerCase('en-US') ?? ''
-
-  if (aLast !== bLast) {
-    return aLast.localeCompare(bLast, 'en-US')
-  }
-
-  return a.localeCompare(b, 'en-US')
 }
 
 export function pickActiveSeason<T extends {
@@ -260,7 +248,7 @@ export async function getCurrentWeekPageData() {
         : getDefaultTeeColorForGender(player.gender),
       handicap
     }
-  }).sort((a, b) => compareNamesByLastName(a.name, b.name))
+  }).sort((a, b) => comparePlayerNamesByLastName(a.name, b.name))
 
   return {
     currentWeek: currentWeek

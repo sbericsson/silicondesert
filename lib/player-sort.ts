@@ -38,3 +38,7 @@ export function getPlayerSortKey(name: string) {
 
   return `${surname.toLocaleLowerCase('en-US')}|${givenNames.toLocaleLowerCase('en-US')}|${normalized.toLocaleLowerCase('en-US')}`
 }
+
+export function comparePlayerNamesByLastName(a: string, b: string) {
+  return getPlayerSortKey(a).localeCompare(getPlayerSortKey(b), 'en-US')
+}

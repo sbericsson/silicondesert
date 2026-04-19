@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/db'
 import { getPlayerHandicapInlineLabel } from '@/lib/player-handicap-display'
+import { comparePlayerNamesByLastName } from '@/lib/player-sort'
 import { applyStoredMatchResult, getUnpairedPresentPlayerIds } from '@/lib/points'
 import { resolveStrokeWinnerId } from '@/lib/stroke-result'
 import { getCurrentWeekRecord, pickActiveSeason } from '@/lib/week'
@@ -174,7 +175,7 @@ export async function getStandingsPageData() {
         return b.totalPoints - a.totalPoints
       }
 
-      return a.name.localeCompare(b.name)
+      return comparePlayerNamesByLastName(a.name, b.name)
     })
   }
 }

@@ -1,6 +1,7 @@
 'use client'
 
 import { useMemo, useState } from 'react'
+import { comparePlayerNamesByLastName } from '@/lib/player-sort'
 
 type StandingRow = {
   playerId: string
@@ -47,8 +48,8 @@ export function PublicStandingsTable({
 
       if (sortKey === 'name') {
         return sortDirection === 'asc'
-          ? left.name.localeCompare(right.name)
-          : right.name.localeCompare(left.name)
+          ? comparePlayerNamesByLastName(left.name, right.name)
+          : comparePlayerNamesByLastName(right.name, left.name)
       }
 
       if (rightValue !== leftValue) {
@@ -57,7 +58,7 @@ export function PublicStandingsTable({
           : Number(rightValue) - Number(leftValue)
       }
 
-      return left.name.localeCompare(right.name)
+      return comparePlayerNamesByLastName(left.name, right.name)
     })
 
     return next

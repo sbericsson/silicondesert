@@ -154,7 +154,7 @@ describe('submitMatchScores', () => {
         defaultTeeColor: 'blue',
         seedHandicap: 0,
         seasonTeeChoices: [],
-        handicapRecords: []
+        handicapRecords: [{ weekId: 'previous-week', courseDifferential: 0 }]
       },
       player2: {
         id: 'p2',
@@ -163,7 +163,7 @@ describe('submitMatchScores', () => {
         defaultTeeColor: 'blue',
         seedHandicap: 0,
         seasonTeeChoices: [],
-        handicapRecords: []
+        handicapRecords: [{ weekId: 'previous-week', courseDifferential: 0 }]
       }
     }
 
@@ -198,5 +198,104 @@ describe('submitMatchScores', () => {
     expect(holeScoreUpsertMock).toHaveBeenCalledTimes(18)
     expect(handicapRecordUpsertMock).toHaveBeenCalledTimes(2)
     expect(recomputeUsedInIndexMock).toHaveBeenCalledTimes(2)
+  })
+
+  it('scores a first-time player from a provisional first-round handicap', async () => {
+    const matchRecord = {
+      id: 'match-1',
+      weekId: 'week-1',
+      player1Id: 'p1',
+      player2Id: 'p2',
+      player1HandicapIndex: 0,
+      player2HandicapIndex: 0,
+      player1PlayingHandicap: 0,
+      player2PlayingHandicap: 0,
+      player1TeeOverrideColor: null,
+      player2TeeOverrideColor: null,
+      player2ScorecardOnly: false,
+      locked: true,
+      createdAt: new Date('2026-04-10T17:00:00.000Z'),
+      week: {
+        season: {
+          id: 'season-1',
+          archivedAt: null
+        },
+        date: new Date('2026-04-10T00:00:00.000Z'),
+        handicapMode: 'index',
+        locked: true,
+        attendance: [
+          { playerId: 'p1', present: true },
+          { playerId: 'p2', present: true }
+        ],
+        course: {
+          nineHolePar: 36,
+          nineHoleRating: 36,
+          nineHoleSlope: 113,
+          tees: [
+            {
+              color: 'blue',
+              gender: 'man',
+              nineHolePar: 36,
+              nineHoleRating: 36,
+              nineHoleSlope: 113
+            }
+          ],
+          holes: Array.from({ length: 9 }, (_, index) => ({
+            holeNumber: index + 1,
+            par: 4,
+            strokeIndex: index + 1
+          }))
+        }
+      },
+      player1: {
+        id: 'p1',
+        name: 'First Timer',
+        gender: 'man',
+        defaultTeeColor: 'blue',
+        seedHandicap: 0,
+        seasonTeeChoices: [],
+        handicapRecords: []
+      },
+      player2: {
+        id: 'p2',
+        name: 'Scratch Player',
+        gender: 'man',
+        defaultTeeColor: 'blue',
+        seedHandicap: 0,
+        seasonTeeChoices: [],
+        handicapRecords: [{ weekId: 'previous-week', courseDifferential: 0 }]
+      }
+    }
+
+    matchFindFirstMock.mockResolvedValueOnce(matchRecord).mockResolvedValueOnce(null)
+
+    const result = await submitMatchScores({
+      weekId: 'week-1',
+      matchId: 'match-1',
+      player1Scores: buildScores([7, 7, 6, 6, 6, 6, 6, 6, 6]),
+      player2Scores: buildScores([4, 5, 5, 5, 5, 5, 5, 5, 5])
+    })
+
+    expect(matchUpdateMock).toHaveBeenCalledWith({
+      where: { id: 'match-1' },
+      data: {
+        player1HandicapIndex: 18,
+        player1PlayingHandicap: 18,
+        strokeWinnerId: 'p1',
+        matchPlayLeadBy: 4,
+        matchPlayHolesRemaining: 2,
+        matchPlayWinnerId: 'p1'
+      }
+    })
+
+    expect(result.match).toEqual({
+      id: 'match-1',
+      strokeWinnerId: 'p1',
+      matchPlayLeadBy: 4,
+      matchPlayHolesRemaining: 2,
+      matchPlayWinnerId: 'p1'
+    })
+    expect(result.pointsSummary.player1Points).toBe(5)
+    expect(result.pointsSummary.player2Points).toBe(1)
   })
 })

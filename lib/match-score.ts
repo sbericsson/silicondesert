@@ -23,6 +23,27 @@ function getEffectiveHandicapIndex(player: {
   return handicapIndex(player.handicapRecords.map((record) => record.courseDifferential)) ?? player.seedHandicap ?? 0
 }
 
+function getFirstRoundHandicapIndex(
+  player: {
+    handicapRecords: Array<{ weekId: string | null }>
+  },
+  currentWeekId: string,
+  grossScore: number,
+  tee: {
+    nineHoleRating: number
+    nineHoleSlope: number
+  }
+) {
+  const hasPriorRound = player.handicapRecords.some((record) => record.weekId !== currentWeekId)
+  if (hasPriorRound) {
+    return null
+  }
+
+  return handicapIndex([
+    scoreDifferential(grossScore, tee.nineHoleRating, tee.nineHoleSlope)
+  ])
+}
+
 function sum(values: Array<number | null>) {
   return values.reduce<number>((total, value) => total + (value ?? 0), 0)
 }
@@ -380,12 +401,32 @@ export async function submitMatchScores(input: {
     nineHoleRating: course.nineHoleRating,
     nineHoleSlope: course.nineHoleSlope
   })
+  const player1Gross = sum(player1Scores.map((score) => score.grossScore))
+  const player2Gross = sum(player2Scores.map((score) => score.grossScore))
+  const firstRoundPlayer1Index = getFirstRoundHandicapIndex(
+    match.player1,
+    input.weekId,
+    player1Gross,
+    player1Tee
+  )
+  const firstRoundPlayer2Index = getFirstRoundHandicapIndex(
+    match.player2,
+    input.weekId,
+    player2Gross,
+    player2Tee
+  )
+  const scoringPlayer1Index = firstRoundPlayer1Index ?? player1Index
+  const scoringPlayer2Index = firstRoundPlayer2Index ?? player2Index
   const player1PlayingHandicap =
-    match.player1PlayingHandicap ??
-    getPlayingHandicap(match.week.handicapMode, player1Index, player1Tee)
+    firstRoundPlayer1Index === null
+      ? match.player1PlayingHandicap ??
+        getPlayingHandicap(match.week.handicapMode, scoringPlayer1Index, player1Tee)
+      : getPlayingHandicap(match.week.handicapMode, scoringPlayer1Index, player1Tee)
   const player2PlayingHandicap =
-    match.player2PlayingHandicap ??
-    getPlayingHandicap(match.week.handicapMode, player2Index, player2Tee)
+    firstRoundPlayer2Index === null
+      ? match.player2PlayingHandicap ??
+        getPlayingHandicap(match.week.handicapMode, scoringPlayer2Index, player2Tee)
+      : getPlayingHandicap(match.week.handicapMode, scoringPlayer2Index, player2Tee)
 
   const holeByNumber = new Map(course.holes.map((hole) => [hole.holeNumber, hole]))
 
@@ -435,8 +476,6 @@ export async function submitMatchScores(input: {
   const player2NetTotal = sum(processedP2.map((score) => score.netScore))
   const player1AdjustedGross = sum(processedP1.map((score) => score.adjustedScore))
   const player2AdjustedGross = sum(processedP2.map((score) => score.adjustedScore))
-  const player1Gross = sum(processedP1.map((score) => score.grossScore))
-  const player2Gross = sum(processedP2.map((score) => score.grossScore))
   const matchPlayResult = calculateMatchPlayResult(
     processedP1.map((score, index) => ({
       player1Net: score.netScore,
@@ -528,6 +567,18 @@ export async function submitMatchScores(input: {
     await tx.match.update({
       where: { id: input.matchId },
       data: {
+        ...(firstRoundPlayer1Index === null
+          ? {}
+          : {
+              player1HandicapIndex: scoringPlayer1Index,
+              player1PlayingHandicap
+            }),
+        ...(firstRoundPlayer2Index === null
+          ? {}
+          : {
+              player2HandicapIndex: scoringPlayer2Index,
+              player2PlayingHandicap
+            }),
         strokeWinnerId,
         matchPlayLeadBy: matchPlayResult?.matchPlayLeadBy ?? null,
         matchPlayHolesRemaining: matchPlayResult?.matchPlayHolesRemaining ?? null,

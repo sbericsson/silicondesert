@@ -3,7 +3,8 @@ import {
   applyESC,
   courseHandicap,
   handicapIndex,
-  scoreDifferential
+  scoreDifferential,
+  strokesReceivedOnHole
 } from '@/lib/handicap'
 import { getCourseTee, getPlayerMatchTeeColor } from '@/lib/course-tee'
 import { getMatchStrokeAllocation } from '@/lib/match-net-scoring'
@@ -14,27 +15,38 @@ import { writeAuditLog } from '@/lib/audit'
 
 function getEffectiveHandicapIndex(player: {
   seedHandicap: number | null
-  handicapRecords: Array<{ courseDifferential: number }>
+  handicapRecords: Array<{ courseDifferential: number; date?: Date }>
 }, snapshot: number | null) {
   if (snapshot !== null) {
     return snapshot
   }
 
-  return handicapIndex(player.handicapRecords.map((record) => record.courseDifferential)) ?? player.seedHandicap ?? 0
+  const records = [...player.handicapRecords].sort((left, right) => {
+    if (!left.date || !right.date) {
+      return 0
+    }
+
+    return left.date.getTime() - right.date.getTime()
+  })
+
+  return handicapIndex(records.map((record) => record.courseDifferential)) ?? player.seedHandicap ?? 0
 }
 
 function getFirstRoundHandicapIndex(
   player: {
-    handicapRecords: Array<{ weekId: string | null }>
+    handicapRecords: Array<{ date: Date; weekId: string | null }>
   },
   currentWeekId: string,
+  currentWeekDate: Date,
   grossScore: number,
   tee: {
     nineHoleRating: number
     nineHoleSlope: number
   }
 ) {
-  const hasPriorRound = player.handicapRecords.some((record) => record.weekId !== currentWeekId)
+  const hasPriorRound = player.handicapRecords.some(
+    (record) => record.weekId !== currentWeekId && record.date.getTime() < currentWeekDate.getTime()
+  )
   if (hasPriorRound) {
     return null
   }
@@ -334,8 +346,7 @@ export async function submitMatchScores(input: {
       player1: {
         include: {
           handicapRecords: {
-            orderBy: { date: 'desc' },
-            take: 20
+            orderBy: { date: 'desc' }
           },
           seasonTeeChoices: true
         }
@@ -343,8 +354,7 @@ export async function submitMatchScores(input: {
       player2: {
         include: {
           handicapRecords: {
-            orderBy: { date: 'desc' },
-            take: 20
+            orderBy: { date: 'desc' }
           },
           seasonTeeChoices: true
         }
@@ -406,17 +416,31 @@ export async function submitMatchScores(input: {
   const firstRoundPlayer1Index = getFirstRoundHandicapIndex(
     match.player1,
     input.weekId,
+    match.week.date,
     player1Gross,
     player1Tee
   )
   const firstRoundPlayer2Index = getFirstRoundHandicapIndex(
     match.player2,
     input.weekId,
+    match.week.date,
     player2Gross,
     player2Tee
   )
   const scoringPlayer1Index = firstRoundPlayer1Index ?? player1Index
   const scoringPlayer2Index = firstRoundPlayer2Index ?? player2Index
+  const player1EscHandicap = courseHandicap(
+    scoringPlayer1Index,
+    player1Tee.nineHoleSlope,
+    player1Tee.nineHoleRating,
+    player1Tee.nineHolePar
+  )
+  const player2EscHandicap = courseHandicap(
+    scoringPlayer2Index,
+    player2Tee.nineHoleSlope,
+    player2Tee.nineHoleRating,
+    player2Tee.nineHolePar
+  )
   const player1PlayingHandicap =
     firstRoundPlayer1Index === null
       ? match.player1PlayingHandicap ??
@@ -441,7 +465,8 @@ export async function submitMatchScores(input: {
       player2PlayingHandicap,
       hole.strokeIndex
     )
-    const adjustedScore = applyESC(score.grossScore, hole.par, player1MatchStrokes)
+    const handicapStrokes = strokesReceivedOnHole(player1EscHandicap, hole.strokeIndex)
+    const adjustedScore = applyESC(score.grossScore, hole.par, handicapStrokes)
 
     return {
       holeNumber: score.holeNumber,
@@ -462,7 +487,8 @@ export async function submitMatchScores(input: {
       player2PlayingHandicap,
       hole.strokeIndex
     )
-    const adjustedScore = applyESC(score.grossScore, hole.par, player2MatchStrokes)
+    const handicapStrokes = strokesReceivedOnHole(player2EscHandicap, hole.strokeIndex)
+    const adjustedScore = applyESC(score.grossScore, hole.par, handicapStrokes)
 
     return {
       holeNumber: score.holeNumber,

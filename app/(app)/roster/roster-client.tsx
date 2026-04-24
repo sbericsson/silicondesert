@@ -175,6 +175,10 @@ function sortPlayers(players: RosterPageData['players']) {
   })
 }
 
+function getPlayerRosterTeeColor(player: RosterPageData['players'][number]) {
+  return player.defaultTeeColor ?? getDefaultTeeColorForGender(player.gender)
+}
+
 function formatRosterRoundLabel(
   round: RosterPageData['players'][number]['recentHandicapRounds'][number]
 ) {
@@ -1622,7 +1626,7 @@ export function RosterClient({ initialData }: RosterClientProps) {
                 <span className="text-sm text-text-secondary">
                   {player.handicap.kind === 'HCP' ? player.handicap.value : player.handicap.kind}
                 </span>
-                <span className="text-sm capitalize text-text-secondary">{player.defaultTeeColor ?? '—'}</span>
+                <span className="text-sm capitalize text-text-secondary">{getPlayerRosterTeeColor(player)}</span>
                 <span className="text-sm text-text-secondary">{player.recentHandicapRounds.length}</span>
                 <span>
                   {player.active ? (

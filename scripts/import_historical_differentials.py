@@ -315,6 +315,7 @@ WHERE hr."playerId" = affected.player_id
   AND hr."date"::DATE < DATE '{HISTORICAL_CUTOFF_DATE}';
 
 INSERT INTO "HandicapRecord" (
+  "id",
   "playerId",
   "weekId",
   "date",
@@ -329,6 +330,7 @@ INSERT INTO "HandicapRecord" (
   "countsForHandicap"
 )
 SELECT
+  'legacy-diff-' || md5(source.player_id || ':' || source."played_on"::TEXT),
   source.player_id,
   NULL,
   source."played_on"::TIMESTAMP + INTERVAL '7 hours',

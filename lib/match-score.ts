@@ -173,8 +173,8 @@ export async function getMatchScorePageData(weekId: string, matchId: string) {
   })
 
   const attendanceMap = new Map(match.week.attendance.map((entry) => [entry.playerId, entry.present]))
-  const player1Index = getEffectiveHandicapIndex(match.player1, match.player1HandicapIndex)
-  const player2Index = getEffectiveHandicapIndex(match.player2, match.player2HandicapIndex)
+  const player1BaseIndex = getEffectiveHandicapIndex(match.player1, match.player1HandicapIndex)
+  const player2BaseIndex = getEffectiveHandicapIndex(match.player2, match.player2HandicapIndex)
   const player1TeeColor = getPlayerMatchTeeColor(
     match.player1.seasonTeeChoices,
     match.week.season.id,
@@ -203,6 +203,22 @@ export async function getMatchScorePageData(weekId: string, matchId: string) {
     nineHoleRating: match.week.course.nineHoleRating,
     nineHoleSlope: match.week.course.nineHoleSlope
   })
+  const savedPlayer1Scores = holeScores.filter((score) => score.playerId === match.player1Id)
+  const savedPlayer2Scores = holeScores.filter((score) => score.playerId === match.player2Id)
+  const savedPlayer1Gross =
+    savedPlayer1Scores.length === 9 ? sum(savedPlayer1Scores.map((score) => score.grossScore)) : null
+  const savedPlayer2Gross =
+    savedPlayer2Scores.length === 9 ? sum(savedPlayer2Scores.map((score) => score.grossScore)) : null
+  const firstRoundPlayer1Index =
+    savedPlayer1Gross === null
+      ? null
+      : getFirstRoundHandicapIndex(match.player1, weekId, match.week.date, savedPlayer1Gross, player1Tee)
+  const firstRoundPlayer2Index =
+    savedPlayer2Gross === null
+      ? null
+      : getFirstRoundHandicapIndex(match.player2, weekId, match.week.date, savedPlayer2Gross, player2Tee)
+  const player1Index = firstRoundPlayer1Index ?? player1BaseIndex
+  const player2Index = firstRoundPlayer2Index ?? player2BaseIndex
   const player1CourseHandicap = courseHandicap(
     player1Index,
     player1Tee.nineHoleSlope,
@@ -216,11 +232,15 @@ export async function getMatchScorePageData(weekId: string, matchId: string) {
     player2Tee.nineHolePar
   )
   const player1PlayingHandicap =
-    match.player1PlayingHandicap ??
-    getPlayingHandicap(match.week.handicapMode, player1Index, player1Tee)
+    firstRoundPlayer1Index === null
+      ? match.player1PlayingHandicap ??
+        getPlayingHandicap(match.week.handicapMode, player1Index, player1Tee)
+      : getPlayingHandicap(match.week.handicapMode, player1Index, player1Tee)
   const player2PlayingHandicap =
-    match.player2PlayingHandicap ??
-    getPlayingHandicap(match.week.handicapMode, player2Index, player2Tee)
+    firstRoundPlayer2Index === null
+      ? match.player2PlayingHandicap ??
+        getPlayingHandicap(match.week.handicapMode, player2Index, player2Tee)
+      : getPlayingHandicap(match.week.handicapMode, player2Index, player2Tee)
 
   const scoreMap = new Map(holeScores.map((score) => [`${score.playerId}:${score.holeNumber}`, score]))
 
@@ -232,18 +252,22 @@ export async function getMatchScorePageData(weekId: string, matchId: string) {
       player2PlayingHandicap,
       hole.strokeIndex
     )
+    const player1AdjustedStrokesReceived = strokesReceivedOnHole(player1CourseHandicap, hole.strokeIndex)
+    const player2AdjustedStrokesReceived = strokesReceivedOnHole(player2CourseHandicap, hole.strokeIndex)
 
     return {
       holeNumber: hole.holeNumber,
       par: hole.par,
       strokeIndex: hole.strokeIndex,
       player1StrokesReceived: player1MatchStrokes,
+      player1AdjustedStrokesReceived,
       player2StrokesReceived: player2MatchStrokes,
+      player2AdjustedStrokesReceived,
       player1Gross: p1?.grossScore ?? null,
-      player1Adj: p1?.adjustedScore ?? null,
+      player1Adj: p1 ? applyESC(p1.grossScore, hole.par, player1AdjustedStrokesReceived) : null,
       player1Net: p1 ? p1.grossScore - player1MatchStrokes : null,
       player2Gross: p2?.grossScore ?? null,
-      player2Adj: p2?.adjustedScore ?? null,
+      player2Adj: p2 ? applyESC(p2.grossScore, hole.par, player2AdjustedStrokesReceived) : null,
       player2Net: p2 ? p2.grossScore - player2MatchStrokes : null
     }
   })

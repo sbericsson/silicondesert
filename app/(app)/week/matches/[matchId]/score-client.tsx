@@ -50,7 +50,9 @@ type MatchScorePageData = {
     par: number
     strokeIndex: number
     player1StrokesReceived: number
+    player1AdjustedStrokesReceived: number
     player2StrokesReceived: number
+    player2AdjustedStrokesReceived: number
     player1Gross: number | null
     player1Adj: number | null
     player1Net: number | null
@@ -135,8 +137,8 @@ export function MatchScoreClient({ initialData, returnHref }: MatchScoreClientPr
     return initialData.rows.map((row) => {
       const p1Gross = player1Scores[row.holeNumber] === '' ? null : Number(player1Scores[row.holeNumber])
       const p2Gross = player2Scores[row.holeNumber] === '' ? null : Number(player2Scores[row.holeNumber])
-      const p1Adj = p1Gross === null ? null : applyESC(p1Gross, row.par, row.player1StrokesReceived)
-      const p2Adj = p2Gross === null ? null : applyESC(p2Gross, row.par, row.player2StrokesReceived)
+      const p1Adj = p1Gross === null ? null : applyESC(p1Gross, row.par, row.player1AdjustedStrokesReceived)
+      const p2Adj = p2Gross === null ? null : applyESC(p2Gross, row.par, row.player2AdjustedStrokesReceived)
 
       return {
         ...row,

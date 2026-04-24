@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 const {
   matchFindFirstMock,
   transactionMock,
+  holeScoreFindManyMock,
   holeScoreFindUniqueMock,
   holeScoreUpsertMock,
   matchUpdateMock,
@@ -13,6 +14,7 @@ const {
 } = vi.hoisted(() => ({
   matchFindFirstMock: vi.fn(),
   transactionMock: vi.fn(),
+  holeScoreFindManyMock: vi.fn(),
   holeScoreFindUniqueMock: vi.fn(),
   holeScoreUpsertMock: vi.fn(),
   matchUpdateMock: vi.fn(),
@@ -42,6 +44,9 @@ vi.mock('@/lib/db', () => ({
         return matchFindFirstMock(...args)
       }
     },
+    holeScore: {
+      findMany: holeScoreFindManyMock
+    },
     $transaction: transactionMock
   }
 }))
@@ -50,7 +55,7 @@ vi.mock('@/lib/handicap-records', () => ({
   recomputeUsedInIndex: recomputeUsedInIndexMock
 }))
 
-import { submitMatchScores } from '@/lib/match-score'
+import { getMatchScorePageData, submitMatchScores } from '@/lib/match-score'
 
 function buildScores(scores: number[]) {
   return scores.map((grossScore, index) => ({
@@ -65,6 +70,7 @@ describe('submitMatchScores', () => {
 
     matchFindFirstMock.mockReset()
     transactionMock.mockReset()
+    holeScoreFindManyMock.mockReset()
     holeScoreFindUniqueMock.mockReset()
     holeScoreUpsertMock.mockReset()
     matchUpdateMock.mockReset()
@@ -80,6 +86,7 @@ describe('submitMatchScores', () => {
     auditLogCreateMock.mockResolvedValue(null)
     recomputeUsedInIndexMock.mockResolvedValue(undefined)
     nextPendingMatchFindFirstMock.mockResolvedValue(null)
+    holeScoreFindManyMock.mockResolvedValue([])
 
     transactionMock.mockImplementation(async (callback: (tx: unknown) => Promise<unknown>) =>
       callback({
@@ -252,10 +259,10 @@ describe('submitMatchScores', () => {
               nineHoleSlope: 113
             }
           ],
-          holes: Array.from({ length: 9 }, (_, index) => ({
+          holes: [1, 5, 4, 8, 9, 7, 6, 2, 3].map((strokeIndex, index) => ({
             holeNumber: index + 1,
             par: 4,
-            strokeIndex: index + 1
+            strokeIndex
           }))
         }
       },
@@ -430,5 +437,125 @@ describe('submitMatchScores', () => {
         })
       })
     )
+  })
+
+  it('displays first-round adjusted gross from back-calculated handicap on historical edits', async () => {
+    const matchRecord = {
+      id: 'match-1',
+      weekId: 'week-1',
+      player1Id: 'p1',
+      player2Id: 'p2',
+      player1HandicapIndex: 0,
+      player2HandicapIndex: 0,
+      player1PlayingHandicap: 0,
+      player2PlayingHandicap: 0,
+      player1TeeOverrideColor: null,
+      player2TeeOverrideColor: null,
+      matchPlayLeadBy: 3,
+      matchPlayHolesRemaining: 2,
+      matchPlayWinnerId: 'p2',
+      player2ScorecardOnly: false,
+      locked: true,
+      createdAt: new Date('2026-04-10T17:00:00.000Z'),
+      week: {
+        id: 'week-1',
+        weekNumber: 1,
+        ctpHoleNumber: null,
+        completedAt: new Date('2026-04-12T00:00:00.000Z'),
+        season: {
+          id: 'season-1',
+          name: 'Spring 2026',
+          archivedAt: null
+        },
+        date: new Date('2026-04-10T00:00:00.000Z'),
+        handicapMode: 'index',
+        locked: true,
+        attendance: [
+          { playerId: 'p1', present: true },
+          { playerId: 'p2', present: true }
+        ],
+        course: {
+          name: 'Test Course',
+          nineHolePar: 36,
+          nineHoleRating: 36,
+          nineHoleSlope: 113,
+          tees: [
+            {
+              color: 'blue',
+              gender: 'man',
+              nineHolePar: 36,
+              nineHoleRating: 36,
+              nineHoleSlope: 113
+            }
+          ],
+          holes: [1, 5, 4, 8, 9, 7, 6, 2, 3].map((strokeIndex, index) => ({
+            holeNumber: index + 1,
+            par: 4,
+            strokeIndex
+          }))
+        }
+      },
+      player1: {
+        id: 'p1',
+        name: 'Rebecca McCarter',
+        gender: 'man',
+        defaultTeeColor: 'blue',
+        seedHandicap: 0,
+        seasonTeeChoices: [],
+        handicapRecords: [
+          {
+            weekId: 'week-1',
+            date: new Date('2026-04-10T00:00:00.000Z'),
+            courseDifferential: 8
+          },
+          {
+            weekId: 'week-2',
+            date: new Date('2026-04-17T00:00:00.000Z'),
+            courseDifferential: 9
+          }
+        ]
+      },
+      player2: {
+        id: 'p2',
+        name: 'Chris Thornburg',
+        gender: 'man',
+        defaultTeeColor: 'blue',
+        seedHandicap: 0,
+        seasonTeeChoices: [],
+        handicapRecords: [
+          {
+            weekId: 'week-1',
+            date: new Date('2026-04-10T00:00:00.000Z'),
+            courseDifferential: 12
+          },
+          {
+            weekId: 'week-2',
+            date: new Date('2026-04-17T00:00:00.000Z'),
+            courseDifferential: 11
+          }
+        ]
+      }
+    }
+
+    matchFindFirstMock.mockResolvedValueOnce(matchRecord).mockResolvedValueOnce(null)
+    holeScoreFindManyMock.mockResolvedValue(
+      [
+        ...buildScores([5, 5, 5, 5, 5, 5, 7, 4, 5]).map((score) => ({
+          ...score,
+          playerId: 'p1',
+          adjustedScore: score.holeNumber === 7 ? 6 : score.grossScore
+        })),
+        ...buildScores([5, 6, 6, 6, 6, 6, 6, 5, 9]).map((score) => ({
+          ...score,
+          playerId: 'p2',
+          adjustedScore: score.holeNumber === 9 ? 6 : score.grossScore
+        }))
+      ]
+    )
+
+    const result = await getMatchScorePageData('week-1', 'match-1')
+
+    expect(result?.rows.find((row) => row.holeNumber === 7)?.player1Adj).toBe(7)
+    expect(result?.rows.find((row) => row.holeNumber === 9)?.player2Adj).toBe(8)
   })
 })

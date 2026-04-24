@@ -140,6 +140,7 @@ export async function getMatchScorePageData(weekId: string, matchId: string) {
       player1: {
         include: {
           handicapRecords: {
+            where: { countsForHandicap: true },
             orderBy: { date: 'desc' },
             take: 20
           },
@@ -149,6 +150,7 @@ export async function getMatchScorePageData(weekId: string, matchId: string) {
       player2: {
         include: {
           handicapRecords: {
+            where: { countsForHandicap: true },
             orderBy: { date: 'desc' },
             take: 20
           },
@@ -370,6 +372,7 @@ export async function submitMatchScores(input: {
       player1: {
         include: {
           handicapRecords: {
+            where: { countsForHandicap: true },
             orderBy: { date: 'desc' }
           },
           seasonTeeChoices: true
@@ -378,6 +381,7 @@ export async function submitMatchScores(input: {
       player2: {
         include: {
           handicapRecords: {
+            where: { countsForHandicap: true },
             orderBy: { date: 'desc' }
           },
           seasonTeeChoices: true

@@ -84,6 +84,7 @@ export async function getPublicWeekData(weekId: string) {
           player1: {
             include: {
               handicapRecords: {
+                where: { countsForHandicap: true },
                 orderBy: { date: 'desc' },
                 take: 20
               },
@@ -93,6 +94,7 @@ export async function getPublicWeekData(weekId: string) {
           player2: {
             include: {
               handicapRecords: {
+                where: { countsForHandicap: true },
                 orderBy: { date: 'desc' },
                 take: 20
               },

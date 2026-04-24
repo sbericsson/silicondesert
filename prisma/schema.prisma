@@ -209,6 +209,7 @@ model HandicapRecord {
   courseDifferential Float
   usedInIndex        Boolean   @default(false)
   isImported         Boolean   @default(false)
+  countsForHandicap  Boolean   @default(true)
   week               Week?     @relation(fields: [weekId], references: [id], onDelete: SetNull)
   player             Player    @relation(fields: [playerId], references: [id], onDelete: Cascade)
   createdAt          DateTime  @default(now())

@@ -27,6 +27,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
           player: {
             include: {
               handicapRecords: {
+                where: { countsForHandicap: true },
                 orderBy: { date: 'desc' },
                 take: 20
               },

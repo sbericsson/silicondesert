@@ -90,6 +90,7 @@ export async function getPublicStandingsData(selectedView?: string) {
   const players = await prisma.player.findMany({
     include: {
       handicapRecords: {
+        where: { countsForHandicap: true },
         orderBy: { date: 'desc' },
         take: 20
       }

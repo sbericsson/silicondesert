@@ -18,6 +18,7 @@ export async function getRosterPageData() {
     prisma.player.findMany({
       include: {
         handicapRecords: {
+          where: { countsForHandicap: true },
           orderBy: [{ date: 'desc' }, { createdAt: 'desc' }]
         },
         seasonTeeChoices: true
@@ -98,6 +99,7 @@ export async function getRosterPageData() {
             courseRating: record.courseRating,
             slopeRating: record.slopeRating,
             coursePar: record.coursePar,
+            courseDifferential: record.courseDifferential,
             isImported: record.isImported,
             weekId: record.weekId
           })),

@@ -58,6 +58,7 @@ async function rescoreLockedWeekMatchesForHandicapMode(
           player1: {
             include: {
               handicapRecords: {
+                where: { countsForHandicap: true },
                 orderBy: { date: 'desc' },
                 take: 20
               },
@@ -67,6 +68,7 @@ async function rescoreLockedWeekMatchesForHandicapMode(
           player2: {
             include: {
               handicapRecords: {
+                where: { countsForHandicap: true },
                 orderBy: { date: 'desc' },
                 take: 20
               },

@@ -28,6 +28,7 @@ export async function getPublicRosterData() {
     },
     include: {
       handicapRecords: {
+        where: { countsForHandicap: true },
         orderBy: { date: 'desc' },
         take: 20
       }

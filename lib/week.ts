@@ -112,6 +112,7 @@ export async function getCurrentWeekRecord() {
           player: {
             include: {
               handicapRecords: {
+                where: { countsForHandicap: true },
                 orderBy: { date: 'desc' },
                 take: 20
               },
@@ -126,6 +127,7 @@ export async function getCurrentWeekRecord() {
           player1: {
             include: {
               handicapRecords: {
+                where: { countsForHandicap: true },
                 orderBy: { date: 'desc' },
                 take: 20
               },
@@ -135,6 +137,7 @@ export async function getCurrentWeekRecord() {
           player2: {
             include: {
               handicapRecords: {
+                where: { countsForHandicap: true },
                 orderBy: { date: 'desc' },
                 take: 20
               },
@@ -203,6 +206,7 @@ export async function getCurrentWeekPageData() {
       where: { active: true },
       include: {
         handicapRecords: {
+          where: { countsForHandicap: true },
           orderBy: { date: 'desc' },
           take: 20
         },

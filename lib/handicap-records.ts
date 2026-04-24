@@ -32,7 +32,7 @@ interface HandicapRecordTx {
 
 export async function recomputeUsedInIndex(tx: HandicapRecordTx, playerId: string) {
   const records = await tx.handicapRecord.findMany({
-    where: { playerId },
+    where: { playerId, countsForHandicap: true },
     orderBy: [{ date: 'asc' }, { createdAt: 'asc' }]
   })
 

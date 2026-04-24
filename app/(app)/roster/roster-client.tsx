@@ -50,6 +50,7 @@ type RosterPageData = {
       courseRating: number
       slopeRating: number
       coursePar: number
+      courseDifferential: number
       isImported: boolean
       weekId: string | null
     }>
@@ -183,6 +184,10 @@ function formatRosterRoundLabel(
       : `${round.grossScore} / Adj ${round.adjustedGrossScore}`
 
   const sourceLabel = round.isImported ? 'Imported' : 'League'
+
+  if (round.grossScore <= 0) {
+    return `${round.date} · Diff ${round.courseDifferential.toFixed(1)} · ${sourceLabel}`
+  }
 
   return `${round.date} · ${scoreLabel} · ${round.courseRating}/${round.slopeRating}/Par ${round.coursePar} · ${sourceLabel}`
 }

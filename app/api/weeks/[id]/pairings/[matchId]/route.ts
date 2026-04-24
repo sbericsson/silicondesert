@@ -72,6 +72,7 @@ export async function PATCH(
       player1: {
         include: {
           handicapRecords: {
+            where: { countsForHandicap: true },
             orderBy: { date: 'desc' },
             take: 20
           },
@@ -81,6 +82,7 @@ export async function PATCH(
       player2: {
         include: {
           handicapRecords: {
+            where: { countsForHandicap: true },
             orderBy: { date: 'desc' },
             take: 20
           },

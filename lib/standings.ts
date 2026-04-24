@@ -66,6 +66,7 @@ export async function getStandingsPageData() {
       where: { active: true },
       include: {
         handicapRecords: {
+          where: { countsForHandicap: true },
           orderBy: { date: 'desc' },
           take: 20
         }

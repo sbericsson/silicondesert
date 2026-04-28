@@ -23,14 +23,15 @@ type SortKey = keyof Pick<
 const columns: Array<{
   key: SortKey
   label: string
+  align?: 'left' | 'right'
 }> = [
   { key: 'name', label: 'Player' },
-  { key: 'totalPoints', label: 'Pts' },
-  { key: 'attendancePoints', label: 'Att' },
-  { key: 'strokePoints', label: 'Stroke' },
-  { key: 'matchPlayPoints', label: 'Match' },
-  { key: 'ctpWins', label: 'CTP' },
-  { key: 'lpWins', label: 'LP' }
+  { key: 'totalPoints', label: 'Pts', align: 'right' },
+  { key: 'attendancePoints', label: 'Att', align: 'right' },
+  { key: 'strokePoints', label: 'Stroke', align: 'right' },
+  { key: 'matchPlayPoints', label: 'Match', align: 'right' },
+  { key: 'ctpWins', label: 'CTP', align: 'right' },
+  { key: 'lpWins', label: 'LP', align: 'right' }
 ]
 
 export function PublicStandingsTable({
@@ -78,14 +79,25 @@ export function PublicStandingsTable({
 
   return (
     <div className="overflow-x-auto rounded-2xl border border-surface-border bg-surface-elevated shadow-sm">
-      <table className="min-w-[760px] table-auto border-collapse">
+      <table className="min-w-[820px] table-fixed border-collapse">
+        <colgroup>
+          <col className="w-16" />
+          <col />
+          <col className="w-20" />
+          <col className="w-20" />
+          <col className="w-20" />
+          <col className="w-24" />
+          <col className="w-24" />
+          <col className="w-16" />
+          <col className="w-16" />
+        </colgroup>
         <thead>
           <tr className="border-b border-surface-border bg-surface-sunken font-condensed text-[11px] font-bold uppercase tracking-widest text-text-muted">
             <th className="px-4 py-3 text-left">#</th>
-            {columns.map((column) => (
+            {columns.filter((column) => column.key === 'name').map((column) => (
               <th
                 key={column.key}
-                className="px-4 py-3 text-left"
+                className={`px-4 py-3 ${column.align === 'right' ? 'text-right' : 'text-left'}`}
                 aria-sort={
                   sortKey === column.key
                     ? sortDirection === 'asc'
@@ -97,6 +109,36 @@ export function PublicStandingsTable({
                 <button
                   type="button"
                   className={`inline-flex min-h-11 items-center gap-1 ${
+                    column.align === 'right' ? 'justify-end' : ''
+                  } ${
+                    sortKey === column.key ? 'text-text-primary' : ''
+                  }`}
+                  onClick={() => updateSort(column.key)}
+                  aria-label={`Sort by ${column.label}`}
+                >
+                  <span>{column.label}</span>
+                  {sortKey === column.key ? <span>{sortDirection === 'asc' ? '↑' : '↓'}</span> : null}
+                </button>
+              </th>
+            ))}
+            <th className="px-4 py-3 text-right">HCP</th>
+            {columns.filter((column) => column.key !== 'name').map((column) => (
+              <th
+                key={column.key}
+                className={`px-4 py-3 ${column.align === 'right' ? 'text-right' : 'text-left'}`}
+                aria-sort={
+                  sortKey === column.key
+                    ? sortDirection === 'asc'
+                      ? 'ascending'
+                      : 'descending'
+                    : 'none'
+                }
+              >
+                <button
+                  type="button"
+                  className={`inline-flex min-h-11 items-center gap-1 ${
+                    column.align === 'right' ? 'justify-end' : ''
+                  } ${
                     sortKey === column.key ? 'text-text-primary' : ''
                   }`}
                   onClick={() => updateSort(column.key)}
@@ -119,14 +161,14 @@ export function PublicStandingsTable({
                 }`}
               >
                 {row.name}
-                <span className="text-text-secondary"> - {row.currentIndexDisplay}</span>
               </td>
-              <td className="px-4 py-3 text-sm text-text-primary">{row.totalPoints}</td>
-              <td className="px-4 py-3 text-sm text-text-primary">{row.attendancePoints}</td>
-              <td className="px-4 py-3 text-sm text-text-primary">{row.strokePoints}</td>
-              <td className="px-4 py-3 text-sm text-text-primary">{row.matchPlayPoints}</td>
-              <td className="px-4 py-3 text-sm text-text-primary">{row.ctpWins}</td>
-              <td className="px-4 py-3 text-sm text-text-primary">{row.lpWins}</td>
+              <td className="px-4 py-3 text-right text-sm tabular-nums text-text-secondary">{row.currentIndexDisplay}</td>
+              <td className="px-4 py-3 text-right text-sm font-semibold tabular-nums text-text-primary">{row.totalPoints}</td>
+              <td className="px-4 py-3 text-right text-sm tabular-nums text-text-primary">{row.attendancePoints}</td>
+              <td className="px-4 py-3 text-right text-sm tabular-nums text-text-primary">{row.strokePoints}</td>
+              <td className="px-4 py-3 text-right text-sm tabular-nums text-text-primary">{row.matchPlayPoints}</td>
+              <td className="px-4 py-3 text-right text-sm tabular-nums text-text-primary">{row.ctpWins}</td>
+              <td className="px-4 py-3 text-right text-sm tabular-nums text-text-primary">{row.lpWins}</td>
             </tr>
           ))}
         </tbody>

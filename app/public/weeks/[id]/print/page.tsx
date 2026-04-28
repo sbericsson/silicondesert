@@ -149,11 +149,23 @@ export default async function PrintWeekPage({
           <h2 className="font-condensed mb-2 text-sm font-bold uppercase tracking-widest text-text-muted print:text-black">
             {standingsData.selectedLabel ?? 'Season'} Standings
           </h2>
-          <table className="w-full border-collapse text-sm">
+          <table className="w-full table-fixed border-collapse text-sm">
+            <colgroup>
+              <col className="w-12" />
+              <col />
+              <col className="w-16" />
+              <col className="w-16" />
+              <col className="w-16" />
+              <col className="w-20" />
+              <col className="w-20" />
+              <col className="w-14" />
+              <col className="w-14" />
+            </colgroup>
             <thead>
               <tr className="border-b-2 border-surface-border text-left font-condensed text-xs font-bold uppercase tracking-widest text-text-muted print:border-black print:text-black">
                 <th className="py-2 pr-3">#</th>
                 <th className="py-2 pr-3">Player</th>
+                <th className="py-2 pr-3 text-right">HCP</th>
                 <th className="py-2 pr-3 text-right">Pts</th>
                 <th className="py-2 pr-3 text-right">Att</th>
                 <th className="py-2 pr-3 text-right">Stroke</th>
@@ -171,8 +183,8 @@ export default async function PrintWeekPage({
                   <td className="py-2 pr-3 tabular-nums text-text-secondary">{i + 1}</td>
                   <td className="py-2 pr-3 font-medium">
                     {row.name}
-                    <span className="font-normal text-text-secondary"> - {row.currentIndexDisplay}</span>
                   </td>
+                  <td className="py-2 pr-3 text-right tabular-nums text-text-secondary">{row.currentIndexDisplay}</td>
                   <td className="py-2 pr-3 text-right tabular-nums font-semibold">
                     {row.totalPoints}
                   </td>

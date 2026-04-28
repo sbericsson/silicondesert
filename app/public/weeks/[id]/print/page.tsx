@@ -89,15 +89,15 @@ export default async function PrintWeekPage({
             <tr className="border-b-2 border-surface-border text-left font-condensed text-xs font-bold uppercase tracking-widest text-text-muted print:border-black print:text-black">
               <th className="py-2 pr-3">#</th>
               <th className="py-2 pr-3">Player 1</th>
+              <th className="py-2 pr-3 text-right">Pts</th>
               <th className="py-2 pr-3 text-right">Hdcp</th>
               <th className="py-2 pr-3 text-right">Gross</th>
               <th className="py-2 pr-3 text-right">Net</th>
-              <th className="py-2 pr-3 text-right">Pts</th>
               <th className="py-2 pr-3">Player 2</th>
+              <th className="py-2 pr-3 text-right">Pts</th>
               <th className="py-2 pr-3 text-right">Hdcp</th>
               <th className="py-2 pr-3 text-right">Gross</th>
               <th className="py-2 pr-3 text-right">Net</th>
-              <th className="py-2 pr-3 text-right">Pts</th>
               <th className="py-2 pr-3">Stroke</th>
               <th className="py-2">Match Play</th>
             </tr>
@@ -110,6 +110,9 @@ export default async function PrintWeekPage({
               >
                 <td className="py-2 pr-3 tabular-nums text-text-secondary">{i + 1}</td>
                 <td className="py-2 pr-3 font-medium">{match.player1Name}</td>
+                <td className="py-2 pr-3 text-right tabular-nums font-semibold">
+                  {match.player1Points}
+                </td>
                 <td className="py-2 pr-3 text-right tabular-nums text-text-secondary">
                   {match.player1PlayingHandicap ?? '—'}
                 </td>
@@ -119,10 +122,10 @@ export default async function PrintWeekPage({
                 <td className="py-2 pr-3 text-right tabular-nums text-text-secondary">
                   {match.player1Net ?? '—'}
                 </td>
-                <td className="py-2 pr-3 text-right tabular-nums font-semibold">
-                  {match.player1Points}
-                </td>
                 <td className="py-2 pr-3 font-medium">{match.player2Name}</td>
+                <td className="py-2 pr-3 text-right tabular-nums font-semibold">
+                  {match.player2Points}
+                </td>
                 <td className="py-2 pr-3 text-right tabular-nums text-text-secondary">
                   {match.player2PlayingHandicap ?? '—'}
                 </td>
@@ -131,9 +134,6 @@ export default async function PrintWeekPage({
                 </td>
                 <td className="py-2 pr-3 text-right tabular-nums text-text-secondary">
                   {match.player2Net ?? '—'}
-                </td>
-                <td className="py-2 pr-3 text-right tabular-nums font-semibold">
-                  {match.player2Points}
                 </td>
                 <td className="py-2 pr-3 text-text-secondary">{match.strokeSummary}</td>
                 <td className="py-2 text-text-secondary">{match.matchPlaySummary}</td>

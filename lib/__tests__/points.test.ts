@@ -16,11 +16,13 @@ describe('applyStoredMatchResult', () => {
 
     expect(halved.player1).toMatchObject({
       totalPoints: 3,
+      attendancePoints: 1,
       strokePoints: 1,
       matchPlayPoints: 1
     })
     expect(halved.player2).toMatchObject({
       totalPoints: 3,
+      attendancePoints: 1,
       strokePoints: 1,
       matchPlayPoints: 1
     })
@@ -40,11 +42,13 @@ describe('applyStoredMatchResult', () => {
 
     expect(winner.player1).toMatchObject({
       totalPoints: 5,
+      attendancePoints: 1,
       strokePoints: 2,
       matchPlayPoints: 2
     })
     expect(winner.player2).toMatchObject({
       totalPoints: 1,
+      attendancePoints: 1,
       strokePoints: 0,
       matchPlayPoints: 0
     })

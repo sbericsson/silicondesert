@@ -10,6 +10,7 @@ export function applyStoredMatchResult(input: {
 }) {
   const player1 = {
     totalPoints: input.player1Present ? 1 : 0,
+    attendancePoints: input.player1Present ? 1 : 0,
     strokePoints: 0,
     matchPlayPoints: 0,
     strokeWins: 0,
@@ -17,6 +18,7 @@ export function applyStoredMatchResult(input: {
   }
   const player2 = {
     totalPoints: input.player2Present && !input.player2ScorecardOnly ? 1 : 0,
+    attendancePoints: input.player2Present && !input.player2ScorecardOnly ? 1 : 0,
     strokePoints: 0,
     matchPlayPoints: 0,
     strokeWins: 0,

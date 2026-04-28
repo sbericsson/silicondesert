@@ -107,6 +107,7 @@ export async function getPublicStandingsData(selectedView?: string) {
         active: player.active,
         currentIndexDisplay: getPlayerHandicapInlineLabel(player),
         totalPoints: 0,
+        attendancePoints: 0,
         strokePoints: 0,
         matchPlayPoints: 0,
         ctpWins: 0,
@@ -153,12 +154,14 @@ export async function getPublicStandingsData(selectedView?: string) {
 
       if (player1) {
         player1.totalPoints += points.player1.totalPoints
+        player1.attendancePoints += points.player1.attendancePoints
         player1.strokePoints += points.player1.strokePoints
         player1.matchPlayPoints += points.player1.matchPlayPoints
       }
 
       if (player2) {
         player2.totalPoints += points.player2.totalPoints
+        player2.attendancePoints += points.player2.attendancePoints
         player2.strokePoints += points.player2.strokePoints
         player2.matchPlayPoints += points.player2.matchPlayPoints
       }
@@ -168,6 +171,7 @@ export async function getPublicStandingsData(selectedView?: string) {
       const player = totals.get(playerId)
       if (player) {
         player.totalPoints += 1
+        player.attendancePoints += 1
       }
     }
 
@@ -193,6 +197,7 @@ export async function getPublicStandingsData(selectedView?: string) {
       (row) =>
         row.active ||
         row.totalPoints > 0 ||
+        row.attendancePoints > 0 ||
         row.strokePoints > 0 ||
         row.matchPlayPoints > 0 ||
         row.ctpWins > 0 ||

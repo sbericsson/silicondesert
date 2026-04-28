@@ -23,23 +23,25 @@ export default async function StandingsPage() {
 
       {data.standings.length > 0 ? (
         <div className="overflow-x-auto">
-          <div className="min-w-[500px] overflow-hidden rounded-xl border border-surface-border bg-surface-elevated">
+          <div className="min-w-[580px] overflow-hidden rounded-xl border border-surface-border bg-surface-elevated">
             {/* mobile table header */}
-            <div className="xl:hidden grid grid-cols-[52px_1fr_72px_72px_72px_60px_60px] border-b border-surface-border bg-surface-sunken px-4 py-3 font-condensed text-[11px] font-bold uppercase tracking-widest text-text-muted">
+            <div className="xl:hidden grid grid-cols-[52px_1fr_64px_64px_72px_72px_56px_56px] border-b border-surface-border bg-surface-sunken px-4 py-3 font-condensed text-[11px] font-bold uppercase tracking-widest text-text-muted">
               <span>#</span>
               <span>Player</span>
               <span>Pts</span>
+              <span>Att</span>
               <span>Stroke</span>
               <span>Match</span>
               <span>CTP</span>
               <span>LP</span>
             </div>
             {/* desktop table header — HCP gets its own column */}
-            <div className="hidden xl:grid grid-cols-[44px_1fr_68px_68px_68px_68px_52px_52px] border-b border-surface-border bg-surface-sunken px-6 py-2 font-condensed text-[11px] font-bold uppercase tracking-widest text-text-muted">
+            <div className="hidden xl:grid grid-cols-[44px_1fr_68px_68px_68px_68px_68px_52px_52px] border-b border-surface-border bg-surface-sunken px-6 py-2 font-condensed text-[11px] font-bold uppercase tracking-widest text-text-muted">
               <span>#</span>
               <span>Player</span>
               <span>HCP</span>
               <span>Pts</span>
+              <span>Att</span>
               <span>Stroke</span>
               <span>Match</span>
               <span>CTP</span>
@@ -49,24 +51,26 @@ export default async function StandingsPage() {
               {data.standings.map((row, index) => (
                 <div key={row.playerId}>
                   {/* mobile row */}
-                  <div className="xl:hidden grid grid-cols-[52px_1fr_72px_72px_72px_60px_60px] px-4 py-3 text-sm text-text-primary">
+                  <div className="xl:hidden grid grid-cols-[52px_1fr_64px_64px_72px_72px_56px_56px] px-4 py-3 text-sm text-text-primary">
                     <span className="text-text-secondary">{index + 1}</span>
                     <span>
                       {row.name}
                       <span className="text-text-secondary"> – {row.currentIndexDisplay}</span>
                     </span>
                     <span>{row.totalPoints}</span>
+                    <span>{row.attendancePoints}</span>
                     <span>{row.strokePoints}</span>
                     <span>{row.matchPlayPoints}</span>
                     <span>{row.ctpWins}</span>
                     <span>{row.lpWins}</span>
                   </div>
                   {/* desktop row — compact, HCP in own column */}
-                  <div className="hidden xl:grid grid-cols-[44px_1fr_68px_68px_68px_68px_52px_52px] items-center px-6 py-2 text-sm text-text-primary hover:bg-surface-sunken/50">
+                  <div className="hidden xl:grid grid-cols-[44px_1fr_68px_68px_68px_68px_68px_52px_52px] items-center px-6 py-2 text-sm text-text-primary hover:bg-surface-sunken/50">
                     <span className="font-condensed text-xs font-semibold text-text-muted">{index + 1}</span>
                     <span className="font-medium">{row.name}</span>
                     <span className="text-text-secondary">{row.currentIndexDisplay}</span>
                     <span className="font-bold text-accent-text">{row.totalPoints}</span>
+                    <span>{row.attendancePoints}</span>
                     <span>{row.strokePoints}</span>
                     <span>{row.matchPlayPoints}</span>
                     <span className="text-text-secondary">{row.ctpWins}</span>

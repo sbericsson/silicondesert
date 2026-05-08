@@ -31,4 +31,32 @@ describe('resolveStrokeWinnerId', () => {
       })
     ).toBe('p2')
   })
+
+  it('compares net totals for scorecard-only matches', () => {
+    expect(
+      resolveStrokeWinnerId({
+        player1Id: 'p1',
+        player2Id: 'reference',
+        player1Gross: 48,
+        player2Gross: 40,
+        player1PlayingHandicap: 12,
+        player2PlayingHandicap: 4,
+        player2ScorecardOnly: true,
+        storedStrokeWinnerId: 'p1'
+      })
+    ).toBe(null)
+
+    expect(
+      resolveStrokeWinnerId({
+        player1Id: 'p1',
+        player2Id: 'reference',
+        player1Gross: 50,
+        player2Gross: 40,
+        player1PlayingHandicap: 12,
+        player2PlayingHandicap: 4,
+        player2ScorecardOnly: true,
+        storedStrokeWinnerId: 'p1'
+      })
+    ).toBe('reference')
+  })
 })

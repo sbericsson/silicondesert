@@ -539,13 +539,11 @@ export async function submitMatchScores(input: {
     match.player2Id
   )
 
-  const strokeWinnerId = match.player2ScorecardOnly
+  const strokeWinnerId = player1NetTotal < player2NetTotal
     ? match.player1Id
-    : player1NetTotal < player2NetTotal
-      ? match.player1Id
-      : player2NetTotal < player1NetTotal
-        ? match.player2Id
-        : null
+    : player2NetTotal < player1NetTotal
+      ? match.player2Id
+      : null
 
   await prisma.$transaction(async (tx) => {
     for (const score of processedP1) {

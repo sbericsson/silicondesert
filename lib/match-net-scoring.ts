@@ -71,13 +71,11 @@ export function calculateMatchOutcomeFromGrossScores(input: {
   const strokeWinnerId =
     player1NetTotal === null || player2NetTotal === null
       ? null
-      : input.player2ScorecardOnly
+      : player1NetTotal < player2NetTotal
         ? input.player1Id
-        : player1NetTotal < player2NetTotal
-          ? input.player1Id
-          : player2NetTotal < player1NetTotal
-            ? input.player2Id
-            : null
+        : player2NetTotal < player1NetTotal
+          ? input.player2Id
+          : null
 
   return {
     player1NetTotal,

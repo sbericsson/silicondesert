@@ -54,6 +54,32 @@ describe('applyStoredMatchResult', () => {
     })
   })
 
+  it('does not award stroke points when player1 loses to a scorecard-only reference', () => {
+    const result = applyStoredMatchResult({
+      player1Id: 'p1',
+      player2Id: 'reference',
+      strokeWinnerId: 'reference',
+      matchPlayWinnerId: 'reference',
+      matchPlayLeadBy: 3,
+      player2ScorecardOnly: true,
+      player1Present: true,
+      player2Present: true
+    })
+
+    expect(result.player1).toMatchObject({
+      totalPoints: 1,
+      attendancePoints: 1,
+      strokePoints: 0,
+      matchPlayPoints: 0
+    })
+    expect(result.player2).toMatchObject({
+      totalPoints: 0,
+      attendancePoints: 0,
+      strokePoints: 0,
+      matchPlayPoints: 0
+    })
+  })
+
   it('identifies checked-in players who are not in any match', () => {
     expect(
       getUnpairedPresentPlayerIds(

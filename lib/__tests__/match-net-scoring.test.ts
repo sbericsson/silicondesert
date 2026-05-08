@@ -97,4 +97,28 @@ describe('calculateMatchOutcomeFromGrossScores', () => {
       strokeWinnerId: 'tom'
     })
   })
+
+  it('lets the reference scorecard win stroke in scorecard-only matches', () => {
+    const holes = Array.from({ length: 9 }, (_, index) => ({
+      holeNumber: index + 1,
+      strokeIndex: index + 1,
+      player1GrossScore: index === 0 ? 6 : 5,
+      player2GrossScore: 4
+    }))
+
+    expect(
+      calculateMatchOutcomeFromGrossScores({
+        player1Id: 'p1',
+        player2Id: 'reference',
+        player1PlayingHandicap: 12,
+        player2PlayingHandicap: 4,
+        player2ScorecardOnly: true,
+        holes
+      })
+    ).toMatchObject({
+      player1NetTotal: 38,
+      player2NetTotal: 36,
+      strokeWinnerId: 'reference'
+    })
+  })
 })

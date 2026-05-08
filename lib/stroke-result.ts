@@ -17,10 +17,6 @@ export function resolveStrokeWinnerId(input: {
     return input.storedStrokeWinnerId
   }
 
-  if (input.player2ScorecardOnly) {
-    return input.player1Id
-  }
-
   const matchStrokeDiff = Math.abs(input.player1PlayingHandicap - input.player2PlayingHandicap)
   const player1Net =
     input.player1Gross -

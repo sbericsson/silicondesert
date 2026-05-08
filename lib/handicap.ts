@@ -2,6 +2,11 @@ export function roundToTenth(value: number) {
   return Math.round(value * 10) / 10
 }
 
+export function roundToWholeHandicap(value: number) {
+  const rounded = Math.round(value)
+  return Object.is(rounded, -0) ? 0 : rounded
+}
+
 export function strokesReceivedOnHole(courseHandicap: number, strokeIndex: number) {
   if (courseHandicap < strokeIndex) {
     return 0
@@ -45,7 +50,7 @@ const WHS_TABLE: Array<[number, number, number]> = [
   [20, 8, 0],
 ]
 
-export function handicapIndex(differentials: number[]) {
+export function exactHandicapIndex(differentials: number[]) {
   if (differentials.length === 0) {
     return null
   }
@@ -58,11 +63,20 @@ export function handicapIndex(differentials: number[]) {
   const best = [...recent].sort((a, b) => a - b).slice(0, useCount)
   const average = best.reduce((sum, value) => sum + value, 0) / best.length
 
-  return roundToTenth(average + adjustment)
+  return average + adjustment
+}
+
+export function handicapIndex(differentials: number[]) {
+  const exactIndex = exactHandicapIndex(differentials)
+  return exactIndex === null ? null : roundToTenth(exactIndex)
 }
 
 export function handicapIndexFromRecords(records: Array<{ courseDifferential: number }>) {
   return handicapIndex(records.map((record) => record.courseDifferential))
+}
+
+export function exactHandicapIndexFromRecords(records: Array<{ courseDifferential: number }>) {
+  return exactHandicapIndex(records.map((record) => record.courseDifferential))
 }
 
 export function courseHandicap(

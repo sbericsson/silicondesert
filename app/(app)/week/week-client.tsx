@@ -1107,7 +1107,7 @@ export function WeekClient({ initialData }: WeekClientProps) {
                     {match.player1Name} ({match.player1TeeColor.toUpperCase()})
                   </span>
                   <span className="text-right text-text-secondary">
-                    HI {match.player1DisplayHandicapIndex.toFixed(1)} · {data.currentWeek!.handicapMode === 'course' ? 'CH' : 'IDX'}{' '}
+                    HI {match.player1DisplayHandicapIndex} · {data.currentWeek!.handicapMode === 'course' ? 'CH' : 'IDX'}{' '}
                     {match.player1PlayingHandicap}
                   </span>
                 </div>
@@ -1139,7 +1139,7 @@ export function WeekClient({ initialData }: WeekClientProps) {
                     {match.player2Name} ({match.player2TeeColor.toUpperCase()})
                   </span>
                   <span className="text-text-secondary">
-                    HI {match.player2DisplayHandicapIndex.toFixed(1)} · {data.currentWeek!.handicapMode === 'course' ? 'CH' : 'IDX'}{' '}
+                    HI {match.player2DisplayHandicapIndex} · {data.currentWeek!.handicapMode === 'course' ? 'CH' : 'IDX'}{' '}
                     {match.player2PlayingHandicap}
                     {match.player2ScorecardOnly ? ' · Reference scorecard' : ''}
                   </span>

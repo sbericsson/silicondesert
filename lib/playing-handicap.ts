@@ -1,5 +1,5 @@
 import type { HandicapMode } from '@prisma/client'
-import { courseHandicap, handicapIndexFromRecords } from '@/lib/handicap'
+import { courseHandicap, exactHandicapIndexFromRecords, roundToWholeHandicap } from '@/lib/handicap'
 
 type TeeData = {
   nineHoleSlope: number
@@ -11,7 +11,7 @@ export function getPlayerHandicapIndexValue(player: {
   seedHandicap: number | null
   handicapRecords: Array<{ courseDifferential: number }>
 }) {
-  return handicapIndexFromRecords(player.handicapRecords) ?? player.seedHandicap ?? 0
+  return exactHandicapIndexFromRecords(player.handicapRecords) ?? player.seedHandicap ?? 0
 }
 
 export function getPlayingHandicap(
@@ -28,7 +28,7 @@ export function getPlayingHandicap(
     )
   }
 
-  return Math.round(handicapIndexValue)
+  return roundToWholeHandicap(handicapIndexValue)
 }
 
 export function getHandicapModeLabel(handicapMode: HandicapMode | null | undefined) {

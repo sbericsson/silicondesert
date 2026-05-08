@@ -2,7 +2,7 @@ import { prisma } from '@/lib/db'
 import {
   applyESC,
   courseHandicap,
-  handicapIndex,
+  exactHandicapIndex,
   scoreDifferential,
   strokesReceivedOnHole
 } from '@/lib/handicap'
@@ -29,7 +29,7 @@ function getEffectiveHandicapIndex(player: {
     return left.date.getTime() - right.date.getTime()
   })
 
-  return handicapIndex(records.map((record) => record.courseDifferential)) ?? player.seedHandicap ?? 0
+  return exactHandicapIndex(records.map((record) => record.courseDifferential)) ?? player.seedHandicap ?? 0
 }
 
 function getFirstRoundHandicapIndex(
@@ -51,7 +51,7 @@ function getFirstRoundHandicapIndex(
     return null
   }
 
-  return handicapIndex([
+  return exactHandicapIndex([
     scoreDifferential(grossScore, tee.nineHoleRating, tee.nineHoleSlope)
   ])
 }

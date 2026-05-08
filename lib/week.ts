@@ -9,6 +9,7 @@ import {
   getPlayerMatchTeeColor,
   getPlayerSeasonTeeColor
 } from '@/lib/course-tee'
+import { roundToWholeHandicap } from '@/lib/handicap'
 import { getHandicapModeLabel, getPlayerHandicapIndexValue, getPlayingHandicap } from '@/lib/playing-handicap'
 
 function phoenixStartOfDay(isoDate: string) {
@@ -354,8 +355,8 @@ export async function getCurrentWeekPageData() {
               player2SeasonTeeColor: player2TeeColor,
               player1TeeOverrideColor: match.player1TeeOverrideColor,
               player2TeeOverrideColor: match.player2TeeOverrideColor,
-              player1DisplayHandicapIndex: Number(player1EffectiveIndex.toFixed(1)),
-              player2DisplayHandicapIndex: Number(player2EffectiveIndex.toFixed(1)),
+              player1DisplayHandicapIndex: roundToWholeHandicap(player1EffectiveIndex),
+              player2DisplayHandicapIndex: roundToWholeHandicap(player2EffectiveIndex),
               player1PlayingHandicap,
               player2PlayingHandicap,
               popDifference,

@@ -2,7 +2,9 @@ import { describe, expect, it } from 'vitest'
 import {
   applyESC,
   courseHandicap,
+  exactHandicapIndex,
   handicapIndex,
+  roundToWholeHandicap,
   scoreDifferential,
   strokesReceivedOnHole
 } from '@/lib/handicap'
@@ -33,6 +35,60 @@ describe('handicap helpers', () => {
     expect(handicapIndex([5.0, 8.0, 6.0, 7.0, 9.0, 4.0])).toBe(3.5)
     // zero scores: no index
     expect(handicapIndex([])).toBeNull()
+  })
+
+  it('keeps exact index values available for whole-number match rounding', () => {
+    expect(exactHandicapIndex([5.0, 8.0, 6.0, 7.0, 9.0, 4.0])).toBe(3.5)
+
+    const troyIndex = exactHandicapIndex([
+      5.814563106796117,
+      6.210687022900766,
+      6.911650485436894,
+      7.050826446280989,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16
+    ])
+    const geraldineIndex = exactHandicapIndex([
+      5.0960784313725505,
+      6.203921568627453,
+      11.067010309278352,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18
+    ])
+    const judyIndex = exactHandicapIndex([
+      15.93114754098361,
+      16.327542372881354,
+      16.89175257731959,
+      16.89175257731959,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23,
+      24,
+      25,
+      26
+    ])
+
+    expect(troyIndex).toBeCloseTo(6.4969, 4)
+    expect(geraldineIndex).toBeCloseTo(7.4557, 4)
+    expect(judyIndex).toBeCloseTo(16.5105, 4)
+    expect(roundToWholeHandicap(troyIndex!)).toBe(6)
+    expect(roundToWholeHandicap(geraldineIndex!)).toBe(7)
+    expect(roundToWholeHandicap(judyIndex!)).toBe(17)
   })
 
   it('computes nine-hole course handicap from a nine-hole handicap index', () => {

@@ -148,7 +148,8 @@ export async function PATCH(
           data: {
             seasonId: params.id,
             weekNumber: index + 1,
-            date: weekDate
+            date: weekDate,
+            handicapMode: 'index'
           }
         })
       }

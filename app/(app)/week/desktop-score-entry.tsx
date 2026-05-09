@@ -460,7 +460,7 @@ export function DesktopScoreEntry({ matches }: DesktopScoreEntryProps) {
                             key={row.holeNumber}
                             className={`px-0.5 py-1.5 ${isCtp ? 'bg-accent-dim/40' : ''}`}
                           >
-                            <div className="relative">
+                            <div className="relative mx-auto w-10">
                               <input
                                 ref={(el) => {
                                   if (!inputRefs.current[playerIdx]) {
@@ -488,7 +488,7 @@ export function DesktopScoreEntry({ matches }: DesktopScoreEntryProps) {
                                 } focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent disabled:cursor-not-allowed disabled:opacity-50`}
                               />
                               {hasStroke ? (
-                                <span className="absolute -right-0.5 -top-0.5 h-1.5 w-1.5 rounded-full bg-accent" />
+                                <span className="absolute right-0.5 top-0.5 h-1.5 w-1.5 rounded-full bg-accent" />
                               ) : null}
                             </div>
                           </td>

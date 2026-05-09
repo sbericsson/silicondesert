@@ -118,7 +118,7 @@ model Week {
   date                  DateTime
   startedAt             DateTime?
   completedAt           DateTime?
-  handicapMode          HandicapMode     @default(course)
+  handicapMode          HandicapMode     @default(index)
   courseId              String?
   ctpHoleNumber         Int?
   longestPuttHoleNumber Int?

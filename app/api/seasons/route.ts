@@ -115,7 +115,8 @@ export async function POST(request: NextRequest) {
           data: {
             seasonId: createdSeason.id,
             weekNumber: index + 1,
-            date: weekDate
+            date: weekDate,
+            handicapMode: 'index'
           }
         })
       }

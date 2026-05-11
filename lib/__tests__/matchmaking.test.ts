@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { generatePairings } from '@/lib/matchmaking'
+import { buildPairingFlags, generatePairings } from '@/lib/matchmaking'
 
 describe('generatePairings', () => {
   it('returns disjoint matches for an even player count', () => {
@@ -80,5 +80,48 @@ describe('generatePairings', () => {
     expect(result.threesome?.matchA.player2.id).toBe('jack')
     expect(result.threesome?.matchBRef.player.id).toBe('kristen')
     expect(result.threesome?.matchBRef.referencePlayer.id).toBe('jack')
+  })
+})
+
+describe('buildPairingFlags', () => {
+  it('flags repeat pairings from prior season matches', () => {
+    const flags = buildPairingFlags(
+      [
+        {
+          player1: { id: 'a', name: 'A', handicapIndex: 5, checkInOrder: 1 },
+          player2: { id: 'b', name: 'B', handicapIndex: 7, checkInOrder: 2 }
+        }
+      ],
+      [
+        { player1Id: 'b', player2Id: 'a' },
+        { player1Id: 'c', player2Id: 'd' }
+      ]
+    )
+
+    expect(flags).toContainEqual({
+      player1Id: 'a',
+      player2Id: 'b',
+      type: 'repeat',
+      detail: 'Played 1× this season'
+    })
+  })
+
+  it('flags large handicap gaps', () => {
+    const flags = buildPairingFlags(
+      [
+        {
+          player1: { id: 'a', name: 'A', handicapIndex: 5, checkInOrder: 1 },
+          player2: { id: 'b', name: 'B', handicapIndex: 12.5, checkInOrder: 2 }
+        }
+      ],
+      []
+    )
+
+    expect(flags).toContainEqual({
+      player1Id: 'a',
+      player2Id: 'b',
+      type: 'gap',
+      detail: 'Gap: 7.5'
+    })
   })
 })

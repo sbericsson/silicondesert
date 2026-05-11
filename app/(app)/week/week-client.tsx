@@ -50,6 +50,12 @@ type WeekPageData = {
       popDifference: number
       popRecipientId: string | null
       player2ScorecardOnly: boolean
+      warnings: Array<{
+        player1Id: string
+        player2Id: string
+        type: 'repeat' | 'gap'
+        detail: string
+      }>
       locked: boolean
       scoreComplete: boolean
     }>
@@ -1171,6 +1177,18 @@ export function WeekClient({ initialData }: WeekClientProps) {
                     ? 'No pops in this match.'
                     : `${match.popRecipientId === match.player1Id ? match.player1Name : match.player2Name} gets ${match.popDifference} pop${match.popDifference === 1 ? '' : 's'}${match.player2ScorecardOnly ? ' against the reference scorecard' : ''}.`}
                 </p>
+                {match.warnings.length > 0 ? (
+                  <div className="mt-3 space-y-1">
+                    {match.warnings.map((warning) => (
+                      <p
+                        key={`${match.id}-${warning.type}`}
+                        className="rounded-md border border-warning bg-warning-dim px-3 py-2 text-xs font-semibold text-warning-text"
+                      >
+                        {warning.type === 'repeat' ? 'Repeat pairing warning' : 'Handicap gap warning'}: {warning.detail}
+                      </p>
+                    ))}
+                  </div>
+                ) : null}
                 {data.currentWeek?.locked ? (
                   <div className="mt-3 xl:hidden">
                     <Link

@@ -10,6 +10,7 @@ import {
   getPlayerSeasonTeeColor
 } from '@/lib/course-tee'
 import { roundToWholeHandicap } from '@/lib/handicap'
+import { buildPairingFlags } from '@/lib/matchmaking'
 import { getHandicapModeLabel, getPlayerHandicapIndexValue, getPlayingHandicap } from '@/lib/playing-handicap'
 
 function phoenixStartOfDay(isoDate: string) {
@@ -228,6 +229,21 @@ export async function getCurrentWeekPageData() {
     })
   ])
 
+  const priorMatches = currentWeek
+    ? await prisma.match.findMany({
+        where: {
+          week: {
+            seasonId: currentWeek.seasonId,
+            id: { not: currentWeek.id }
+          }
+        },
+        select: {
+          player1Id: true,
+          player2Id: true
+        }
+      })
+    : []
+
   const attendanceByPlayerId = new Map(
     (currentWeek?.attendance ?? []).map((entry) => [entry.playerId, entry])
   )
@@ -343,6 +359,26 @@ export async function getCurrentWeekPageData() {
                   ? match.player1.id
                   : match.player2.id
 
+            const warnings = buildPairingFlags(
+              [
+                {
+                  player1: {
+                    id: match.player1.id,
+                    name: match.player1.name,
+                    handicapIndex: player1PlayingHandicap,
+                    checkInOrder: 1
+                  },
+                  player2: {
+                    id: match.player2.id,
+                    name: match.player2.name,
+                    handicapIndex: player2PlayingHandicap,
+                    checkInOrder: 2
+                  }
+                }
+              ],
+              priorMatches
+            )
+
             return {
               id: match.id,
               player1Id: match.player1.id,
@@ -362,6 +398,7 @@ export async function getCurrentWeekPageData() {
               popDifference,
               popRecipientId,
               player2ScorecardOnly: match.player2ScorecardOnly,
+              warnings,
               locked: match.locked,
               scoreComplete: match.matchPlayLeadBy !== null
             }

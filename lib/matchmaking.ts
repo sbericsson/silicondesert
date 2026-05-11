@@ -110,6 +110,13 @@ function buildFlags(
   return flags
 }
 
+export function buildPairingFlags(
+  matches: Array<{ player1: Player; player2: Player }>,
+  priorMatchesThisSeason: PriorMatch[]
+): PairingResult['flags'] {
+  return buildFlags(matches, buildRepeatCounts(priorMatchesThisSeason))
+}
+
 function totalMatchCost(
   matches: Array<{ player1: Player; player2: Player }>,
   repeatCounts: Map<string, number>

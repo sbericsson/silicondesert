@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { getApiSession, unauthorizedResponse } from '@/lib/api-auth'
 import { writeAuditLog } from '@/lib/audit'
+import { getCourseTee, getPlayerSeasonTeeColor } from '@/lib/course-tee'
+import { buildPairingFlags } from '@/lib/matchmaking'
+import { getPlayerHandicapIndexValue, getPlayingHandicap } from '@/lib/playing-handicap'
 
 export async function POST(
   request: NextRequest,
@@ -28,7 +31,13 @@ export async function POST(
     include: {
       season: {
         select: {
-          archivedAt: true
+          archivedAt: true,
+          weeks: {
+            where: {
+              id: { not: params.id }
+            },
+            select: { id: true }
+          }
         }
       },
       attendance: {
@@ -38,8 +47,22 @@ export async function POST(
             in: [player1Id, player2Id]
           }
         },
-        select: {
-          playerId: true
+        include: {
+          player: {
+            include: {
+              handicapRecords: {
+                where: { countsForHandicap: true },
+                orderBy: { date: 'desc' },
+                take: 20
+              },
+              seasonTeeChoices: true
+            }
+          }
+        }
+      },
+      course: {
+        include: {
+          tees: true
         }
       },
       matches: {
@@ -84,6 +107,52 @@ export async function POST(
     )
   }
 
+  const priorWeekIds = week.season.weeks.map((seasonWeek) => seasonWeek.id)
+  const priorMatches = priorWeekIds.length
+    ? await prisma.match.findMany({
+        where: {
+          weekId: { in: priorWeekIds }
+        },
+        select: {
+          player1Id: true,
+          player2Id: true
+        }
+      })
+    : []
+
+  const playersById = new Map(week.attendance.map((entry) => [entry.playerId, entry.player]))
+  const pairingInput = [player1Id, player2Id].map((playerId, index) => {
+    const player = playersById.get(playerId)!
+    const handicapIndexValue = getPlayerHandicapIndexValue(player)
+    const teeColor = getPlayerSeasonTeeColor(
+      player.seasonTeeChoices,
+      week.seasonId,
+      player.gender,
+      player.defaultTeeColor
+    )
+    const tee = week.course
+      ? getCourseTee(week.course.tees, teeColor, player.gender, {
+          color: 'white',
+          gender: 'man',
+          nineHolePar: week.course.nineHolePar,
+          nineHoleRating: week.course.nineHoleRating,
+          nineHoleSlope: week.course.nineHoleSlope
+        })
+      : null
+
+    return {
+      id: player.id,
+      name: player.name,
+      handicapIndex: getPlayingHandicap(week.handicapMode, handicapIndexValue, tee),
+      checkInOrder: index + 1
+    }
+  })
+  const pairingResult = {
+    matches: [{ player1: pairingInput[0], player2: pairingInput[1] }],
+    threesome: null,
+    flags: buildPairingFlags([{ player1: pairingInput[0], player2: pairingInput[1] }], priorMatches)
+  }
+
   const createdMatch = await prisma.$transaction(async (tx) => {
     const match = await tx.match.create({
       data: {
@@ -105,5 +174,5 @@ export async function POST(
     return match
   })
 
-  return NextResponse.json({ matchId: createdMatch.id })
+  return NextResponse.json({ matchId: createdMatch.id, pairingResult })
 }

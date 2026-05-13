@@ -2,11 +2,13 @@
 
 import type { TeeColor } from '@prisma/client'
 import { startTransition, useEffect, useState } from 'react'
-import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { buildPublicUrl } from '@/lib/public-url'
 import { DEFAULT_TRAILING_PLAYER_NAME } from '@/lib/week-commissioner'
-import { DesktopScoreEntry } from '@/app/(app)/week/desktop-score-entry'
+import { AttendanceList } from '@/app/(app)/week/attendance-list'
+import { PairingsSection } from '@/app/(app)/week/pairings-section'
+import { WeekActionBar } from '@/app/(app)/week/week-action-bar'
+import { WeekSummaryStrip } from '@/app/(app)/week/week-summary-strip'
 
 type WeekPageData = {
   currentWeek: {
@@ -665,627 +667,349 @@ export function WeekClient({ initialData }: WeekClientProps) {
     (player) => player.present && player.name === DEFAULT_TRAILING_PLAYER_NAME
   )
 
-  return (
-    <section className="space-y-4 px-4 py-6 xl:px-6">
-      <header className="rounded-xl border border-surface-border bg-surface-elevated p-4">
+  const setupIncomplete = !data.currentWeek.courseId || data.currentWeek.ctpHoleNumber == null
+
+  let generateBlockReason: string | null = null
+  if (!data.currentWeek.locked && !canGeneratePairings) {
+    if (!data.currentWeek.courseId) {
+      generateBlockReason = 'Select a course to enable Generate.'
+    } else if (data.currentWeek.ctpHoleNumber == null) {
+      generateBlockReason = 'Set the CTP hole to enable Generate.'
+    } else if (unmatchedPresentPlayers.length < 2) {
+      generateBlockReason = 'Check in at least 2 unmatched players.'
+    }
+  }
+
+  const settingsGrid = (
+    <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
+      <label className="rounded-xl border border-surface-border bg-surface-elevated p-4">
+        <p className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">Course</p>
+        <select
+          className="mt-2 w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
+          value={data.currentWeek.courseId ?? ''}
+          onChange={(event) => updateWeekField('courseId', event.target.value)}
+          disabled={isRefreshing || data.currentWeek.locked}
+        >
+          <option value="">Select course</option>
+          {data.courses.map((course) => (
+            <option key={course.id} value={course.id}>
+              {course.name}
+            </option>
+          ))}
+        </select>
+      </label>
+
+      <label className="rounded-xl border border-surface-border bg-surface-elevated p-4">
         <p className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
-          Silicon Desert Golf League
+          Handicap Basis
         </p>
-        <h2 className="font-condensed mt-2 text-2xl font-bold uppercase tracking-wide text-text-primary">
-          Week {data.currentWeek.weekNumber} — {data.currentWeek.seasonName}
-        </h2>
-        <p className="mt-2 text-sm text-accent-text">
-          {data.currentWeek.courseName ?? 'Course not selected'} - {data.currentWeek.dateLabel}
+        <select
+          className="mt-2 w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
+          value={data.currentWeek.handicapMode}
+          onChange={(event) => updateWeekField('handicapMode', event.target.value)}
+          disabled={isRefreshing}
+        >
+          <option value="index">Rounded index</option>
+          <option value="course">Course handicap</option>
+        </select>
+        <p className="mt-2 text-xs text-text-secondary">
+          Uses {data.currentWeek.handicapModeLabel.toLowerCase()} to assign pops and match net scores.
         </p>
-      </header>
-
-      <section className="grid gap-3 md:grid-cols-2">
-        <div className="rounded-xl border border-surface-border bg-surface-elevated p-4">
-          <p className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
-            Active Week
+        {data.currentWeek.locked ? (
+          <p className="mt-1 text-xs text-text-secondary">
+            Locked pairings stay in place, and any saved scores are rescored immediately when this changes.
           </p>
-          <p className="mt-2 text-sm text-text-primary">
-            Week {data.currentWeek.weekNumber} is the live commissioner workspace.
+        ) : data.currentWeek.matchCount > 0 ? (
+          <p className="mt-1 text-xs text-text-secondary">
+            Regenerate pairings if you want this basis to affect matchup selection too.
           </p>
-          <p className="mt-1 text-sm text-text-secondary">
-            Close it when pairings are locked and all scorecards are entered.
-          </p>
-        </div>
-        <div className="rounded-xl border border-surface-border bg-surface-elevated p-4">
-          <p className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
-            Next Scheduled
-          </p>
-          {data.upcomingWeek ? (
-            <>
-              <p className="mt-2 text-sm text-text-primary">
-                Week {data.upcomingWeek.weekNumber} - {data.upcomingWeek.seasonName}
-              </p>
-              <p className="mt-1 text-sm text-text-secondary">{data.upcomingWeek.dateLabel}</p>
-            </>
-          ) : (
-            <p className="mt-2 text-sm text-text-secondary">
-              No later scheduled week found yet.
-            </p>
-          )}
-        </div>
-      </section>
+        ) : null}
+      </label>
 
-      {message ? (
-        <div className="rounded-md border border-accent bg-accent-dim px-4 py-3 text-sm text-accent-text">
-          {message}
-        </div>
-      ) : null}
-
-      {error ? (
-        <div className="rounded-md border border-danger bg-danger-dim px-4 py-3 text-sm text-danger-text">
-          {error}
-        </div>
-      ) : null}
-
-      <p className="sr-only" aria-live="polite">
-        {copyMessage ?? ''}
-      </p>
-
-      <div className="rounded-md border-l-[3px] border-accent bg-accent-dim px-4 py-3 text-sm text-accent-text">
-        {data.presentCount} players checked in
-        {data.presentCount % 2 === 1 && data.presentCount > 0 ? ' - Threesome will form' : ''}
-        {data.currentWeek.locked ? ' - Pairings locked' : ''}
-      </div>
-
-      <section className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
+      {!isDefaultTrailingPlayerCheckedIn ? (
         <label className="rounded-xl border border-surface-border bg-surface-elevated p-4">
-          <p className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">Course</p>
+          <p className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
+            Weekly Commish
+          </p>
           <select
             className="mt-2 w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
-            value={data.currentWeek.courseId ?? ''}
-            onChange={(event) => updateWeekField('courseId', event.target.value)}
+            value={data.currentWeek.commissionerPlayerId ?? ''}
+            onChange={(event) => updateWeekField('commissionerPlayerId', event.target.value)}
             disabled={isRefreshing || data.currentWeek.locked}
           >
-            <option value="">Select course</option>
-            {data.courses.map((course) => (
-              <option key={course.id} value={course.id}>
-                {course.name}
+            <option value="">No alternate selected</option>
+            {data.attendance.map((player) => (
+              <option key={player.playerId} value={player.playerId}>
+                {player.name}
+                {player.present ? ' · checked in' : ''}
               </option>
             ))}
           </select>
-        </label>
-
-        <label className="rounded-xl border border-surface-border bg-surface-elevated p-4">
-          <p className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
-            Handicap Basis
-          </p>
-          <select
-            className="mt-2 w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
-            value={data.currentWeek.handicapMode}
-            onChange={(event) => updateWeekField('handicapMode', event.target.value)}
-            disabled={isRefreshing}
-          >
-            <option value="index">Rounded index</option>
-            <option value="course">Course handicap</option>
-          </select>
           <p className="mt-2 text-xs text-text-secondary">
-            Uses {data.currentWeek.handicapModeLabel.toLowerCase()} to assign pops and match net scores.
+            Peter Pestalozzi is not checked in, so the selected weekly commissioner will be used
+            for the last group when pairings generate.
           </p>
-          {data.currentWeek.locked ? (
-            <p className="mt-1 text-xs text-text-secondary">
-              Locked pairings stay in place, and any saved scores are rescored immediately when this changes.
-            </p>
-          ) : data.currentWeek.matchCount > 0 ? (
-            <p className="mt-1 text-xs text-text-secondary">
-              Regenerate pairings if you want this basis to affect matchup selection too.
-            </p>
-          ) : null}
         </label>
+      ) : null}
 
-        {!isDefaultTrailingPlayerCheckedIn ? (
-          <label className="rounded-xl border border-surface-border bg-surface-elevated p-4">
+      <label className="rounded-xl border border-surface-border bg-surface-elevated p-4">
+        <p className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
+          Closest To Pin
+        </p>
+        <select
+          className="mt-2 w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
+          value={data.currentWeek.ctpHoleNumber ?? ''}
+          onChange={(event) => updateWeekField('ctpHoleNumber', event.target.value)}
+          disabled={isRefreshing || data.currentWeek.locked}
+        >
+          <option value="">{selectedCourse ? 'Select par 3 hole' : 'Select course first'}</option>
+          {ctpHoleOptions.map((hole) => (
+            <option key={hole} value={hole}>
+              Hole {hole}
+            </option>
+          ))}
+          {data.currentWeek.locked &&
+            data.currentWeek.ctpHoleNumber !== null &&
+            !ctpHoleOptions.includes(data.currentWeek.ctpHoleNumber) && (
+              <option value={data.currentWeek.ctpHoleNumber}>
+                Hole {data.currentWeek.ctpHoleNumber}
+              </option>
+            )}
+        </select>
+        <p className="mt-2 text-xs text-text-secondary">
+          {eligibleCtpPlayers.length} player{eligibleCtpPlayers.length === 1 ? '' : 's'} in the
+          CTP game · Pot ${ctpPot}
+        </p>
+      </label>
+
+      <label className="rounded-xl border border-surface-border bg-surface-elevated p-4">
+        <p className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
+          Longest Putt
+        </p>
+        <select
+          className="mt-2 w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
+          value={data.currentWeek.longestPuttHoleNumber ?? ''}
+          onChange={(event) => updateWeekField('longestPuttHoleNumber', event.target.value)}
+          disabled={isRefreshing || data.currentWeek.locked}
+        >
+          <option value="">Select hole</option>
+          {holeOptions.map((hole) => (
+            <option key={hole} value={hole}>
+              Hole {hole}
+            </option>
+          ))}
+        </select>
+        <p className="mt-2 text-xs text-text-secondary">
+          {eligibleLongestPuttPlayers.length} player{eligibleLongestPuttPlayers.length === 1 ? '' : 's'} in the
+          LPM game · Pot ${longestPuttPot}
+        </p>
+      </label>
+    </div>
+  )
+
+  return (
+    <>
+      <section className="space-y-4 px-4 py-6 pb-44 xl:px-6 xl:pb-6">
+        <header className="rounded-xl border border-surface-border bg-surface-elevated p-4">
+          <p className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
+            Silicon Desert Golf League
+          </p>
+          <h2 className="font-condensed mt-2 text-2xl font-bold uppercase tracking-wide text-text-primary">
+            Week {data.currentWeek.weekNumber} — {data.currentWeek.seasonName}
+          </h2>
+          <p className="mt-2 text-sm text-accent-text">
+            {data.currentWeek.courseName ?? 'Course not selected'} - {data.currentWeek.dateLabel}
+          </p>
+        </header>
+
+        <section className="hidden gap-3 xl:grid xl:grid-cols-2">
+          <div className="rounded-xl border border-surface-border bg-surface-elevated p-4">
             <p className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
-              Weekly Commish
+              Active Week
             </p>
-            <select
-              className="mt-2 w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
-              value={data.currentWeek.commissionerPlayerId ?? ''}
-              onChange={(event) => updateWeekField('commissionerPlayerId', event.target.value)}
-              disabled={isRefreshing || data.currentWeek.locked}
-            >
-              <option value="">No alternate selected</option>
-              {data.attendance.map((player) => (
-                <option key={player.playerId} value={player.playerId}>
-                  {player.name}
-                  {player.present ? ' · checked in' : ''}
-                </option>
-              ))}
-            </select>
-            <p className="mt-2 text-xs text-text-secondary">
-              Peter Pestalozzi is not checked in, so the selected weekly commissioner will be used
-              for the last group when pairings generate.
+            <p className="mt-2 text-sm text-text-primary">
+              Week {data.currentWeek.weekNumber} is the live commissioner workspace.
             </p>
-          </label>
+            <p className="mt-1 text-sm text-text-secondary">
+              Close it when pairings are locked and all scorecards are entered.
+            </p>
+          </div>
+          <div className="rounded-xl border border-surface-border bg-surface-elevated p-4">
+            <p className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
+              Next Scheduled
+            </p>
+            {data.upcomingWeek ? (
+              <>
+                <p className="mt-2 text-sm text-text-primary">
+                  Week {data.upcomingWeek.weekNumber} - {data.upcomingWeek.seasonName}
+                </p>
+                <p className="mt-1 text-sm text-text-secondary">{data.upcomingWeek.dateLabel}</p>
+              </>
+            ) : (
+              <p className="mt-2 text-sm text-text-secondary">
+                No later scheduled week found yet.
+              </p>
+            )}
+          </div>
+        </section>
+
+        {message ? (
+          <div className="rounded-md border border-accent bg-accent-dim px-4 py-3 text-sm text-accent-text">
+            {message}
+          </div>
         ) : null}
 
-        <label className="rounded-xl border border-surface-border bg-surface-elevated p-4">
-          <p className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
-            Closest To Pin
-          </p>
-          <select
-            className="mt-2 w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
-            value={data.currentWeek.ctpHoleNumber ?? ''}
-            onChange={(event) => updateWeekField('ctpHoleNumber', event.target.value)}
-            disabled={isRefreshing || data.currentWeek.locked}
-          >
-            <option value="">{selectedCourse ? 'Select par 3 hole' : 'Select course first'}</option>
-            {ctpHoleOptions.map((hole) => (
-              <option key={hole} value={hole}>
-                Hole {hole}
-              </option>
-            ))}
-            {data.currentWeek.locked &&
-              data.currentWeek.ctpHoleNumber !== null &&
-              !ctpHoleOptions.includes(data.currentWeek.ctpHoleNumber) && (
-                <option value={data.currentWeek.ctpHoleNumber}>
-                  Hole {data.currentWeek.ctpHoleNumber}
-                </option>
-              )}
-          </select>
-          <p className="mt-2 text-xs text-text-secondary">
-            {eligibleCtpPlayers.length} player{eligibleCtpPlayers.length === 1 ? '' : 's'} in the
-            CTP game · Pot ${ctpPot}
-          </p>
-        </label>
-
-        <label className="rounded-xl border border-surface-border bg-surface-elevated p-4">
-          <p className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
-            Longest Putt
-          </p>
-          <select
-            className="mt-2 w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
-            value={data.currentWeek.longestPuttHoleNumber ?? ''}
-            onChange={(event) => updateWeekField('longestPuttHoleNumber', event.target.value)}
-            disabled={isRefreshing || data.currentWeek.locked}
-          >
-            <option value="">Select hole</option>
-            {holeOptions.map((hole) => (
-              <option key={hole} value={hole}>
-                Hole {hole}
-              </option>
-            ))}
-          </select>
-          <p className="mt-2 text-xs text-text-secondary">
-            {eligibleLongestPuttPlayers.length} player{eligibleLongestPuttPlayers.length === 1 ? '' : 's'} in the
-            LPM game · Pot ${longestPuttPot}
-          </p>
-        </label>
-      </section>
-
-      {data.currentWeek.locked ? (
-        <section className="grid gap-3 md:grid-cols-2">
-          <label className="rounded-xl border border-surface-border bg-surface-elevated p-4">
-            <p className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
-              CTP Winner · Hole {data.currentWeek.ctpHoleNumber ?? '—'}
-            </p>
-            <p className="mt-2 text-xs text-text-secondary">
-              Only checked-in players with the weekly `CTP` box checked are eligible. Current pot:
-              {' '}${ctpPot} from {eligibleCtpPlayers.length} player{eligibleCtpPlayers.length === 1 ? '' : 's'}.
-            </p>
-            <select
-              className="mt-2 w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
-              value={data.currentWeek.ctpWinnerId ?? ''}
-              onChange={(event) => updateWeekField('ctpWinnerId', event.target.value)}
-              disabled={isRefreshing}
-            >
-              <option value="">No winner recorded</option>
-              {eligibleCtpPlayers.map((player) => (
-                <option key={player.playerId} value={player.playerId}>
-                  {player.name}
-                </option>
-              ))}
-            </select>
-          </label>
-
-          <label className="rounded-xl border border-surface-border bg-surface-elevated p-4">
-            <p className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
-              LP Winner · Hole {data.currentWeek.longestPuttHoleNumber ?? '—'}
-            </p>
-            <p className="mt-2 text-xs text-text-secondary">
-              Only checked-in players with the weekly `LPM` box checked are eligible. Current pot:
-              {' '}${longestPuttPot} from {eligibleLongestPuttPlayers.length} player{eligibleLongestPuttPlayers.length === 1 ? '' : 's'}.
-            </p>
-            <select
-              className="mt-2 w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
-              value={data.currentWeek.longestPuttWinnerId ?? ''}
-              onChange={(event) => updateWeekField('longestPuttWinnerId', event.target.value)}
-              disabled={isRefreshing}
-            >
-              <option value="">No winner recorded</option>
-              {eligibleLongestPuttPlayers.map((player) => (
-                <option key={player.playerId} value={player.playerId}>
-                  {player.name}
-                </option>
-              ))}
-            </select>
-          </label>
-        </section>
-      ) : null}
-
-      <section className="rounded-xl border border-surface-border bg-surface-elevated">
-        <div className="flex items-center justify-between border-b border-surface-border px-4 py-3">
-          <p className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
-            Attendance
-          </p>
-          <span className="rounded bg-accent px-2 py-1 font-condensed text-[11px] font-semibold text-white">
-            {data.presentCount} / {data.totalPlayers}
-          </span>
-        </div>
-        <div className="divide-y divide-surface-border">
-          {data.attendance.map((player) => (
-            <div
-              key={player.playerId}
-              className="flex w-full items-center gap-3 px-4 py-3"
-            >
-              <button
-                type="button"
-                className="flex min-w-0 flex-1 items-center gap-3 text-left disabled:cursor-not-allowed"
-                onClick={() => toggleAttendance(player.playerId, !player.present)}
-                disabled={
-                  isRefreshing ||
-                  pendingAttendancePlayerIds.includes(player.playerId) ||
-                  (player.present && matchedPlayerIds.has(player.playerId))
-                }
-              >
-              <span
-                className={`h-4 w-4 rounded-full border-2 ${
-                  player.present ? 'border-transparent bg-accent-bright' : 'border-surface-border bg-transparent'
-                }`}
-              />
-              <span
-                className={`flex-1 text-sm ${
-                  player.present ? 'font-semibold text-text-primary' : 'text-text-secondary'
-                }`}
-              >
-                {player.name}
-              </span>
-              <span
-                className={`rounded px-2 py-1 text-[11px] font-semibold ${
-                  player.handicap.kind === 'NEW'
-                    ? 'bg-warning-dim text-warning-text'
-                    : player.handicap.kind === 'EST'
-                      ? 'bg-surface-sunken text-text-secondary'
-                      : 'bg-transparent text-text-secondary'
-                }`}
-              >
-                {player.handicap.kind === 'HCP' ? player.handicap.value : player.handicap.kind} ·{' '}
-                {player.teeColor.toUpperCase()}
-              </span>
-              </button>
-              <label className="flex items-center gap-1 rounded bg-surface-sunken px-2 py-1 text-[11px] font-semibold text-text-secondary">
-                <input
-                  type="checkbox"
-                  checked={player.ctpPoolPaid}
-                  onChange={(event) =>
-                    updatePrizePoolStatus(player.playerId, 'ctpPoolPaid', event.target.checked)
-                  }
-                  disabled={
-                    isRefreshing ||
-                    pendingAttendancePlayerIds.includes(player.playerId) ||
-                    !player.present
-                  }
-                />
-                CTP
-              </label>
-              <label className="flex items-center gap-1 rounded bg-surface-sunken px-2 py-1 text-[11px] font-semibold text-text-secondary">
-                <input
-                  type="checkbox"
-                  checked={player.longestPuttPoolPaid}
-                  onChange={(event) =>
-                    updatePrizePoolStatus(
-                      player.playerId,
-                      'longestPuttPoolPaid',
-                      event.target.checked
-                    )
-                  }
-                  disabled={
-                    isRefreshing ||
-                    pendingAttendancePlayerIds.includes(player.playerId) ||
-                    !player.present
-                  }
-                />
-                LPM
-              </label>
-              {player.present && matchedPlayerIds.has(player.playerId) ? (
-                <span className="rounded bg-surface-sunken px-2 py-1 text-[11px] font-semibold text-text-secondary">
-                  Paired
-                </span>
-              ) : player.present && data.currentWeek?.locked ? (
-                <span className="rounded bg-surface-sunken px-2 py-1 text-[11px] font-semibold text-text-secondary">
-                  Attendance only
-                </span>
-              ) : null}
-            </div>
-          ))}
-        </div>
-      </section>
-
-      <section className="rounded-xl border border-surface-border bg-surface-elevated p-4">
-        <div className="flex items-center justify-between gap-3">
-          <div>
-            <p className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
-              Pairings
-            </p>
-            <p className="mt-2 text-sm text-text-secondary">
-              {data.currentWeek.matchCount > 0
-                ? `${data.currentWeek.matchCount} ${data.currentWeek.locked ? 'locked' : 'tentative'} matches created.`
-                : 'No pairings generated yet.'}
-            </p>
-            {unmatchedPresentPlayers.length > 0 ? (
-              <p className="mt-1 text-xs text-text-secondary">
-                {data.currentWeek.locked
-                  ? `${unmatchedPresentPlayers.length} checked-in player${unmatchedPresentPlayers.length === 1 ? '' : 's'} not in a match. They still receive ${unmatchedPresentPlayers.length === 1 ? 'their attendance point' : 'attendance points'} for the week.`
-                  : `${unmatchedPresentPlayers.length} checked-in player${unmatchedPresentPlayers.length === 1 ? '' : 's'} still unpaired.`}
-              </p>
-            ) : !data.currentWeek.locked ? (
-              <p className="mt-1 text-xs text-text-secondary">
-                All checked-in players are currently assigned to matches.
-              </p>
-            ) : null}
+        {error ? (
+          <div className="rounded-md border border-danger bg-danger-dim px-4 py-3 text-sm text-danger-text">
+            {error}
           </div>
-          <div className="flex gap-2">
-            <button
-              type="button"
-              className="font-condensed rounded-lg bg-accent px-4 py-3 text-sm font-bold uppercase tracking-wide text-white disabled:cursor-not-allowed disabled:bg-surface-sunken disabled:text-text-disabled"
-              onClick={generatePairings}
-              disabled={!canGeneratePairings || isRefreshing}
-            >
-              {isRefreshing ? 'Working...' : data.currentWeek.matchCount > 0 ? 'Generate Next Pairings' : 'Generate Pairings'}
-            </button>
-            {data.currentWeek.matchCount > 0 ? (
-              <button
-                type="button"
-                className={`font-condensed rounded-lg px-4 py-3 text-sm font-bold uppercase tracking-wide ${
-                  data.currentWeek.locked
-                    ? 'bg-danger-dim text-danger-text'
-                    : 'bg-surface-sunken text-text-primary'
-                } disabled:cursor-not-allowed disabled:opacity-70`}
-                onClick={() => setLockState(!data.currentWeek?.locked)}
-                disabled={isRefreshing}
-              >
-                {data.currentWeek.locked ? 'Unlock' : 'Lock Pairings'}
-              </button>
-            ) : null}
-          </div>
+        ) : null}
+
+        <p className="sr-only" aria-live="polite">
+          {copyMessage ?? ''}
+        </p>
+
+        <div className="rounded-md border-l-[3px] border-accent bg-accent-dim px-4 py-3 text-sm text-accent-text">
+          {data.presentCount} players checked in
+          {data.presentCount % 2 === 1 && data.presentCount > 0 ? ' - Threesome will form' : ''}
+          {data.currentWeek.locked ? ' - Pairings locked' : ''}
         </div>
+
+        <WeekSummaryStrip
+          courseName={data.currentWeek.courseName}
+          handicapModeLabel={data.currentWeek.handicapModeLabel}
+          ctpHoleNumber={data.currentWeek.ctpHoleNumber}
+          longestPuttHoleNumber={data.currentWeek.longestPuttHoleNumber}
+          setupIncomplete={setupIncomplete}
+        >
+          {settingsGrid}
+        </WeekSummaryStrip>
 
         {data.currentWeek.locked ? (
-          <div className="mt-4 flex flex-wrap gap-2">
-            <button
-              type="button"
-              className="font-condensed rounded-lg border border-surface-border bg-surface-base px-4 py-3 text-sm font-bold uppercase tracking-wide text-text-primary"
-              onClick={copyPairingsLink}
-            >
-              Copy Pairings Link
-            </button>
-            {allScoresComplete ? (
-              <button
-                type="button"
-                className="font-condensed rounded-lg bg-accent px-4 py-3 text-sm font-bold uppercase tracking-wide text-white"
-                onClick={copyResultsShareText}
-              >
-                Share Results
-              </button>
-            ) : null}
-            {canCloseWeek ? (
-              <button
-                type="button"
-                className="font-condensed rounded-lg bg-surface-sunken px-4 py-3 text-sm font-bold uppercase tracking-wide text-text-primary disabled:cursor-not-allowed disabled:text-text-disabled"
-                onClick={closeCurrentWeek}
+          <section className="grid gap-3 md:grid-cols-2">
+            <label className="rounded-xl border border-surface-border bg-surface-elevated p-4">
+              <p className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
+                CTP Winner · Hole {data.currentWeek.ctpHoleNumber ?? '—'}
+              </p>
+              <p className="mt-2 text-xs text-text-secondary">
+                Only checked-in players with the weekly `CTP` box checked are eligible. Current pot:
+                {' '}${ctpPot} from {eligibleCtpPlayers.length} player{eligibleCtpPlayers.length === 1 ? '' : 's'}.
+              </p>
+              <select
+                className="mt-2 w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
+                value={data.currentWeek.ctpWinnerId ?? ''}
+                onChange={(event) => updateWeekField('ctpWinnerId', event.target.value)}
                 disabled={isRefreshing}
               >
-                Close Week
-              </button>
-            ) : null}
-            {copyMessage ? (
-              <span className="self-center text-sm text-accent-text">{copyMessage}</span>
-            ) : null}
-          </div>
-        ) : null}
-
-        {data.currentWeek.locked && !allScoresComplete ? (
-          <p className="mt-4 text-sm text-text-secondary">
-            Enter every locked match score before closing this week.
-          </p>
-        ) : null}
-
-        {data.currentWeek.matches.length > 0 ? (
-          <div className="mt-4 space-y-3">
-            {data.currentWeek.matches.map((match, index) => (
-              <div key={match.id} className="rounded-lg border border-surface-border bg-surface-sunken p-3">
-                <p className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
-                  Match {index + 1}
-                </p>
-                <p
-                  className={`mt-1 text-xs font-semibold ${
-                    match.scoreComplete ? 'text-accent-text' : 'text-text-secondary'
-                  }`}
-                >
-                  {match.scoreComplete ? 'Complete' : data.currentWeek?.locked ? 'Pending scores' : 'Tentative'}
-                </p>
-                <div className="mt-2 flex items-center justify-between text-sm text-text-primary">
-                  <span>
-                    {match.player1Name} ({match.player1TeeColor.toUpperCase()})
-                  </span>
-                  <span className="text-right text-text-secondary">
-                    HI {match.player1DisplayHandicapIndex} · {data.currentWeek!.handicapMode === 'course' ? 'CH' : 'IDX'}{' '}
-                    {match.player1PlayingHandicap}
-                  </span>
-                </div>
-                {currentCourseTeeOptions.length > 0 ? (
-                  <label className="mt-2 block">
-                    <span className="font-condensed text-[11px] font-semibold uppercase tracking-widest text-text-muted">
-                      {match.player1Name} Tee
-                    </span>
-                    <select
-                      className="mt-1 w-full rounded-md border border-surface-border bg-surface-base px-3 py-2 text-sm text-text-primary"
-                      value={match.player1TeeOverrideColor ?? ''}
-                      onChange={(event) => updateMatchTee(match.id, 'player1TeeOverrideColor', event.target.value)}
-                      disabled={isRefreshing}
-                    >
-                      <option value="">
-                        Season default ({match.player1SeasonTeeColor.toUpperCase()})
-                      </option>
-                      {currentCourseTeeOptions.map((teeColor) => (
-                        <option key={`player1-${match.id}-${teeColor}`} value={teeColor}>
-                          {teeColor.toUpperCase()}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                ) : null}
-                <div className="font-condensed mt-1 text-center text-xs font-bold uppercase tracking-widest text-text-muted">vs</div>
-                <div className="mt-1 flex items-center justify-between text-sm text-text-primary">
-                  <span>
-                    {match.player2Name} ({match.player2TeeColor.toUpperCase()})
-                  </span>
-                  <span className="text-text-secondary">
-                    HI {match.player2DisplayHandicapIndex} · {data.currentWeek!.handicapMode === 'course' ? 'CH' : 'IDX'}{' '}
-                    {match.player2PlayingHandicap}
-                    {match.player2ScorecardOnly ? ' · Reference scorecard' : ''}
-                  </span>
-                </div>
-                {currentCourseTeeOptions.length > 0 ? (
-                  <label className="mt-2 block">
-                    <span className="font-condensed text-[11px] font-semibold uppercase tracking-widest text-text-muted">
-                      {match.player2Name} Tee
-                    </span>
-                    <select
-                      className="mt-1 w-full rounded-md border border-surface-border bg-surface-base px-3 py-2 text-sm text-text-primary"
-                      value={match.player2TeeOverrideColor ?? ''}
-                      onChange={(event) => updateMatchTee(match.id, 'player2TeeOverrideColor', event.target.value)}
-                      disabled={isRefreshing}
-                    >
-                      <option value="">
-                        Season default ({match.player2SeasonTeeColor.toUpperCase()})
-                      </option>
-                      {currentCourseTeeOptions.map((teeColor) => (
-                        <option key={`player2-${match.id}-${teeColor}`} value={teeColor}>
-                          {teeColor.toUpperCase()}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                ) : null}
-                <p className="mt-2 text-xs text-text-secondary">
-                  {match.popDifference === 0
-                    ? 'No pops in this match.'
-                    : `${match.popRecipientId === match.player1Id ? match.player1Name : match.player2Name} gets ${match.popDifference} pop${match.popDifference === 1 ? '' : 's'}${match.player2ScorecardOnly ? ' against the reference scorecard' : ''}.`}
-                </p>
-                {match.warnings.length > 0 ? (
-                  <div className="mt-3 space-y-1">
-                    {match.warnings.map((warning) => (
-                      <p
-                        key={`${match.id}-${warning.type}`}
-                        className="rounded-md border border-warning bg-warning-dim px-3 py-2 text-xs font-semibold text-warning-text"
-                      >
-                        {warning.type === 'repeat' ? 'Repeat pairing warning' : 'Handicap gap warning'}: {warning.detail}
-                      </p>
-                    ))}
-                  </div>
-                ) : null}
-                {data.currentWeek?.locked ? (
-                  <div className="mt-3 xl:hidden">
-                    <Link
-                      href={`/week/matches/${match.id}`}
-                      className="text-sm font-semibold text-accent-text"
-                    >
-                      Enter Scores
-                    </Link>
-                  </div>
-                ) : (
-                  <div className="mt-3">
-                    <button
-                      type="button"
-                      className="text-sm font-semibold text-danger-text"
-                      onClick={() => removePairing(match.id)}
-                      disabled={isRefreshing}
-                    >
-                      Remove Pairing
-                    </button>
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        ) : null}
-
-        {data.currentWeek.locked && data.currentWeek.matches.length > 0 ? (
-          <div className="mt-4 hidden xl:block">
-            <div className="rounded-xl border border-surface-border bg-surface-elevated">
-              <div className="border-b border-surface-border px-6 py-3">
-                <p className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
-                  Score Entry
-                </p>
-              </div>
-              <DesktopScoreEntry
-                matches={data.currentWeek.matches.map((match) => ({
-                  id: match.id,
-                  player1Name: match.player1Name,
-                  player2Name: match.player2Name,
-                  scoreComplete: match.scoreComplete,
-                  player2ScorecardOnly: match.player2ScorecardOnly,
-                  weekId: data.currentWeek!.id
-                }))}
-              />
-            </div>
-          </div>
-        ) : null}
-
-        {!data.currentWeek.locked ? (
-          <div className="mt-4 rounded-lg border border-dashed border-surface-border bg-surface-base p-4">
-            <p className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
-              Manual Pairing
-            </p>
-            <p className="mt-2 text-sm text-text-secondary">
-              Use this when you want to hand-build a specific match. Only unmatched checked-in players are shown.
-            </p>
-            <div className="mt-4 grid gap-3 md:grid-cols-[1fr_1fr_auto]">
-              <select
-                className="rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
-                value={manualPlayer1Id}
-                onChange={(event) => setManualPlayer1Id(event.target.value)}
-                disabled={isRefreshing || unmatchedPresentPlayers.length < 2}
-              >
-                <option value="">Select player 1</option>
-                {unmatchedPresentPlayers.map((player) => (
+                <option value="">No winner recorded</option>
+                {eligibleCtpPlayers.map((player) => (
                   <option key={player.playerId} value={player.playerId}>
                     {player.name}
                   </option>
                 ))}
               </select>
+            </label>
+
+            <label className="rounded-xl border border-surface-border bg-surface-elevated p-4">
+              <p className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
+                LP Winner · Hole {data.currentWeek.longestPuttHoleNumber ?? '—'}
+              </p>
+              <p className="mt-2 text-xs text-text-secondary">
+                Only checked-in players with the weekly `LPM` box checked are eligible. Current pot:
+                {' '}${longestPuttPot} from {eligibleLongestPuttPlayers.length} player{eligibleLongestPuttPlayers.length === 1 ? '' : 's'}.
+              </p>
               <select
-                className="rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
-                value={manualPlayer2Id}
-                onChange={(event) => setManualPlayer2Id(event.target.value)}
-                disabled={isRefreshing || unmatchedPresentPlayers.length < 2}
+                className="mt-2 w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
+                value={data.currentWeek.longestPuttWinnerId ?? ''}
+                onChange={(event) => updateWeekField('longestPuttWinnerId', event.target.value)}
+                disabled={isRefreshing}
               >
-                <option value="">Select player 2</option>
-                {unmatchedPresentPlayers
-                  .filter((player) => player.playerId !== manualPlayer1Id)
-                  .map((player) => (
-                    <option key={player.playerId} value={player.playerId}>
-                      {player.name}
-                    </option>
-                  ))}
+                <option value="">No winner recorded</option>
+                {eligibleLongestPuttPlayers.map((player) => (
+                  <option key={player.playerId} value={player.playerId}>
+                    {player.name}
+                  </option>
+                ))}
               </select>
-              <button
-                type="button"
-                className="font-condensed rounded-lg bg-surface-sunken px-4 py-3 text-sm font-bold uppercase tracking-wide text-text-primary disabled:cursor-not-allowed disabled:text-text-disabled"
-                onClick={createManualPairing}
-                disabled={!canCreateManualPairing || isRefreshing}
-              >
-                Create Match
-              </button>
-            </div>
-          </div>
+            </label>
+          </section>
         ) : null}
+
+        <div className="flex flex-col gap-4">
+          <div className="order-1 xl:order-2">
+            <PairingsSection
+              weekId={data.currentWeek.id}
+              matches={data.currentWeek.matches}
+              matchCount={data.currentWeek.matchCount}
+              locked={data.currentWeek.locked}
+              handicapMode={data.currentWeek.handicapMode}
+              unmatchedPresentPlayers={unmatchedPresentPlayers.map((player) => ({
+                playerId: player.playerId,
+                name: player.name
+              }))}
+              currentCourseTeeOptions={currentCourseTeeOptions}
+              allScoresComplete={allScoresComplete}
+              canCloseWeek={canCloseWeek}
+              canGeneratePairings={canGeneratePairings}
+              canCreateManualPairing={canCreateManualPairing}
+              manualPlayer1Id={manualPlayer1Id}
+              manualPlayer2Id={manualPlayer2Id}
+              copyMessage={copyMessage}
+              isRefreshing={isRefreshing}
+              onManualPlayer1Change={setManualPlayer1Id}
+              onManualPlayer2Change={setManualPlayer2Id}
+              onGeneratePairings={generatePairings}
+              onSetLockState={setLockState}
+              onCreateManualPairing={createManualPairing}
+              onRemovePairing={removePairing}
+              onUpdateMatchTee={updateMatchTee}
+              onCopyPairingsLink={copyPairingsLink}
+              onCopyResultsShareText={copyResultsShareText}
+              onCloseCurrentWeek={closeCurrentWeek}
+            />
+          </div>
+
+          <div className="order-2 xl:order-1">
+            <AttendanceList
+              attendance={data.attendance}
+              presentCount={data.presentCount}
+              totalPlayers={data.totalPlayers}
+              matchedPlayerIds={matchedPlayerIds}
+              pendingAttendancePlayerIds={pendingAttendancePlayerIds}
+              isRefreshing={isRefreshing}
+              locked={data.currentWeek.locked}
+              onToggleAttendance={toggleAttendance}
+              onUpdatePrizePoolStatus={updatePrizePoolStatus}
+            />
+          </div>
+        </div>
       </section>
-    </section>
+
+      <WeekActionBar
+        presentCount={data.presentCount}
+        matchCount={data.currentWeek.matchCount}
+        unmatchedPresentPlayers={unmatchedPresentPlayers.map((player) => ({
+          playerId: player.playerId,
+          name: player.name
+        }))}
+        locked={data.currentWeek.locked}
+        allScoresComplete={allScoresComplete}
+        canCloseWeek={canCloseWeek}
+        canGeneratePairings={canGeneratePairings}
+        canCreateManualPairing={canCreateManualPairing}
+        manualPlayer1Id={manualPlayer1Id}
+        manualPlayer2Id={manualPlayer2Id}
+        generateBlockReason={generateBlockReason}
+        isRefreshing={isRefreshing}
+        onManualPlayer1Change={setManualPlayer1Id}
+        onManualPlayer2Change={setManualPlayer2Id}
+        onGeneratePairings={generatePairings}
+        onSetLockState={setLockState}
+        onCreateManualPairing={createManualPairing}
+        onCopyPairingsLink={copyPairingsLink}
+        onCopyResultsShareText={copyResultsShareText}
+        onCloseCurrentWeek={closeCurrentWeek}
+      />
+    </>
   )
 }

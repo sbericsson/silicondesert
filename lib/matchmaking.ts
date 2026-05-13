@@ -36,7 +36,9 @@ function pairKey(player1Id: string, player2Id: string) {
 function pairCost(player1: Player, player2: Player, repeatCounts: Map<string, number>) {
   const gap = Math.abs(player1.handicapIndex - player2.handicapIndex)
   const priorCount = repeatCounts.get(pairKey(player1.id, player2.id)) ?? 0
-  return gap * 2 + priorCount * 5
+  // Repeat penalty 13 = a 1x repeat is treated like a 6.5-stroke gap, so any
+  // non-repeat with a gap of 6 or less wins over a repeat.
+  return gap * 2 + priorCount * 13
 }
 
 function buildRepeatCounts(priorMatchesThisSeason: PriorMatch[]) {

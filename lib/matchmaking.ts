@@ -29,6 +29,8 @@ interface GeneratePairingsOptions {
   trailingPlayerId?: string | null
 }
 
+const TRAILING_PLAYER_PAIR_WEIGHT = 4
+
 function pairKey(player1Id: string, player2Id: string) {
   return [player1Id, player2Id].sort().join(':')
 }
@@ -129,6 +131,62 @@ function totalMatchCost(
   )
 }
 
+function averageHandicap(match: { player1: Player; player2: Player }) {
+  return (match.player1.handicapIndex + match.player2.handicapIndex) / 2
+}
+
+function spreadMatchesByHandicap(
+  matches: Array<{ player1: Player; player2: Player }>,
+  trailingPlayerId: string | null
+) {
+  if (matches.length < 3) {
+    return matches
+  }
+
+  const trailingMatches: Array<{ player1: Player; player2: Player }> = []
+  const standardMatches: Array<{ player1: Player; player2: Player }> = []
+
+  for (const match of matches) {
+    if (
+      trailingPlayerId &&
+      (match.player1.id === trailingPlayerId || match.player2.id === trailingPlayerId)
+    ) {
+      trailingMatches.push(match)
+    } else {
+      standardMatches.push(match)
+    }
+  }
+
+  const sorted = [...standardMatches].sort((left, right) => {
+    const handicapComparison = averageHandicap(left) - averageHandicap(right)
+    if (handicapComparison !== 0) {
+      return handicapComparison
+    }
+
+    return pairKey(left.player1.id, left.player2.id).localeCompare(
+      pairKey(right.player1.id, right.player2.id)
+    )
+  })
+
+  const spread: Array<{ player1: Player; player2: Player }> = []
+  let left = Math.floor((sorted.length - 1) / 2)
+  let right = left + 1
+
+  while (left >= 0 || right < sorted.length) {
+    if (left >= 0) {
+      spread.push(sorted[left])
+      left -= 1
+    }
+
+    if (right < sorted.length) {
+      spread.push(sorted[right])
+      right += 1
+    }
+  }
+
+  return [...spread, ...trailingMatches]
+}
+
 export function generatePairings(
   players: Player[],
   priorMatchesThisSeason: PriorMatch[],
@@ -162,7 +220,9 @@ export function generatePairings(
             )
             const leadingMatches = greedyMatches(remainingPool, repeatCounts)
             const candidateMatches = [...leadingMatches, { player1: trailingPlayer, player2: candidate }]
-            const candidateCost = totalMatchCost(candidateMatches, repeatCounts)
+            const candidateCost =
+              totalMatchCost(leadingMatches, repeatCounts) +
+              pairCost(trailingPlayer, candidate, repeatCounts) * TRAILING_PLAYER_PAIR_WEIGHT
 
             if (candidateCost < bestCost) {
               bestCost = candidateCost
@@ -179,6 +239,8 @@ export function generatePairings(
   if (pivot && matches.length > 0) {
     let worstIndex = 0
     let worstCost = Number.NEGATIVE_INFINITY
+    let trailingThreesomeIndex = 0
+    let trailingThreesomeCost = Number.POSITIVE_INFINITY
 
     matches.forEach((match, index) => {
       const cost = pairCost(match.player1, match.player2, repeatCounts)
@@ -186,9 +248,24 @@ export function generatePairings(
         worstCost = cost
         worstIndex = index
       }
+
+      if (pivot.id === trailingPlayer?.id) {
+        const trailingCost = Math.min(
+          pairCost(pivot, match.player1, repeatCounts),
+          pairCost(pivot, match.player2, repeatCounts)
+        )
+
+        if (trailingCost < trailingThreesomeCost) {
+          trailingThreesomeCost = trailingCost
+          trailingThreesomeIndex = index
+        }
+      }
     })
 
-    const [worstMatch] = matches.splice(worstIndex, 1)
+    const [worstMatch] = matches.splice(
+      pivot.id === trailingPlayer?.id ? trailingThreesomeIndex : worstIndex,
+      1
+    )
     const anchorPlayer1Cost =
       pairCost(pivot, worstMatch.player1, repeatCounts) +
       pairCost(worstMatch.player2, worstMatch.player1, repeatCounts)
@@ -211,6 +288,8 @@ export function generatePairings(
       }
     }
   }
+
+  matches = spreadMatchesByHandicap(matches, trailingPlayer?.id ?? null)
 
   const allFlagMatches = threesome
     ? [...matches, threesome.matchA, { player1: threesome.matchBRef.player, player2: threesome.matchBRef.referencePlayer }]

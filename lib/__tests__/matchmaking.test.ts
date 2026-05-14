@@ -18,6 +18,28 @@ describe('generatePairings', () => {
     expect(result.threesome).toBeNull()
   })
 
+  it('spreads standard matches instead of sending the lowest handicap group first', () => {
+    const result = generatePairings(
+      [
+        { id: 'a', name: 'A', handicapIndex: 1, checkInOrder: 1 },
+        { id: 'b', name: 'B', handicapIndex: 2, checkInOrder: 2 },
+        { id: 'c', name: 'C', handicapIndex: 3, checkInOrder: 3 },
+        { id: 'd', name: 'D', handicapIndex: 4, checkInOrder: 4 },
+        { id: 'e', name: 'E', handicapIndex: 5, checkInOrder: 5 },
+        { id: 'f', name: 'F', handicapIndex: 6, checkInOrder: 6 },
+        { id: 'g', name: 'G', handicapIndex: 7, checkInOrder: 7 },
+        { id: 'h', name: 'H', handicapIndex: 8, checkInOrder: 8 }
+      ],
+      []
+    )
+
+    const averageHandicaps = result.matches.map(
+      (match) => (match.player1.handicapIndex + match.player2.handicapIndex) / 2
+    )
+
+    expect(averageHandicaps).toEqual([3.5, 5.5, 1.5, 7.5])
+  })
+
   it('creates a threesome for an odd player count with the last arrival as pivot', () => {
     const result = generatePairings(
       [
@@ -47,6 +69,26 @@ describe('generatePairings', () => {
 
     expect(result.threesome).toBeNull()
     expect(result.matches.at(-1)?.player1.id).toBe('peter')
+  })
+
+  it('weights Peter Pestalozzi toward a stronger final standard opponent', () => {
+    const result = generatePairings(
+      [
+        { id: 'peter', name: 'Peter Pestalozzi', handicapIndex: 0, checkInOrder: 1 },
+        { id: 'strong', name: 'Strong Player', handicapIndex: 4, checkInOrder: 2 },
+        { id: 'a', name: 'A', handicapIndex: 6, checkInOrder: 3 },
+        { id: 'b', name: 'B', handicapIndex: 7, checkInOrder: 4 },
+        { id: 'c', name: 'C', handicapIndex: 8, checkInOrder: 5 },
+        { id: 'wayne', name: 'Wayne Davis', handicapIndex: 12, checkInOrder: 6 }
+      ],
+      [],
+      { trailingPlayerId: 'peter' }
+    )
+
+    expect(result.matches.at(-1)).toMatchObject({
+      player1: { id: 'peter' },
+      player2: { id: 'strong' }
+    })
   })
 
   it('keeps Peter Pestalozzi as the threesome pivot when checked in with an odd group', () => {
@@ -80,6 +122,24 @@ describe('generatePairings', () => {
     expect(result.threesome?.matchA.player2.id).toBe('jack')
     expect(result.threesome?.matchBRef.player.id).toBe('kristen')
     expect(result.threesome?.matchBRef.referencePlayer.id).toBe('jack')
+  })
+
+  it('reserves a stronger live opponent for a Peter Pestalozzi threesome', () => {
+    const result = generatePairings(
+      [
+        { id: 'strong', name: 'Strong Player', handicapIndex: 2, checkInOrder: 1 },
+        { id: 'strong-peer', name: 'Strong Peer', handicapIndex: 3, checkInOrder: 2 },
+        { id: 'wayne', name: 'Wayne Davis', handicapIndex: 14, checkInOrder: 3 },
+        { id: 'wayne-peer', name: 'Wayne Peer', handicapIndex: 15, checkInOrder: 4 },
+        { id: 'peter', name: 'Peter Pestalozzi', handicapIndex: 0, checkInOrder: 5 }
+      ],
+      [],
+      { trailingPlayerId: 'peter' }
+    )
+
+    expect(result.threesome?.matchA.player1.id).toBe('peter')
+    expect(result.threesome?.matchA.player2.id).toBe('strong')
+    expect(result.threesome?.matchBRef.player.id).toBe('strong-peer')
   })
 })
 

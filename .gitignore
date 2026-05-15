@@ -13,3 +13,4 @@ dist
 *.tsbuildinfo
 historical_rounds_import.sql
 scripts/
+outputs/

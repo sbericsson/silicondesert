@@ -1,0 +1,31 @@
+{
+  "source_workbook": "/Users/sericsson/Downloads/apr1726-score-import.xlsx",
+  "sheet": "260410 Hdcp",
+  "player_rows_seen": 51,
+  "included_rounds": 938,
+  "included_players": 44,
+  "skip_counts": {
+    "skip_current_round": 49,
+    "zero_score": 903,
+    "blank_score": 462,
+    "player_tbd": 2
+  },
+  "normalized_courses": [
+    "Ironwood - B9",
+    "Ironwood - F9",
+    "Oakwood - Lakes",
+    "Oakwood - Palms",
+    "Oakwood - Sonoran"
+  ],
+  "tee_colors": {
+    "blue": 578,
+    "yellow": 136,
+    "white": 224
+  },
+  "tee_genders": {
+    "man": 768,
+    "woman": 170
+  },
+  "output_csv": "/Users/sericsson/Desktop/silicon/outputs/apr1726-historical-import/apr1726_historical_rounds.csv",
+  "skipped_csv": "/Users/sericsson/Desktop/silicon/outputs/apr1726-historical-import/apr1726_skipped_rows.csv"
+}

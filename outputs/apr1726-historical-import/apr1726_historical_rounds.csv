@@ -1,0 +1,939 @@
+player_name,tee_color,tee_gender,course_name,round_date,gross_score,adjusted_gross_score,source_sheet,source_row,source_course_label
+Bob Below,blue,man,Ironwood - F9,2025-04-25,38,38,260410 Hdcp,12,Ironwood Front 9
+Bob Below,blue,man,Oakwood - Palms,2025-05-02,46,46,260410 Hdcp,12,Oakwood Palms
+Bob Below,blue,man,Ironwood - B9,2025-05-09,46,46,260410 Hdcp,12,Ironwood Back 9
+Bob Below,blue,man,Oakwood - Lakes,2025-05-16,44,44,260410 Hdcp,12,Oakwood Lakes
+Bob Below,blue,man,Ironwood - F9,2025-05-23,39,39,260410 Hdcp,12,Ironwood Front 9
+Bob Below,blue,man,Oakwood - Sonoran,2025-05-30,47,47,260410 Hdcp,12,Oakwood Sonoran
+Bob Below,blue,man,Oakwood - Palms,2025-06-06,49,49,260410 Hdcp,12,Oakwood Palms
+Bob Below,blue,man,Oakwood - Sonoran,2025-06-13,40,40,260410 Hdcp,12,Oakwood Sonoran
+Bob Below,blue,man,Oakwood - Lakes,2025-06-20,40,40,260410 Hdcp,12,Oakwood Lakes
+Bob Below,blue,man,Oakwood - Palms,2025-06-27,44,44,260410 Hdcp,12,Oakwood Palms
+Bob Below,blue,man,Oakwood - Lakes,2025-07-04,41,41,260410 Hdcp,12,Oakwood Lakes
+Bob Below,blue,man,Oakwood - Sonoran,2025-07-11,45,45,260410 Hdcp,12,Oakwood Sonoran
+Bob Below,blue,man,Oakwood - Lakes,2025-07-18,43,43,260410 Hdcp,12,Oakwood Lakes
+Bob Below,blue,man,Oakwood - Palms,2025-07-25,47,47,260410 Hdcp,12,Oakwood Palms
+Bob Below,blue,man,Oakwood - Lakes,2025-08-29,46,46,260410 Hdcp,12,Oakwood Lakes
+Bob Below,blue,man,Oakwood - Lakes,2025-09-05,42,42,260410 Hdcp,12,Oakwood Lakes
+Bob Below,blue,man,Oakwood - Palms,2025-09-12,44,44,260410 Hdcp,12,Oakwood Palms
+Bob Below,blue,man,Oakwood - Sonoran,2025-09-19,41,41,260410 Hdcp,12,Oakwood Sonoran
+Bob Below,blue,man,Oakwood - Lakes,2025-09-26,44,44,260410 Hdcp,12,Oakwood Lakes
+Chris Wozniak,blue,man,Ironwood - B9,2024-04-26,47,47,260410 Hdcp,58,Ironwood Back 9
+Chris Wozniak,blue,man,Oakwood - Sonoran,2024-05-03,50,50,260410 Hdcp,58,Oakwood Sonoran
+Chris Wozniak,blue,man,Ironwood - F9,2024-05-10,45,45,260410 Hdcp,58,Ironwood Front 9
+Chris Wozniak,blue,man,Ironwood - B9,2024-05-24,41,41,260410 Hdcp,58,Ironwood Back 9
+Chris Wozniak,blue,man,Oakwood - Palms,2024-05-31,50,50,260410 Hdcp,58,Oakwood Palms
+Chris Wozniak,blue,man,Oakwood - Sonoran,2024-06-07,53,53,260410 Hdcp,58,Oakwood Sonoran
+Chris Wozniak,blue,man,Oakwood - Palms,2024-06-14,50,50,260410 Hdcp,58,Oakwood Palms
+Chris Wozniak,blue,man,Oakwood - Sonoran,2024-06-21,44,44,260410 Hdcp,58,Oakwood Sonoran
+Chris Wozniak,blue,man,Oakwood - Palms,2024-06-28,55,55,260410 Hdcp,58,Oakwood Palms
+Chris Wozniak,blue,man,Oakwood - Sonoran,2024-07-05,44,44,260410 Hdcp,58,Oakwood Sonoran
+Chris Wozniak,blue,man,Oakwood - Sonoran,2024-07-12,46,46,260410 Hdcp,58,Oakwood Sonoran
+Chris Wozniak,blue,man,Oakwood - Palms,2024-07-19,52,52,260410 Hdcp,58,Oakwood Palms
+Chris Wozniak,blue,man,Oakwood - Sonoran,2024-07-26,50,50,260410 Hdcp,58,Oakwood Sonoran
+Chris Wozniak,blue,man,Oakwood - Palms,2024-08-02,53,53,260410 Hdcp,58,Oakwood Palms
+Chris Wozniak,blue,man,Oakwood - Sonoran,2024-08-09,52,52,260410 Hdcp,58,Oakwood Sonoran
+Chris Wozniak,blue,man,Oakwood - Palms,2024-08-16,53,53,260410 Hdcp,58,Oakwood Palms
+Chris Wozniak,blue,man,Oakwood - Palms,2024-08-30,52,52,260410 Hdcp,58,Oakwood Palms
+Chris Wozniak,blue,man,Oakwood - Sonoran,2024-09-06,50,50,260410 Hdcp,58,Oakwood Sonoran
+Chris Wozniak,blue,man,Oakwood - Palms,2024-09-13,49,49,260410 Hdcp,58,Oakwood Palms
+Chris Wozniak,blue,man,Oakwood - Sonoran,2024-09-20,49,49,260410 Hdcp,58,Oakwood Sonoran
+Chris Wozniak,blue,man,Ironwood - F9,2025-04-25,40,40,260410 Hdcp,58,Ironwood Front 9
+Chris Wozniak,blue,man,Oakwood - Palms,2025-05-02,50,50,260410 Hdcp,58,Oakwood Palms
+Chris Wozniak,blue,man,Oakwood - Lakes,2025-05-16,56,56,260410 Hdcp,58,Oakwood Lakes
+Chris Wozniak,blue,man,Oakwood - Sonoran,2025-05-30,50,50,260410 Hdcp,58,Oakwood Sonoran
+Chris Wozniak,blue,man,Oakwood - Palms,2025-06-06,51,51,260410 Hdcp,58,Oakwood Palms
+Chris Wozniak,blue,man,Oakwood - Sonoran,2025-06-13,49,49,260410 Hdcp,58,Oakwood Sonoran
+Chris Wozniak,blue,man,Oakwood - Palms,2025-06-27,49,49,260410 Hdcp,58,Oakwood Palms
+Chris Wozniak,blue,man,Oakwood - Lakes,2025-07-04,51,51,260410 Hdcp,58,Oakwood Lakes
+Chris Wozniak,blue,man,Oakwood - Sonoran,2025-07-11,49,49,260410 Hdcp,58,Oakwood Sonoran
+Chris Wozniak,blue,man,Oakwood - Lakes,2025-07-18,52,52,260410 Hdcp,58,Oakwood Lakes
+Chris Wozniak,blue,man,Oakwood - Palms,2025-07-25,51,51,260410 Hdcp,58,Oakwood Palms
+Chris Wozniak,blue,man,Oakwood - Sonoran,2025-08-01,43,43,260410 Hdcp,58,Oakwood Sonoran
+Chris Wozniak,blue,man,Oakwood - Lakes,2025-08-08,49,49,260410 Hdcp,58,Oakwood Lakes
+Chris Wozniak,blue,man,Oakwood - Palms,2025-08-15,50,50,260410 Hdcp,58,Oakwood Palms
+Chris Wozniak,blue,man,Oakwood - Lakes,2025-09-05,48,48,260410 Hdcp,58,Oakwood Lakes
+Chris Wozniak,blue,man,Oakwood - Palms,2025-09-12,54,54,260410 Hdcp,58,Oakwood Palms
+Chris Wozniak,blue,man,Oakwood - Sonoran,2025-09-19,49,49,260410 Hdcp,58,Oakwood Sonoran
+Chris Wozniak,blue,man,Oakwood - Lakes,2025-09-26,54,54,260410 Hdcp,58,Oakwood Lakes
+Chrissy Veith,yellow,woman,Ironwood - F9,2025-04-25,45,45,260410 Hdcp,53,Ironwood Front 9
+Chrissy Veith,yellow,woman,Ironwood - B9,2025-05-09,48,48,260410 Hdcp,53,Ironwood Back 9
+Chrissy Veith,yellow,woman,Oakwood - Lakes,2025-05-16,50,50,260410 Hdcp,53,Oakwood Lakes
+Chrissy Veith,yellow,woman,Ironwood - F9,2025-05-23,43,43,260410 Hdcp,53,Ironwood Front 9
+Chrissy Veith,yellow,woman,Oakwood - Sonoran,2025-05-30,45,45,260410 Hdcp,53,Oakwood Sonoran
+Chrissy Veith,yellow,woman,Oakwood - Palms,2025-06-06,52,52,260410 Hdcp,53,Oakwood Palms
+Chrissy Veith,yellow,woman,Oakwood - Sonoran,2025-06-13,53,53,260410 Hdcp,53,Oakwood Sonoran
+Chrissy Veith,yellow,woman,Oakwood - Palms,2025-06-27,52,52,260410 Hdcp,53,Oakwood Palms
+Chrissy Veith,yellow,woman,Oakwood - Palms,2025-07-25,55,55,260410 Hdcp,53,Oakwood Palms
+Chrissy Veith,yellow,woman,Oakwood - Sonoran,2025-08-01,49,49,260410 Hdcp,53,Oakwood Sonoran
+Chrissy Veith,yellow,woman,Oakwood - Palms,2025-08-15,49,49,260410 Hdcp,53,Oakwood Palms
+Dave Bealer,blue,man,Ironwood - F9,2024-04-12,42,42,260410 Hdcp,11,Ironwood F9
+Dave Bealer,blue,man,Ironwood - B9,2024-04-26,40,40,260410 Hdcp,11,Ironwood Back 9
+Dave Bealer,blue,man,Oakwood - Sonoran,2024-05-03,44,44,260410 Hdcp,11,Oakwood Sonoran
+Dave Bealer,blue,man,Ironwood - F9,2024-05-10,36,36,260410 Hdcp,11,Ironwood Front 9
+Dave Bealer,blue,man,Ironwood - B9,2024-05-24,40,40,260410 Hdcp,11,Ironwood Back 9
+Dave Bealer,blue,man,Oakwood - Palms,2024-05-31,40,40,260410 Hdcp,11,Oakwood Palms
+Dave Bealer,blue,man,Oakwood - Sonoran,2024-06-07,40,40,260410 Hdcp,11,Oakwood Sonoran
+Dave Bealer,blue,man,Oakwood - Palms,2024-06-14,38,38,260410 Hdcp,11,Oakwood Palms
+Dave Bealer,blue,man,Oakwood - Palms,2024-06-28,41,41,260410 Hdcp,11,Oakwood Palms
+Dave Bealer,blue,man,Oakwood - Sonoran,2024-07-05,42,42,260410 Hdcp,11,Oakwood Sonoran
+Dave Bealer,blue,man,Oakwood - Sonoran,2024-07-26,36,36,260410 Hdcp,11,Oakwood Sonoran
+Dave Bealer,blue,man,Oakwood - Palms,2024-08-02,36,36,260410 Hdcp,11,Oakwood Palms
+Dave Bealer,blue,man,Oakwood - Sonoran,2024-08-09,39,39,260410 Hdcp,11,Oakwood Sonoran
+Dave Bealer,blue,man,Oakwood - Palms,2024-08-16,43,43,260410 Hdcp,11,Oakwood Palms
+Dave Bealer,blue,man,Oakwood - Sonoran,2024-08-23,40,40,260410 Hdcp,11,Oakwood Sonoran
+Dave Bealer,blue,man,Oakwood - Sonoran,2024-09-06,35,35,260410 Hdcp,11,Oakwood Sonoran
+Dave Bealer,blue,man,Oakwood - Palms,2024-09-13,43,43,260410 Hdcp,11,Oakwood Palms
+Dave Bealer,blue,man,Oakwood - Sonoran,2024-09-20,39,39,260410 Hdcp,11,Oakwood Sonoran
+Dave Bealer,blue,man,Ironwood - F9,2025-05-23,38,38,260410 Hdcp,11,Ironwood Front 9
+Dave Bealer,blue,man,Oakwood - Palms,2025-06-27,45,45,260410 Hdcp,11,Oakwood Palms
+Dave Burgess,blue,man,Oakwood - Palms,2024-09-13,41,41,260410 Hdcp,14,Oakwood Palms
+Dave Burgess,blue,man,Oakwood - Lakes,2025-09-05,44,44,260410 Hdcp,14,Oakwood Lakes
+Duane Wellnitz,blue,man,Oakwood - Lakes,2024-04-19,46,46,260410 Hdcp,56,Oakwood Lakes
+Duane Wellnitz,blue,man,Ironwood - F9,2024-05-10,42,42,260410 Hdcp,56,Ironwood Front 9
+Duane Wellnitz,blue,man,Oakwood - Palms,2024-05-17,45,45,260410 Hdcp,56,Oakwood Palms
+Duane Wellnitz,blue,man,Ironwood - B9,2024-05-24,40,40,260410 Hdcp,56,Ironwood Back 9
+Duane Wellnitz,blue,man,Ironwood - F9,2025-04-25,35,35,260410 Hdcp,56,Ironwood Front 9
+Duane Wellnitz,blue,man,Oakwood - Lakes,2025-05-16,44,44,260410 Hdcp,56,Oakwood Lakes
+Duane Wellnitz,blue,man,Oakwood - Palms,2025-09-12,39,39,260410 Hdcp,56,Oakwood Palms
+Duane Wellnitz,blue,man,Oakwood - Sonoran,2025-09-19,45,45,260410 Hdcp,56,Oakwood Sonoran
+Elliot Karlin,blue,man,Oakwood - Palms,2025-05-02,43,43,260410 Hdcp,37,Oakwood Palms
+Elliot Karlin,blue,man,Oakwood - Lakes,2025-05-16,50,50,260410 Hdcp,37,Oakwood Lakes
+Elliot Karlin,blue,man,Oakwood - Sonoran,2025-06-13,44,44,260410 Hdcp,37,Oakwood Sonoran
+Elliot Karlin,blue,man,Oakwood - Palms,2025-07-25,48,48,260410 Hdcp,37,Oakwood Palms
+Ernie Wagner,blue,man,Oakwood - Lakes,2024-04-19,50,50,260410 Hdcp,55,Oakwood Lakes
+Ernie Wagner,blue,man,Ironwood - B9,2024-04-26,44,44,260410 Hdcp,55,Ironwood Back 9
+Ernie Wagner,blue,man,Ironwood - F9,2024-05-10,46,46,260410 Hdcp,55,Ironwood Front 9
+Ernie Wagner,blue,man,Oakwood - Palms,2024-05-31,48,48,260410 Hdcp,55,Oakwood Palms
+Ernie Wagner,blue,man,Oakwood - Sonoran,2024-06-07,48,48,260410 Hdcp,55,Oakwood Sonoran
+Ernie Wagner,blue,man,Oakwood - Palms,2024-06-28,47,47,260410 Hdcp,55,Oakwood Palms
+Ernie Wagner,blue,man,Oakwood - Palms,2024-07-19,49,49,260410 Hdcp,55,Oakwood Palms
+Ernie Wagner,blue,man,Oakwood - Sonoran,2024-07-26,43,43,260410 Hdcp,55,Oakwood Sonoran
+Ernie Wagner,blue,man,Oakwood - Palms,2024-08-02,52,52,260410 Hdcp,55,Oakwood Palms
+Ernie Wagner,blue,man,Oakwood - Sonoran,2024-08-09,47,47,260410 Hdcp,55,Oakwood Sonoran
+Ernie Wagner,blue,man,Oakwood - Palms,2024-08-30,48,48,260410 Hdcp,55,Oakwood Palms
+Ernie Wagner,blue,man,Oakwood - Palms,2024-09-13,47,47,260410 Hdcp,55,Oakwood Palms
+Ernie Wagner,blue,man,Oakwood - Palms,2025-06-27,46,46,260410 Hdcp,55,Oakwood Palms
+Ernie Wagner,blue,man,Oakwood - Lakes,2025-07-18,45,45,260410 Hdcp,55,Oakwood Lakes
+Ernie Wagner,blue,man,Oakwood - Palms,2025-08-15,46,46,260410 Hdcp,55,Oakwood Palms
+Ernie Wagner,blue,man,Oakwood - Sonoran,2025-08-22,42,42,260410 Hdcp,55,Oakwood Sonoran
+Ernie Wagner,blue,man,Oakwood - Lakes,2025-09-05,46,46,260410 Hdcp,55,Oakwood Lakes
+Ernie Wagner,blue,man,Oakwood - Palms,2025-09-12,49,49,260410 Hdcp,55,Oakwood Palms
+Ernie Wagner,blue,man,Oakwood - Sonoran,2025-09-19,47,47,260410 Hdcp,55,Oakwood Sonoran
+Frank Gillern,white,man,Ironwood - F9,2024-04-12,41,41,260410 Hdcp,26,Ironwood F9
+Frank Gillern,white,man,Oakwood - Lakes,2024-04-19,45,45,260410 Hdcp,26,Oakwood Lakes
+Frank Gillern,white,man,Ironwood - B9,2024-04-26,45,45,260410 Hdcp,26,Ironwood Back 9
+Frank Gillern,white,man,Oakwood - Sonoran,2024-05-03,41,41,260410 Hdcp,26,Oakwood Sonoran
+Frank Gillern,white,man,Ironwood - F9,2024-05-10,41,41,260410 Hdcp,26,Ironwood Front 9
+Frank Gillern,white,man,Oakwood - Palms,2024-05-17,51,51,260410 Hdcp,26,Oakwood Palms
+Frank Gillern,white,man,Oakwood - Palms,2024-05-31,47,47,260410 Hdcp,26,Oakwood Palms
+Frank Gillern,white,man,Oakwood - Sonoran,2024-06-07,51,51,260410 Hdcp,26,Oakwood Sonoran
+Frank Gillern,white,man,Oakwood - Palms,2024-06-28,48,48,260410 Hdcp,26,Oakwood Palms
+Frank Gillern,white,man,Oakwood - Sonoran,2024-07-05,44,44,260410 Hdcp,26,Oakwood Sonoran
+Frank Gillern,white,man,Oakwood - Sonoran,2024-07-12,46,46,260410 Hdcp,26,Oakwood Sonoran
+Frank Gillern,white,man,Oakwood - Sonoran,2024-07-26,42,42,260410 Hdcp,26,Oakwood Sonoran
+Frank Gillern,white,man,Oakwood - Palms,2024-08-02,45,45,260410 Hdcp,26,Oakwood Palms
+Frank Gillern,white,man,Oakwood - Sonoran,2024-08-09,43,43,260410 Hdcp,26,Oakwood Sonoran
+Frank Gillern,white,man,Oakwood - Palms,2024-08-16,44,44,260410 Hdcp,26,Oakwood Palms
+Frank Gillern,white,man,Oakwood - Sonoran,2024-08-23,43,43,260410 Hdcp,26,Oakwood Sonoran
+Frank Gillern,white,man,Oakwood - Palms,2024-08-30,43,43,260410 Hdcp,26,Oakwood Palms
+Frank Gillern,white,man,Oakwood - Sonoran,2024-09-06,46,46,260410 Hdcp,26,Oakwood Sonoran
+Frank Gillern,white,man,Oakwood - Palms,2024-09-13,44,44,260410 Hdcp,26,Oakwood Palms
+Frank Gillern,white,man,Oakwood - Sonoran,2024-09-20,45,45,260410 Hdcp,26,Oakwood Sonoran
+Frank Gillern,white,man,Ironwood - F9,2025-04-25,44,44,260410 Hdcp,26,Ironwood Front 9
+Frank Gillern,white,man,Oakwood - Palms,2025-05-02,49,49,260410 Hdcp,26,Oakwood Palms
+Frank Gillern,white,man,Ironwood - B9,2025-05-09,48,48,260410 Hdcp,26,Ironwood Back 9
+Frank Gillern,white,man,Oakwood - Lakes,2025-05-16,50,50,260410 Hdcp,26,Oakwood Lakes
+Frank Gillern,white,man,Ironwood - F9,2025-05-23,42,42,260410 Hdcp,26,Ironwood Front 9
+Frank Gillern,white,man,Oakwood - Sonoran,2025-05-30,45,45,260410 Hdcp,26,Oakwood Sonoran
+Frank Gillern,white,man,Oakwood - Palms,2025-06-06,44,44,260410 Hdcp,26,Oakwood Palms
+Frank Gillern,white,man,Oakwood - Sonoran,2025-06-13,42,42,260410 Hdcp,26,Oakwood Sonoran
+Frank Gillern,white,man,Oakwood - Lakes,2025-06-20,43,43,260410 Hdcp,26,Oakwood Lakes
+Frank Gillern,white,man,Oakwood - Palms,2025-06-27,47,47,260410 Hdcp,26,Oakwood Palms
+Frank Gillern,white,man,Oakwood - Lakes,2025-08-08,42,42,260410 Hdcp,26,Oakwood Lakes
+Frank Gillern,white,man,Oakwood - Palms,2025-08-15,45,45,260410 Hdcp,26,Oakwood Palms
+Frank Gillern,white,man,Oakwood - Sonoran,2025-08-22,47,47,260410 Hdcp,26,Oakwood Sonoran
+Frank Gillern,white,man,Oakwood - Lakes,2025-08-29,47,47,260410 Hdcp,26,Oakwood Lakes
+Frank Gillern,white,man,Oakwood - Lakes,2025-09-05,44,44,260410 Hdcp,26,Oakwood Lakes
+Frank Gillern,white,man,Oakwood - Palms,2025-09-12,48,48,260410 Hdcp,26,Oakwood Palms
+Frank Gillern,white,man,Oakwood - Sonoran,2025-09-19,45,45,260410 Hdcp,26,Oakwood Sonoran
+Frank Gillern,white,man,Oakwood - Lakes,2025-09-26,50,50,260410 Hdcp,26,Oakwood Lakes
+Gary Clinton,white,man,Oakwood - Sonoran,2024-05-03,46,46,260410 Hdcp,18,Oakwood Sonoran
+Gary Clinton,white,man,Oakwood - Palms,2024-05-17,51,51,260410 Hdcp,18,Oakwood Palms
+Gary Clinton,white,man,Ironwood - B9,2024-05-24,48,48,260410 Hdcp,18,Ironwood Back 9
+Gary Clinton,white,man,Oakwood - Palms,2024-05-31,48,48,260410 Hdcp,18,Oakwood Palms
+Gary Clinton,white,man,Ironwood - F9,2025-04-25,41,41,260410 Hdcp,18,Ironwood Front 9
+Gary Clinton,white,man,Oakwood - Palms,2025-05-02,50,50,260410 Hdcp,18,Oakwood Palms
+Gary Clinton,white,man,Ironwood - B9,2025-05-09,43,43,260410 Hdcp,18,Ironwood Back 9
+George Jones,blue,man,Ironwood - F9,2024-04-12,39,39,260410 Hdcp,36,Ironwood F9
+George Jones,blue,man,Ironwood - B9,2024-04-26,37,37,260410 Hdcp,36,Ironwood Back 9
+George Jones,blue,man,Oakwood - Sonoran,2024-05-03,37,37,260410 Hdcp,36,Oakwood Sonoran
+George Jones,blue,man,Ironwood - F9,2024-05-10,36,36,260410 Hdcp,36,Ironwood Front 9
+George Jones,blue,man,Oakwood - Palms,2024-05-17,37,37,260410 Hdcp,36,Oakwood Palms
+George Jones,blue,man,Ironwood - B9,2024-05-24,41,41,260410 Hdcp,36,Ironwood Back 9
+George Jones,blue,man,Oakwood - Palms,2024-05-31,42,42,260410 Hdcp,36,Oakwood Palms
+George Jones,blue,man,Oakwood - Sonoran,2024-06-07,38,38,260410 Hdcp,36,Oakwood Sonoran
+George Jones,blue,man,Oakwood - Sonoran,2024-06-21,35,35,260410 Hdcp,36,Oakwood Sonoran
+George Jones,blue,man,Oakwood - Palms,2024-06-28,41,41,260410 Hdcp,36,Oakwood Palms
+George Jones,blue,man,Oakwood - Sonoran,2024-07-12,40,40,260410 Hdcp,36,Oakwood Sonoran
+George Jones,blue,man,Oakwood - Palms,2024-07-19,39,39,260410 Hdcp,36,Oakwood Palms
+George Jones,blue,man,Oakwood - Sonoran,2024-07-26,41,41,260410 Hdcp,36,Oakwood Sonoran
+George Jones,blue,man,Oakwood - Palms,2024-08-02,38,38,260410 Hdcp,36,Oakwood Palms
+George Jones,blue,man,Oakwood - Sonoran,2024-08-09,37,37,260410 Hdcp,36,Oakwood Sonoran
+George Jones,blue,man,Oakwood - Palms,2024-08-16,39,39,260410 Hdcp,36,Oakwood Palms
+George Jones,blue,man,Oakwood - Sonoran,2024-09-06,40,40,260410 Hdcp,36,Oakwood Sonoran
+George Jones,blue,man,Oakwood - Palms,2024-09-13,36,36,260410 Hdcp,36,Oakwood Palms
+George Jones,blue,man,Oakwood - Sonoran,2024-09-20,39,39,260410 Hdcp,36,Oakwood Sonoran
+George Jones,blue,man,Ironwood - B9,2025-05-09,35,35,260410 Hdcp,36,Ironwood Back 9
+George Jones,blue,man,Oakwood - Lakes,2025-05-16,43,43,260410 Hdcp,36,Oakwood Lakes
+George Jones,blue,man,Oakwood - Sonoran,2025-05-30,41,41,260410 Hdcp,36,Oakwood Sonoran
+George Jones,blue,man,Oakwood - Palms,2025-06-06,43,43,260410 Hdcp,36,Oakwood Palms
+George Jones,blue,man,Oakwood - Sonoran,2025-06-13,41,41,260410 Hdcp,36,Oakwood Sonoran
+George Jones,blue,man,Oakwood - Palms,2025-06-27,36,36,260410 Hdcp,36,Oakwood Palms
+George Jones,blue,man,Oakwood - Lakes,2025-07-04,35,35,260410 Hdcp,36,Oakwood Lakes
+George Jones,blue,man,Oakwood - Palms,2025-07-25,38,38,260410 Hdcp,36,Oakwood Palms
+George Jones,blue,man,Oakwood - Sonoran,2025-08-01,38,38,260410 Hdcp,36,Oakwood Sonoran
+George Jones,blue,man,Oakwood - Lakes,2025-08-08,38,38,260410 Hdcp,36,Oakwood Lakes
+George Jones,blue,man,Oakwood - Palms,2025-08-15,43,43,260410 Hdcp,36,Oakwood Palms
+George Jones,blue,man,Oakwood - Lakes,2025-09-05,38,38,260410 Hdcp,36,Oakwood Lakes
+George Jones,blue,man,Oakwood - Palms,2025-09-12,42,42,260410 Hdcp,36,Oakwood Palms
+George Jones,blue,man,Oakwood - Lakes,2025-09-26,43,43,260410 Hdcp,36,Oakwood Lakes
+Geraldine Follmer,yellow,woman,Ironwood - F9,2024-04-12,44,44,260410 Hdcp,25,Ironwood F9
+Geraldine Follmer,yellow,woman,Oakwood - Sonoran,2024-05-03,38,38,260410 Hdcp,25,Oakwood Sonoran
+Geraldine Follmer,yellow,woman,Ironwood - B9,2024-05-24,41,41,260410 Hdcp,25,Ironwood Back 9
+Geraldine Follmer,yellow,woman,Oakwood - Palms,2024-05-31,49,49,260410 Hdcp,25,Oakwood Palms
+Geraldine Follmer,yellow,woman,Oakwood - Sonoran,2024-06-07,47,47,260410 Hdcp,25,Oakwood Sonoran
+Geraldine Follmer,yellow,woman,Oakwood - Sonoran,2024-07-05,39,39,260410 Hdcp,25,Oakwood Sonoran
+Geraldine Follmer,yellow,woman,Ironwood - F9,2025-04-25,40,40,260410 Hdcp,25,Ironwood Front 9
+Geraldine Follmer,yellow,woman,Oakwood - Lakes,2025-08-08,50,50,260410 Hdcp,25,Oakwood Lakes
+Greg Janovsky,blue,man,Ironwood - B9,2024-04-26,40,40,260410 Hdcp,33,Ironwood Back 9
+Greg Janovsky,blue,man,Oakwood - Sonoran,2024-05-03,43,43,260410 Hdcp,33,Oakwood Sonoran
+Greg Janovsky,blue,man,Oakwood - Sonoran,2024-09-20,48,48,260410 Hdcp,33,Oakwood Sonoran
+Heather Kolovos,yellow,woman,Ironwood - F9,2025-04-25,44,44,260410 Hdcp,41,Ironwood Front 9
+Heather Kolovos,yellow,woman,Oakwood - Palms,2025-05-02,46,46,260410 Hdcp,41,Oakwood Palms
+Heather Kolovos,yellow,woman,Ironwood - B9,2025-05-09,49,49,260410 Hdcp,41,Ironwood Back 9
+Heather Kolovos,yellow,woman,Oakwood - Sonoran,2025-05-30,47,47,260410 Hdcp,41,Oakwood Sonoran
+Heather Kolovos,yellow,woman,Oakwood - Palms,2025-06-06,52,52,260410 Hdcp,41,Oakwood Palms
+Heather Kolovos,yellow,woman,Oakwood - Sonoran,2025-06-13,48,48,260410 Hdcp,41,Oakwood Sonoran
+Heather Kolovos,yellow,woman,Oakwood - Palms,2025-06-27,47,47,260410 Hdcp,41,Oakwood Palms
+Heather Kolovos,yellow,woman,Oakwood - Sonoran,2025-07-11,48,48,260410 Hdcp,41,Oakwood Sonoran
+Heather Kolovos,yellow,woman,Oakwood - Lakes,2025-07-18,50,50,260410 Hdcp,41,Oakwood Lakes
+Heather Kolovos,yellow,woman,Oakwood - Palms,2025-07-25,53,53,260410 Hdcp,41,Oakwood Palms
+Heather Kolovos,yellow,woman,Oakwood - Sonoran,2025-08-01,44,44,260410 Hdcp,41,Oakwood Sonoran
+Heather Kolovos,yellow,woman,Oakwood - Lakes,2025-08-08,48,48,260410 Hdcp,41,Oakwood Lakes
+Jack Higgins,blue,man,Ironwood - F9,2024-04-12,41,41,260410 Hdcp,28,Ironwood F9
+Jack Higgins,blue,man,Oakwood - Lakes,2024-04-19,47,47,260410 Hdcp,28,Oakwood Lakes
+Jack Higgins,blue,man,Ironwood - B9,2024-04-26,49,49,260410 Hdcp,28,Ironwood Back 9
+Jack Higgins,blue,man,Oakwood - Sonoran,2024-05-03,46,46,260410 Hdcp,28,Oakwood Sonoran
+Jack Higgins,blue,man,Ironwood - F9,2024-05-10,42,42,260410 Hdcp,28,Ironwood Front 9
+Jack Higgins,blue,man,Oakwood - Palms,2024-05-17,47,47,260410 Hdcp,28,Oakwood Palms
+Jack Higgins,blue,man,Ironwood - B9,2024-05-24,41,41,260410 Hdcp,28,Ironwood Back 9
+Jack Higgins,blue,man,Oakwood - Palms,2024-05-31,46,46,260410 Hdcp,28,Oakwood Palms
+Jack Higgins,blue,man,Oakwood - Sonoran,2024-06-07,44,44,260410 Hdcp,28,Oakwood Sonoran
+Jack Higgins,blue,man,Oakwood - Palms,2024-06-14,49,49,260410 Hdcp,28,Oakwood Palms
+Jack Higgins,blue,man,Oakwood - Sonoran,2024-06-21,47,47,260410 Hdcp,28,Oakwood Sonoran
+Jack Higgins,blue,man,Oakwood - Palms,2024-06-28,49,49,260410 Hdcp,28,Oakwood Palms
+Jack Higgins,blue,man,Oakwood - Sonoran,2024-07-05,45,45,260410 Hdcp,28,Oakwood Sonoran
+Jack Higgins,blue,man,Oakwood - Sonoran,2024-07-12,44,44,260410 Hdcp,28,Oakwood Sonoran
+Jack Higgins,blue,man,Oakwood - Palms,2024-07-19,45,45,260410 Hdcp,28,Oakwood Palms
+Jack Higgins,blue,man,Oakwood - Sonoran,2024-07-26,43,43,260410 Hdcp,28,Oakwood Sonoran
+Jack Higgins,blue,man,Oakwood - Sonoran,2024-08-09,46,46,260410 Hdcp,28,Oakwood Sonoran
+Jack Higgins,blue,man,Oakwood - Palms,2024-08-16,48,48,260410 Hdcp,28,Oakwood Palms
+Jack Higgins,blue,man,Oakwood - Sonoran,2024-08-23,43,43,260410 Hdcp,28,Oakwood Sonoran
+Jack Higgins,blue,man,Oakwood - Palms,2024-08-30,49,49,260410 Hdcp,28,Oakwood Palms
+Jack Higgins,blue,man,Oakwood - Sonoran,2024-09-06,47,47,260410 Hdcp,28,Oakwood Sonoran
+Jack Higgins,blue,man,Oakwood - Palms,2024-09-13,45,45,260410 Hdcp,28,Oakwood Palms
+Jack Higgins,blue,man,Oakwood - Sonoran,2024-09-20,51,51,260410 Hdcp,28,Oakwood Sonoran
+Jack Higgins,blue,man,Ironwood - F9,2025-04-25,43,43,260410 Hdcp,28,Ironwood Front 9
+Jack Higgins,blue,man,Oakwood - Palms,2025-05-02,53,53,260410 Hdcp,28,Oakwood Palms
+Jack Higgins,blue,man,Ironwood - B9,2025-05-09,39,39,260410 Hdcp,28,Ironwood Back 9
+Jack Higgins,blue,man,Oakwood - Lakes,2025-05-16,52,52,260410 Hdcp,28,Oakwood Lakes
+Jack Higgins,blue,man,Ironwood - F9,2025-05-23,42,42,260410 Hdcp,28,Ironwood Front 9
+Jack Higgins,blue,man,Oakwood - Sonoran,2025-05-30,51,51,260410 Hdcp,28,Oakwood Sonoran
+Jack Higgins,blue,man,Oakwood - Palms,2025-06-06,48,48,260410 Hdcp,28,Oakwood Palms
+Jack Higgins,blue,man,Oakwood - Sonoran,2025-06-13,51,51,260410 Hdcp,28,Oakwood Sonoran
+Jack Higgins,blue,man,Oakwood - Lakes,2025-06-20,48,48,260410 Hdcp,28,Oakwood Lakes
+Jack Higgins,blue,man,Oakwood - Palms,2025-06-27,46,46,260410 Hdcp,28,Oakwood Palms
+Jack Higgins,blue,man,Oakwood - Sonoran,2025-07-11,50,50,260410 Hdcp,28,Oakwood Sonoran
+Jack Higgins,blue,man,Oakwood - Lakes,2025-07-18,44,44,260410 Hdcp,28,Oakwood Lakes
+Jack Higgins,blue,man,Oakwood - Palms,2025-07-25,43,43,260410 Hdcp,28,Oakwood Palms
+Jack Higgins,blue,man,Oakwood - Sonoran,2025-08-01,42,42,260410 Hdcp,28,Oakwood Sonoran
+Jack Higgins,blue,man,Oakwood - Lakes,2025-08-08,48,48,260410 Hdcp,28,Oakwood Lakes
+Jack Higgins,blue,man,Oakwood - Palms,2025-08-15,49,49,260410 Hdcp,28,Oakwood Palms
+Jack Higgins,blue,man,Oakwood - Sonoran,2025-08-22,47,47,260410 Hdcp,28,Oakwood Sonoran
+Jack Higgins,blue,man,Oakwood - Lakes,2025-08-29,46,46,260410 Hdcp,28,Oakwood Lakes
+Jack Higgins,blue,man,Oakwood - Lakes,2025-09-05,51,51,260410 Hdcp,28,Oakwood Lakes
+Jack Higgins,blue,man,Oakwood - Palms,2025-09-12,52,52,260410 Hdcp,28,Oakwood Palms
+Jack Higgins,blue,man,Oakwood - Sonoran,2025-09-19,47,47,260410 Hdcp,28,Oakwood Sonoran
+Jack Higgins,blue,man,Oakwood - Lakes,2025-09-26,51,51,260410 Hdcp,28,Oakwood Lakes
+Jackson Khan,blue,man,Oakwood - Lakes,2024-04-19,49,49,260410 Hdcp,38,Oakwood Lakes
+Jackson Khan,blue,man,Ironwood - B9,2024-04-26,44,44,260410 Hdcp,38,Ironwood Back 9
+Jackson Khan,blue,man,Oakwood - Palms,2024-08-30,46,46,260410 Hdcp,38,Oakwood Palms
+Jackson Khan,blue,man,Oakwood - Sonoran,2024-09-06,43,43,260410 Hdcp,38,Oakwood Sonoran
+Jackson Khan,blue,man,Oakwood - Lakes,2025-09-05,50,50,260410 Hdcp,38,Oakwood Lakes
+Jim Mitchell,white,man,Oakwood - Lakes,2024-04-19,58,58,260410 Hdcp,44,Oakwood Lakes
+Jim Mitchell,white,man,Oakwood - Sonoran,2024-05-03,51,51,260410 Hdcp,44,Oakwood Sonoran
+Jim Mitchell,white,man,Ironwood - F9,2024-05-10,48,48,260410 Hdcp,44,Ironwood Front 9
+Jim Mitchell,white,man,Oakwood - Palms,2024-05-17,56,56,260410 Hdcp,44,Oakwood Palms
+Jim Mitchell,white,man,Ironwood - B9,2024-05-24,53,53,260410 Hdcp,44,Ironwood Back 9
+Jim Mitchell,white,man,Oakwood - Palms,2024-05-31,53,53,260410 Hdcp,44,Oakwood Palms
+Jim Mitchell,white,man,Oakwood - Sonoran,2024-06-07,49,49,260410 Hdcp,44,Oakwood Sonoran
+Jim Mitchell,white,man,Oakwood - Palms,2024-06-14,51,51,260410 Hdcp,44,Oakwood Palms
+Jim Mitchell,white,man,Oakwood - Sonoran,2024-06-21,47,47,260410 Hdcp,44,Oakwood Sonoran
+Jim Mitchell,white,man,Oakwood - Sonoran,2024-08-09,53,53,260410 Hdcp,44,Oakwood Sonoran
+Jim Mitchell,white,man,Oakwood - Palms,2024-08-16,56,56,260410 Hdcp,44,Oakwood Palms
+Jim Mitchell,white,man,Oakwood - Sonoran,2024-08-23,50,50,260410 Hdcp,44,Oakwood Sonoran
+Jim Mitchell,white,man,Oakwood - Palms,2024-08-30,54,54,260410 Hdcp,44,Oakwood Palms
+Jim Mitchell,white,man,Oakwood - Sonoran,2024-09-06,53,53,260410 Hdcp,44,Oakwood Sonoran
+Jim Mitchell,white,man,Oakwood - Sonoran,2024-09-20,53,53,260410 Hdcp,44,Oakwood Sonoran
+Jim Mitchell,white,man,Oakwood - Palms,2025-05-02,60,60,260410 Hdcp,44,Oakwood Palms
+Jim Mitchell,white,man,Oakwood - Lakes,2025-05-16,63,63,260410 Hdcp,44,Oakwood Lakes
+Jim Mitchell,white,man,Ironwood - F9,2025-05-23,49,49,260410 Hdcp,44,Ironwood Front 9
+Jim Mitchell,white,man,Oakwood - Palms,2025-06-27,57,57,260410 Hdcp,44,Oakwood Palms
+Jim Mitchell,white,man,Oakwood - Sonoran,2025-08-01,55,55,260410 Hdcp,44,Oakwood Sonoran
+Jim Mitchell,white,man,Oakwood - Lakes,2025-08-08,56,56,260410 Hdcp,44,Oakwood Lakes
+Jim Mitchell,white,man,Oakwood - Palms,2025-08-15,50,50,260410 Hdcp,44,Oakwood Palms
+Jim Mitchell,white,man,Oakwood - Sonoran,2025-08-22,51,51,260410 Hdcp,44,Oakwood Sonoran
+Jim Mitchell,white,man,Oakwood - Lakes,2025-08-29,51,51,260410 Hdcp,44,Oakwood Lakes
+Jim Mitchell,white,man,Oakwood - Lakes,2025-09-05,60,60,260410 Hdcp,44,Oakwood Lakes
+Jim Mitchell,white,man,Oakwood - Palms,2025-09-12,50,50,260410 Hdcp,44,Oakwood Palms
+Jim Mitchell,white,man,Oakwood - Sonoran,2025-09-19,50,50,260410 Hdcp,44,Oakwood Sonoran
+Jim Sopko,white,man,Ironwood - F9,2024-04-12,47,47,260410 Hdcp,49,Ironwood F9
+Jim Sopko,white,man,Oakwood - Lakes,2024-04-19,50,50,260410 Hdcp,49,Oakwood Lakes
+Jim Sopko,white,man,Ironwood - B9,2024-04-26,46,46,260410 Hdcp,49,Ironwood Back 9
+Jim Sopko,white,man,Oakwood - Sonoran,2024-05-03,47,47,260410 Hdcp,49,Oakwood Sonoran
+Jim Sopko,white,man,Oakwood - Palms,2024-05-17,48,48,260410 Hdcp,49,Oakwood Palms
+Jim Sopko,white,man,Ironwood - B9,2024-05-24,45,45,260410 Hdcp,49,Ironwood Back 9
+Jim Sopko,white,man,Oakwood - Palms,2024-05-31,50,50,260410 Hdcp,49,Oakwood Palms
+Jim Sopko,white,man,Ironwood - F9,2025-04-25,46,46,260410 Hdcp,49,Ironwood Front 9
+Jim Sopko,white,man,Oakwood - Lakes,2025-05-16,48,48,260410 Hdcp,49,Oakwood Lakes
+Jim Sopko,white,man,Ironwood - F9,2025-05-23,44,44,260410 Hdcp,49,Ironwood Front 9
+Jim Sopko,white,man,Oakwood - Sonoran,2025-05-30,47,47,260410 Hdcp,49,Oakwood Sonoran
+Jim Sopko,white,man,Oakwood - Palms,2025-06-06,52,52,260410 Hdcp,49,Oakwood Palms
+Jim Sopko,white,man,Oakwood - Sonoran,2025-06-13,47,47,260410 Hdcp,49,Oakwood Sonoran
+Jim Sopko,white,man,Oakwood - Lakes,2025-06-20,48,48,260410 Hdcp,49,Oakwood Lakes
+Jim Sopko,white,man,Oakwood - Palms,2025-06-27,51,51,260410 Hdcp,49,Oakwood Palms
+John Callahan,white,man,Ironwood - F9,2024-04-12,38,38,260410 Hdcp,15,Ironwood F9
+John Callahan,white,man,Oakwood - Lakes,2024-04-19,43,43,260410 Hdcp,15,Oakwood Lakes
+John Callahan,white,man,Ironwood - B9,2024-04-26,42,42,260410 Hdcp,15,Ironwood Back 9
+John Callahan,white,man,Oakwood - Sonoran,2024-05-03,40,40,260410 Hdcp,15,Oakwood Sonoran
+John Callahan,white,man,Oakwood - Palms,2024-05-17,37,37,260410 Hdcp,15,Oakwood Palms
+John Callahan,white,man,Ironwood - B9,2024-05-24,43,43,260410 Hdcp,15,Ironwood Back 9
+John Callahan,white,man,Oakwood - Sonoran,2024-06-07,43,43,260410 Hdcp,15,Oakwood Sonoran
+John Callahan,white,man,Oakwood - Palms,2024-06-14,40,40,260410 Hdcp,15,Oakwood Palms
+John Callahan,white,man,Oakwood - Palms,2024-06-28,44,44,260410 Hdcp,15,Oakwood Palms
+John Callahan,white,man,Oakwood - Sonoran,2024-07-05,38,38,260410 Hdcp,15,Oakwood Sonoran
+John Callahan,white,man,Oakwood - Sonoran,2024-07-12,41,41,260410 Hdcp,15,Oakwood Sonoran
+John Callahan,white,man,Oakwood - Sonoran,2024-07-26,40,40,260410 Hdcp,15,Oakwood Sonoran
+John Callahan,white,man,Oakwood - Sonoran,2024-08-23,44,44,260410 Hdcp,15,Oakwood Sonoran
+John Callahan,white,man,Oakwood - Palms,2024-08-30,39,39,260410 Hdcp,15,Oakwood Palms
+John Callahan,white,man,Oakwood - Sonoran,2024-09-06,38,38,260410 Hdcp,15,Oakwood Sonoran
+John Callahan,white,man,Oakwood - Palms,2024-09-13,37,37,260410 Hdcp,15,Oakwood Palms
+John Callahan,white,man,Oakwood - Sonoran,2024-09-20,40,40,260410 Hdcp,15,Oakwood Sonoran
+John Callahan,white,man,Oakwood - Palms,2025-05-02,42,42,260410 Hdcp,15,Oakwood Palms
+John Callahan,white,man,Ironwood - B9,2025-05-09,37,37,260410 Hdcp,15,Ironwood Back 9
+John Callahan,white,man,Oakwood - Lakes,2025-05-16,45,45,260410 Hdcp,15,Oakwood Lakes
+John Callahan,white,man,Ironwood - F9,2025-05-23,38,38,260410 Hdcp,15,Ironwood Front 9
+John Callahan,white,man,Oakwood - Sonoran,2025-05-30,42,42,260410 Hdcp,15,Oakwood Sonoran
+John Callahan,white,man,Oakwood - Palms,2025-06-06,41,41,260410 Hdcp,15,Oakwood Palms
+John Callahan,white,man,Oakwood - Sonoran,2025-06-13,42,42,260410 Hdcp,15,Oakwood Sonoran
+John Callahan,white,man,Oakwood - Lakes,2025-06-20,38,38,260410 Hdcp,15,Oakwood Lakes
+John Callahan,white,man,Oakwood - Palms,2025-06-27,45,45,260410 Hdcp,15,Oakwood Palms
+John Callahan,white,man,Oakwood - Lakes,2025-07-04,40,40,260410 Hdcp,15,Oakwood Lakes
+John Callahan,white,man,Oakwood - Sonoran,2025-07-11,37,37,260410 Hdcp,15,Oakwood Sonoran
+John Callahan,white,man,Oakwood - Lakes,2025-07-18,42,42,260410 Hdcp,15,Oakwood Lakes
+John Callahan,white,man,Oakwood - Sonoran,2025-08-22,43,43,260410 Hdcp,15,Oakwood Sonoran
+John Callahan,white,man,Oakwood - Lakes,2025-08-29,39,39,260410 Hdcp,15,Oakwood Lakes
+John Callahan,white,man,Oakwood - Lakes,2025-09-05,42,42,260410 Hdcp,15,Oakwood Lakes
+John Callahan,white,man,Oakwood - Palms,2025-09-12,42,42,260410 Hdcp,15,Oakwood Palms
+John Veith,white,man,Ironwood - F9,2025-04-25,42,42,260410 Hdcp,54,Ironwood Front 9
+John Veith,white,man,Ironwood - B9,2025-05-09,44,44,260410 Hdcp,54,Ironwood Back 9
+John Veith,white,man,Oakwood - Lakes,2025-05-16,46,46,260410 Hdcp,54,Oakwood Lakes
+John Veith,white,man,Ironwood - F9,2025-05-23,38,38,260410 Hdcp,54,Ironwood Front 9
+John Veith,white,man,Oakwood - Palms,2025-06-06,49,49,260410 Hdcp,54,Oakwood Palms
+John Veith,white,man,Oakwood - Sonoran,2025-06-13,41,41,260410 Hdcp,54,Oakwood Sonoran
+John Veith,white,man,Oakwood - Lakes,2025-06-20,44,44,260410 Hdcp,54,Oakwood Lakes
+John Veith,white,man,Oakwood - Palms,2025-06-27,43,43,260410 Hdcp,54,Oakwood Palms
+John Veith,white,man,Oakwood - Palms,2025-07-25,44,44,260410 Hdcp,54,Oakwood Palms
+John Veith,white,man,Oakwood - Sonoran,2025-08-01,44,44,260410 Hdcp,54,Oakwood Sonoran
+John Veith,white,man,Oakwood - Palms,2025-08-15,46,46,260410 Hdcp,54,Oakwood Palms
+Juan Rodriguez,blue,man,Oakwood - Lakes,2024-04-19,38,38,260410 Hdcp,46,Oakwood Lakes
+Juan Rodriguez,blue,man,Ironwood - B9,2024-04-26,38,38,260410 Hdcp,46,Ironwood Back 9
+Juan Rodriguez,blue,man,Oakwood - Sonoran,2024-05-03,34,34,260410 Hdcp,46,Oakwood Sonoran
+Juan Rodriguez,blue,man,Ironwood - F9,2024-05-10,41,41,260410 Hdcp,46,Ironwood Front 9
+Juan Rodriguez,blue,man,Oakwood - Palms,2024-05-17,42,42,260410 Hdcp,46,Oakwood Palms
+Juan Rodriguez,blue,man,Ironwood - B9,2024-05-24,37,37,260410 Hdcp,46,Ironwood Back 9
+Juan Rodriguez,blue,man,Oakwood - Palms,2024-05-31,43,43,260410 Hdcp,46,Oakwood Palms
+Juan Rodriguez,blue,man,Oakwood - Sonoran,2024-06-07,35,35,260410 Hdcp,46,Oakwood Sonoran
+Juan Rodriguez,blue,man,Oakwood - Palms,2024-06-14,35,35,260410 Hdcp,46,Oakwood Palms
+Juan Rodriguez,blue,man,Oakwood - Sonoran,2024-06-21,37,37,260410 Hdcp,46,Oakwood Sonoran
+Juan Rodriguez,blue,man,Oakwood - Sonoran,2024-07-05,38,38,260410 Hdcp,46,Oakwood Sonoran
+Juan Rodriguez,blue,man,Oakwood - Sonoran,2024-07-12,33,33,260410 Hdcp,46,Oakwood Sonoran
+Juan Rodriguez,blue,man,Oakwood - Palms,2024-07-19,38,38,260410 Hdcp,46,Oakwood Palms
+Juan Rodriguez,blue,man,Oakwood - Sonoran,2024-07-26,36,36,260410 Hdcp,46,Oakwood Sonoran
+Juan Rodriguez,blue,man,Oakwood - Palms,2024-08-02,36,36,260410 Hdcp,46,Oakwood Palms
+Juan Rodriguez,blue,man,Oakwood - Sonoran,2024-08-09,39,39,260410 Hdcp,46,Oakwood Sonoran
+Juan Rodriguez,blue,man,Oakwood - Palms,2024-08-16,40,40,260410 Hdcp,46,Oakwood Palms
+Juan Rodriguez,blue,man,Oakwood - Sonoran,2024-08-23,40,40,260410 Hdcp,46,Oakwood Sonoran
+Juan Rodriguez,blue,man,Oakwood - Palms,2024-08-30,35,35,260410 Hdcp,46,Oakwood Palms
+Juan Rodriguez,blue,man,Oakwood - Sonoran,2024-09-06,34,34,260410 Hdcp,46,Oakwood Sonoran
+Juan Rodriguez,blue,man,Oakwood - Palms,2024-09-13,40,40,260410 Hdcp,46,Oakwood Palms
+Juan Rodriguez,blue,man,Oakwood - Sonoran,2024-09-20,38,38,260410 Hdcp,46,Oakwood Sonoran
+Juan Rodriguez,blue,man,Oakwood - Palms,2025-05-02,39,39,260410 Hdcp,46,Oakwood Palms
+Juan Rodriguez,blue,man,Ironwood - B9,2025-05-09,39,39,260410 Hdcp,46,Ironwood Back 9
+Juan Rodriguez,blue,man,Oakwood - Lakes,2025-05-16,43,43,260410 Hdcp,46,Oakwood Lakes
+Juan Rodriguez,blue,man,Ironwood - F9,2025-05-23,34,34,260410 Hdcp,46,Ironwood Front 9
+Juan Rodriguez,blue,man,Oakwood - Sonoran,2025-05-30,38,38,260410 Hdcp,46,Oakwood Sonoran
+Juan Rodriguez,blue,man,Oakwood - Palms,2025-06-06,38,38,260410 Hdcp,46,Oakwood Palms
+Juan Rodriguez,blue,man,Oakwood - Sonoran,2025-06-13,38,38,260410 Hdcp,46,Oakwood Sonoran
+Juan Rodriguez,blue,man,Oakwood - Lakes,2025-06-20,45,45,260410 Hdcp,46,Oakwood Lakes
+Juan Rodriguez,blue,man,Oakwood - Palms,2025-06-27,34,34,260410 Hdcp,46,Oakwood Palms
+Juan Rodriguez,blue,man,Oakwood - Lakes,2025-07-04,36,36,260410 Hdcp,46,Oakwood Lakes
+Juan Rodriguez,blue,man,Oakwood - Sonoran,2025-07-11,37,37,260410 Hdcp,46,Oakwood Sonoran
+Juan Rodriguez,blue,man,Oakwood - Lakes,2025-07-18,33,33,260410 Hdcp,46,Oakwood Lakes
+Juan Rodriguez,blue,man,Oakwood - Palms,2025-07-25,36,36,260410 Hdcp,46,Oakwood Palms
+Juan Rodriguez,blue,man,Oakwood - Sonoran,2025-08-01,36,36,260410 Hdcp,46,Oakwood Sonoran
+Juan Rodriguez,blue,man,Oakwood - Lakes,2025-08-08,38,38,260410 Hdcp,46,Oakwood Lakes
+Juan Rodriguez,blue,man,Oakwood - Palms,2025-08-15,36,36,260410 Hdcp,46,Oakwood Palms
+Juan Rodriguez,blue,man,Oakwood - Sonoran,2025-08-22,39,39,260410 Hdcp,46,Oakwood Sonoran
+Juan Rodriguez,blue,man,Oakwood - Lakes,2025-08-29,41,41,260410 Hdcp,46,Oakwood Lakes
+Juan Rodriguez,blue,man,Oakwood - Lakes,2025-09-05,36,36,260410 Hdcp,46,Oakwood Lakes
+Juan Rodriguez,blue,man,Oakwood - Palms,2025-09-12,38,38,260410 Hdcp,46,Oakwood Palms
+Juan Rodriguez,blue,man,Oakwood - Sonoran,2025-09-19,37,37,260410 Hdcp,46,Oakwood Sonoran
+Juan Rodriguez,blue,man,Oakwood - Lakes,2025-09-26,34,34,260410 Hdcp,46,Oakwood Lakes
+Judy Wente,yellow,woman,Oakwood - Lakes,2024-04-19,52,52,260410 Hdcp,57,Oakwood Lakes
+Judy Wente,yellow,woman,Oakwood - Sonoran,2024-05-03,51,51,260410 Hdcp,57,Oakwood Sonoran
+Judy Wente,yellow,woman,Ironwood - F9,2024-05-10,45,45,260410 Hdcp,57,Ironwood Front 9
+Judy Wente,yellow,woman,Oakwood - Palms,2024-05-17,56,56,260410 Hdcp,57,Oakwood Palms
+Judy Wente,yellow,woman,Ironwood - B9,2024-05-24,50,50,260410 Hdcp,57,Ironwood Back 9
+Judy Wente,yellow,woman,Ironwood - F9,2025-04-25,45,45,260410 Hdcp,57,Ironwood Front 9
+Judy Wente,yellow,woman,Oakwood - Lakes,2025-05-16,56,56,260410 Hdcp,57,Oakwood Lakes
+Judy Wente,yellow,woman,Oakwood - Palms,2025-09-12,2,2,260410 Hdcp,57,Oakwood Palms
+Judy Wente,yellow,woman,Oakwood - Sonoran,2025-09-19,54,54,260410 Hdcp,57,Oakwood Sonoran
+Kristen Amen,yellow,woman,Ironwood - F9,2024-04-12,54,54,260410 Hdcp,9,Ironwood F9
+Kristen Amen,yellow,woman,Oakwood - Lakes,2024-04-19,67,67,260410 Hdcp,9,Oakwood Lakes
+Kristen Amen,yellow,woman,Ironwood - B9,2024-04-26,50,50,260410 Hdcp,9,Ironwood Back 9
+Kristen Amen,yellow,woman,Oakwood - Sonoran,2024-05-03,55,55,260410 Hdcp,9,Oakwood Sonoran
+Kristen Amen,yellow,woman,Ironwood - F9,2024-05-10,56,56,260410 Hdcp,9,Ironwood Front 9
+Kristen Amen,yellow,woman,Ironwood - B9,2024-05-24,54,54,260410 Hdcp,9,Ironwood Back 9
+Kristen Amen,yellow,woman,Oakwood - Palms,2024-05-31,65,65,260410 Hdcp,9,Oakwood Palms
+Kristen Amen,yellow,woman,Oakwood - Sonoran,2024-06-07,58,58,260410 Hdcp,9,Oakwood Sonoran
+Kristen Amen,yellow,woman,Oakwood - Palms,2024-06-14,66,66,260410 Hdcp,9,Oakwood Palms
+Kristen Amen,yellow,woman,Oakwood - Sonoran,2024-06-21,56,56,260410 Hdcp,9,Oakwood Sonoran
+Kristen Amen,yellow,woman,Oakwood - Palms,2024-06-28,52,52,260410 Hdcp,9,Oakwood Palms
+Kristen Amen,yellow,woman,Oakwood - Sonoran,2024-07-05,51,51,260410 Hdcp,9,Oakwood Sonoran
+Kristen Amen,yellow,woman,Oakwood - Sonoran,2024-07-12,56,56,260410 Hdcp,9,Oakwood Sonoran
+Kristen Amen,yellow,woman,Oakwood - Palms,2024-07-19,52,52,260410 Hdcp,9,Oakwood Palms
+Kristen Amen,yellow,woman,Oakwood - Sonoran,2024-07-26,46,46,260410 Hdcp,9,Oakwood Sonoran
+Kristen Amen,yellow,woman,Oakwood - Palms,2024-08-02,55,55,260410 Hdcp,9,Oakwood Palms
+Kristen Amen,yellow,woman,Oakwood - Sonoran,2024-08-09,54,54,260410 Hdcp,9,Oakwood Sonoran
+Kristen Amen,yellow,woman,Oakwood - Palms,2024-08-16,61,61,260410 Hdcp,9,Oakwood Palms
+Kristen Amen,yellow,woman,Oakwood - Palms,2024-08-30,56,56,260410 Hdcp,9,Oakwood Palms
+Kristen Amen,yellow,woman,Oakwood - Sonoran,2024-09-06,53,53,260410 Hdcp,9,Oakwood Sonoran
+Kristen Amen,yellow,woman,Oakwood - Palms,2024-09-13,60,60,260410 Hdcp,9,Oakwood Palms
+Kristen Amen,yellow,woman,Oakwood - Sonoran,2024-09-20,55,55,260410 Hdcp,9,Oakwood Sonoran
+Kristen Amen,yellow,woman,Ironwood - F9,2025-04-25,54,54,260410 Hdcp,9,Ironwood Front 9
+Kristen Amen,yellow,woman,Oakwood - Palms,2025-05-02,61,61,260410 Hdcp,9,Oakwood Palms
+Kristen Amen,yellow,woman,Ironwood - B9,2025-05-09,53,53,260410 Hdcp,9,Ironwood Back 9
+Kristen Amen,yellow,woman,Oakwood - Lakes,2025-05-16,60,60,260410 Hdcp,9,Oakwood Lakes
+Kristen Amen,yellow,woman,Ironwood - F9,2025-05-23,45,45,260410 Hdcp,9,Ironwood Front 9
+Kristen Amen,yellow,woman,Oakwood - Sonoran,2025-05-30,54,54,260410 Hdcp,9,Oakwood Sonoran
+Kristen Amen,yellow,woman,Oakwood - Palms,2025-06-06,55,55,260410 Hdcp,9,Oakwood Palms
+Kristen Amen,yellow,woman,Oakwood - Sonoran,2025-06-13,56,56,260410 Hdcp,9,Oakwood Sonoran
+Kristen Amen,yellow,woman,Oakwood - Lakes,2025-06-20,53,53,260410 Hdcp,9,Oakwood Lakes
+Kristen Amen,yellow,woman,Oakwood - Palms,2025-06-27,55,55,260410 Hdcp,9,Oakwood Palms
+Kristen Amen,yellow,woman,Oakwood - Sonoran,2025-07-11,54,54,260410 Hdcp,9,Oakwood Sonoran
+Kristen Amen,yellow,woman,Oakwood - Lakes,2025-07-18,59,59,260410 Hdcp,9,Oakwood Lakes
+Kristen Amen,yellow,woman,Oakwood - Palms,2025-07-25,57,57,260410 Hdcp,9,Oakwood Palms
+Kristen Amen,yellow,woman,Oakwood - Sonoran,2025-08-01,55,55,260410 Hdcp,9,Oakwood Sonoran
+Kristen Amen,yellow,woman,Oakwood - Lakes,2025-08-08,57,57,260410 Hdcp,9,Oakwood Lakes
+Kristen Amen,yellow,woman,Oakwood - Palms,2025-08-15,52,52,260410 Hdcp,9,Oakwood Palms
+Kristen Amen,yellow,woman,Oakwood - Sonoran,2025-08-22,52,52,260410 Hdcp,9,Oakwood Sonoran
+Kristen Amen,yellow,woman,Oakwood - Lakes,2025-08-29,54,54,260410 Hdcp,9,Oakwood Lakes
+Kristen Amen,yellow,woman,Oakwood - Lakes,2025-09-05,60,60,260410 Hdcp,9,Oakwood Lakes
+Kristen Amen,yellow,woman,Oakwood - Palms,2025-09-12,64,64,260410 Hdcp,9,Oakwood Palms
+Kristen Amen,yellow,woman,Oakwood - Sonoran,2025-09-19,49,49,260410 Hdcp,9,Oakwood Sonoran
+Kristen Amen,yellow,woman,Oakwood - Lakes,2025-09-26,64,64,260410 Hdcp,9,Oakwood Lakes
+Larry Camomile,blue,man,Oakwood - Sonoran,2025-09-19,39,39,260410 Hdcp,16,Oakwood Sonoran
+Larry Camomile,blue,man,Oakwood - Lakes,2025-09-26,39,39,260410 Hdcp,16,Oakwood Lakes
+Lisa Aubuchon,yellow,woman,Oakwood - Lakes,2024-04-19,46,46,260410 Hdcp,10,Oakwood Lakes
+Lisa Aubuchon,yellow,woman,Ironwood - B9,2024-04-26,47,47,260410 Hdcp,10,Ironwood Back 9
+Lisa Aubuchon,yellow,woman,Oakwood - Sonoran,2024-05-03,43,43,260410 Hdcp,10,Oakwood Sonoran
+Lisa Aubuchon,yellow,woman,Ironwood - F9,2024-05-10,45,45,260410 Hdcp,10,Ironwood Front 9
+Lisa Aubuchon,yellow,woman,Oakwood - Palms,2024-05-17,51,51,260410 Hdcp,10,Oakwood Palms
+Lisa Aubuchon,yellow,woman,Ironwood - B9,2024-05-24,44,44,260410 Hdcp,10,Ironwood Back 9
+Lisa Aubuchon,yellow,woman,Oakwood - Palms,2024-05-31,59,59,260410 Hdcp,10,Oakwood Palms
+Lisa Aubuchon,yellow,woman,Oakwood - Sonoran,2024-06-07,49,49,260410 Hdcp,10,Oakwood Sonoran
+Lisa Aubuchon,yellow,woman,Oakwood - Palms,2024-06-14,47,47,260410 Hdcp,10,Oakwood Palms
+Lisa Aubuchon,yellow,woman,Oakwood - Palms,2024-06-28,51,51,260410 Hdcp,10,Oakwood Palms
+Lisa Aubuchon,yellow,woman,Oakwood - Sonoran,2024-07-05,46,46,260410 Hdcp,10,Oakwood Sonoran
+Lisa Aubuchon,yellow,woman,Oakwood - Sonoran,2024-07-12,47,47,260410 Hdcp,10,Oakwood Sonoran
+Lisa Aubuchon,yellow,woman,Oakwood - Palms,2024-07-19,52,52,260410 Hdcp,10,Oakwood Palms
+Lisa Aubuchon,yellow,woman,Oakwood - Sonoran,2024-07-26,53,53,260410 Hdcp,10,Oakwood Sonoran
+Lisa Aubuchon,yellow,woman,Oakwood - Palms,2024-08-02,51,51,260410 Hdcp,10,Oakwood Palms
+Lisa Aubuchon,yellow,woman,Oakwood - Sonoran,2024-09-06,49,49,260410 Hdcp,10,Oakwood Sonoran
+Lisa Aubuchon,yellow,woman,Oakwood - Palms,2024-09-13,52,52,260410 Hdcp,10,Oakwood Palms
+Lisa Aubuchon,yellow,woman,Oakwood - Sonoran,2024-09-20,46,46,260410 Hdcp,10,Oakwood Sonoran
+Lisa Aubuchon,yellow,woman,Ironwood - F9,2025-04-25,43,43,260410 Hdcp,10,Ironwood Front 9
+Lisa Aubuchon,yellow,woman,Oakwood - Palms,2025-05-02,53,53,260410 Hdcp,10,Oakwood Palms
+Lisa Aubuchon,yellow,woman,Oakwood - Lakes,2025-05-16,50,50,260410 Hdcp,10,Oakwood Lakes
+Lisa Aubuchon,yellow,woman,Oakwood - Sonoran,2025-05-30,48,48,260410 Hdcp,10,Oakwood Sonoran
+Lisa Aubuchon,yellow,woman,Oakwood - Sonoran,2025-06-13,47,47,260410 Hdcp,10,Oakwood Sonoran
+Lisa Aubuchon,yellow,woman,Oakwood - Lakes,2025-06-20,49,49,260410 Hdcp,10,Oakwood Lakes
+Lisa Aubuchon,yellow,woman,Oakwood - Palms,2025-06-27,52,52,260410 Hdcp,10,Oakwood Palms
+Lisa Aubuchon,yellow,woman,Oakwood - Lakes,2025-07-04,49,49,260410 Hdcp,10,Oakwood Lakes
+Lisa Aubuchon,yellow,woman,Oakwood - Sonoran,2025-07-11,45,45,260410 Hdcp,10,Oakwood Sonoran
+Lisa Aubuchon,yellow,woman,Oakwood - Lakes,2025-07-18,51,51,260410 Hdcp,10,Oakwood Lakes
+Lisa Aubuchon,yellow,woman,Oakwood - Sonoran,2025-08-01,45,45,260410 Hdcp,10,Oakwood Sonoran
+Lisa Aubuchon,yellow,woman,Oakwood - Lakes,2025-08-08,50,50,260410 Hdcp,10,Oakwood Lakes
+Lisa Aubuchon,yellow,woman,Oakwood - Palms,2025-08-15,48,48,260410 Hdcp,10,Oakwood Palms
+Lisa Aubuchon,yellow,woman,Oakwood - Lakes,2025-09-05,51,51,260410 Hdcp,10,Oakwood Lakes
+Lisa Aubuchon,yellow,woman,Oakwood - Palms,2025-09-12,55,55,260410 Hdcp,10,Oakwood Palms
+Lisa Aubuchon,yellow,woman,Oakwood - Sonoran,2025-09-19,46,46,260410 Hdcp,10,Oakwood Sonoran
+Lisa Aubuchon,yellow,woman,Oakwood - Lakes,2025-09-26,49,49,260410 Hdcp,10,Oakwood Lakes
+Lowell Vande Kamp,blue,man,Oakwood - Lakes,2024-04-19,44,44,260410 Hdcp,52,Oakwood Lakes
+Lowell Vande Kamp,blue,man,Ironwood - F9,2024-05-10,43,43,260410 Hdcp,52,Ironwood Front 9
+Lowell Vande Kamp,blue,man,Oakwood - Palms,2024-05-17,50,50,260410 Hdcp,52,Oakwood Palms
+Lowell Vande Kamp,blue,man,Ironwood - B9,2024-05-24,38,38,260410 Hdcp,52,Ironwood Back 9
+Lowell Vande Kamp,blue,man,Oakwood - Palms,2024-05-31,43,43,260410 Hdcp,52,Oakwood Palms
+Lowell Vande Kamp,blue,man,Oakwood - Palms,2024-06-28,43,43,260410 Hdcp,52,Oakwood Palms
+Lowell Vande Kamp,blue,man,Oakwood - Sonoran,2024-07-05,40,40,260410 Hdcp,52,Oakwood Sonoran
+Lowell Vande Kamp,blue,man,Oakwood - Sonoran,2024-07-12,46,46,260410 Hdcp,52,Oakwood Sonoran
+Lowell Vande Kamp,blue,man,Oakwood - Palms,2024-07-19,43,43,260410 Hdcp,52,Oakwood Palms
+Lowell Vande Kamp,blue,man,Oakwood - Palms,2024-08-16,44,44,260410 Hdcp,52,Oakwood Palms
+Lowell Vande Kamp,blue,man,Oakwood - Sonoran,2024-08-23,43,43,260410 Hdcp,52,Oakwood Sonoran
+Lowell Vande Kamp,blue,man,Oakwood - Sonoran,2024-09-06,46,46,260410 Hdcp,52,Oakwood Sonoran
+Lowell Vande Kamp,blue,man,Oakwood - Palms,2024-09-13,44,44,260410 Hdcp,52,Oakwood Palms
+Lowell Vande Kamp,blue,man,Ironwood - B9,2025-05-09,42,42,260410 Hdcp,52,Ironwood Back 9
+Lowell Vande Kamp,blue,man,Ironwood - F9,2025-05-23,41,41,260410 Hdcp,52,Ironwood Front 9
+Lowell Vande Kamp,blue,man,Oakwood - Lakes,2025-07-04,39,39,260410 Hdcp,52,Oakwood Lakes
+Marshall Hudson,blue,man,Oakwood - Lakes,2025-05-16,38,38,260410 Hdcp,31,Oakwood Lakes
+Marshall Hudson,blue,man,Oakwood - Palms,2025-06-27,45,45,260410 Hdcp,31,Oakwood Palms
+Martin Aldecoa,blue,man,Oakwood - Sonoran,2024-05-03,39,39,260410 Hdcp,8,Oakwood Sonoran
+Martin Aldecoa,blue,man,Oakwood - Palms,2024-05-17,41,41,260410 Hdcp,8,Oakwood Palms
+Martin Aldecoa,blue,man,Ironwood - B9,2024-05-24,38,38,260410 Hdcp,8,Ironwood Back 9
+Martin Aldecoa,blue,man,Oakwood - Sonoran,2024-06-07,42,42,260410 Hdcp,8,Oakwood Sonoran
+Martin Aldecoa,blue,man,Oakwood - Palms,2024-06-28,38,38,260410 Hdcp,8,Oakwood Palms
+Martin Aldecoa,blue,man,Oakwood - Sonoran,2024-07-05,39,39,260410 Hdcp,8,Oakwood Sonoran
+Martin Aldecoa,blue,man,Oakwood - Sonoran,2024-09-20,38,38,260410 Hdcp,8,Oakwood Sonoran
+Martin Aldecoa,blue,man,Ironwood - F9,2025-04-25,35,35,260410 Hdcp,8,Ironwood Front 9
+Martin Aldecoa,blue,man,Oakwood - Palms,2025-05-02,37,37,260410 Hdcp,8,Oakwood Palms
+Martin Aldecoa,blue,man,Ironwood - B9,2025-05-09,34,34,260410 Hdcp,8,Ironwood Back 9
+Martin Aldecoa,blue,man,Oakwood - Lakes,2025-05-16,38,38,260410 Hdcp,8,Oakwood Lakes
+Martin Aldecoa,blue,man,Ironwood - F9,2025-05-23,37,37,260410 Hdcp,8,Ironwood Front 9
+Martin Aldecoa,blue,man,Oakwood - Sonoran,2025-05-30,35,35,260410 Hdcp,8,Oakwood Sonoran
+Martin Aldecoa,blue,man,Oakwood - Palms,2025-06-06,36,36,260410 Hdcp,8,Oakwood Palms
+Martin Aldecoa,blue,man,Oakwood - Sonoran,2025-06-13,35,35,260410 Hdcp,8,Oakwood Sonoran
+Martin Aldecoa,blue,man,Oakwood - Lakes,2025-06-20,38,38,260410 Hdcp,8,Oakwood Lakes
+Martin Aldecoa,blue,man,Oakwood - Palms,2025-06-27,36,36,260410 Hdcp,8,Oakwood Palms
+Martin Aldecoa,blue,man,Oakwood - Lakes,2025-07-04,39,39,260410 Hdcp,8,Oakwood Lakes
+Martin Aldecoa,blue,man,Oakwood - Sonoran,2025-07-11,36,36,260410 Hdcp,8,Oakwood Sonoran
+Martin Aldecoa,blue,man,Oakwood - Lakes,2025-07-18,37,37,260410 Hdcp,8,Oakwood Lakes
+Martin Aldecoa,blue,man,Oakwood - Palms,2025-07-25,36,36,260410 Hdcp,8,Oakwood Palms
+Martin Aldecoa,blue,man,Oakwood - Sonoran,2025-08-01,38,38,260410 Hdcp,8,Oakwood Sonoran
+Martin Aldecoa,blue,man,Oakwood - Lakes,2025-08-08,38,38,260410 Hdcp,8,Oakwood Lakes
+Martin Aldecoa,blue,man,Oakwood - Palms,2025-08-15,37,37,260410 Hdcp,8,Oakwood Palms
+Martin Aldecoa,blue,man,Oakwood - Sonoran,2025-08-22,38,38,260410 Hdcp,8,Oakwood Sonoran
+Martin Aldecoa,blue,man,Oakwood - Lakes,2025-09-05,38,38,260410 Hdcp,8,Oakwood Lakes
+Martin Aldecoa,blue,man,Oakwood - Palms,2025-09-12,38,38,260410 Hdcp,8,Oakwood Palms
+Martin Aldecoa,blue,man,Oakwood - Sonoran,2025-09-19,37,37,260410 Hdcp,8,Oakwood Sonoran
+Martin Aldecoa,blue,man,Oakwood - Lakes,2025-09-26,40,40,260410 Hdcp,8,Oakwood Lakes
+Matthew Benson,blue,man,Oakwood - Palms,2024-05-17,48,48,260410 Hdcp,13,Oakwood Palms
+Matthew Benson,blue,man,Ironwood - B9,2024-05-24,45,45,260410 Hdcp,13,Ironwood Back 9
+Matthew Benson,blue,man,Oakwood - Palms,2024-07-19,44,44,260410 Hdcp,13,Oakwood Palms
+Matthew Benson,blue,man,Oakwood - Sonoran,2024-07-26,46,46,260410 Hdcp,13,Oakwood Sonoran
+Matthew Benson,blue,man,Oakwood - Palms,2024-08-02,44,44,260410 Hdcp,13,Oakwood Palms
+Matthew Benson,blue,man,Oakwood - Palms,2024-08-16,43,43,260410 Hdcp,13,Oakwood Palms
+Matthew Benson,blue,man,Oakwood - Sonoran,2024-08-23,44,44,260410 Hdcp,13,Oakwood Sonoran
+Matthew Benson,blue,man,Oakwood - Palms,2024-09-13,47,47,260410 Hdcp,13,Oakwood Palms
+Matthew Benson,blue,man,Ironwood - F9,2025-04-25,43,43,260410 Hdcp,13,Ironwood Front 9
+Matthew Benson,blue,man,Ironwood - F9,2025-05-23,42,42,260410 Hdcp,13,Ironwood Front 9
+Matthew Benson,blue,man,Oakwood - Sonoran,2025-05-30,46,46,260410 Hdcp,13,Oakwood Sonoran
+Matthew Benson,blue,man,Oakwood - Lakes,2025-07-18,49,49,260410 Hdcp,13,Oakwood Lakes
+Matthew Benson,blue,man,Oakwood - Sonoran,2025-08-01,44,44,260410 Hdcp,13,Oakwood Sonoran
+Matthew Benson,blue,man,Oakwood - Lakes,2025-08-08,51,51,260410 Hdcp,13,Oakwood Lakes
+Michael Jarrett,blue,man,Ironwood - B9,2024-05-24,42,42,260410 Hdcp,34,Ironwood Back 9
+Michael Jarrett,blue,man,Oakwood - Palms,2024-05-31,46,46,260410 Hdcp,34,Oakwood Palms
+Michael Jarrett,blue,man,Oakwood - Sonoran,2024-06-07,40,40,260410 Hdcp,34,Oakwood Sonoran
+Michael Jarrett,blue,man,Oakwood - Palms,2024-06-14,48,48,260410 Hdcp,34,Oakwood Palms
+Michael Jarrett,blue,man,Oakwood - Sonoran,2024-06-21,39,39,260410 Hdcp,34,Oakwood Sonoran
+Michael Jarrett,blue,man,Oakwood - Palms,2024-06-28,45,45,260410 Hdcp,34,Oakwood Palms
+Michael Jarrett,blue,man,Oakwood - Sonoran,2024-07-05,39,39,260410 Hdcp,34,Oakwood Sonoran
+Michael Jarrett,blue,man,Oakwood - Sonoran,2024-07-12,43,43,260410 Hdcp,34,Oakwood Sonoran
+Michael Jarrett,blue,man,Oakwood - Palms,2024-07-19,46,46,260410 Hdcp,34,Oakwood Palms
+Michael Jarrett,blue,man,Oakwood - Sonoran,2024-08-09,45,45,260410 Hdcp,34,Oakwood Sonoran
+Michael Jarrett,blue,man,Oakwood - Palms,2024-08-16,47,47,260410 Hdcp,34,Oakwood Palms
+Michael Jarrett,blue,man,Oakwood - Palms,2024-08-30,48,48,260410 Hdcp,34,Oakwood Palms
+Michael Jarrett,blue,man,Oakwood - Palms,2025-05-02,42,42,260410 Hdcp,34,Oakwood Palms
+Michael Jarrett,blue,man,Oakwood - Lakes,2025-05-16,45,45,260410 Hdcp,34,Oakwood Lakes
+Michael Jarrett,blue,man,Oakwood - Sonoran,2025-05-30,41,41,260410 Hdcp,34,Oakwood Sonoran
+Michael Jarrett,blue,man,Oakwood - Palms,2025-06-06,45,45,260410 Hdcp,34,Oakwood Palms
+Michael Jarrett,blue,man,Oakwood - Sonoran,2025-06-13,43,43,260410 Hdcp,34,Oakwood Sonoran
+Michael Jarrett,blue,man,Oakwood - Lakes,2025-06-20,37,37,260410 Hdcp,34,Oakwood Lakes
+Michael Jarrett,blue,man,Oakwood - Palms,2025-06-27,52,52,260410 Hdcp,34,Oakwood Palms
+Michael Jarrett,blue,man,Oakwood - Sonoran,2025-07-11,43,43,260410 Hdcp,34,Oakwood Sonoran
+Michael Jarrett,blue,man,Oakwood - Sonoran,2025-09-19,45,45,260410 Hdcp,34,Oakwood Sonoran
+Michael Jarrett,blue,man,Oakwood - Lakes,2025-09-26,46,46,260410 Hdcp,34,Oakwood Lakes
+Mike Clay,white,man,Ironwood - F9,2024-04-12,46,46,260410 Hdcp,17,Ironwood F9
+Mike Clay,white,man,Oakwood - Lakes,2024-04-19,46,46,260410 Hdcp,17,Oakwood Lakes
+Mike Clay,white,man,Ironwood - B9,2024-04-26,40,40,260410 Hdcp,17,Ironwood Back 9
+Mike Clay,white,man,Oakwood - Sonoran,2024-05-03,45,45,260410 Hdcp,17,Oakwood Sonoran
+Mike Clay,white,man,Ironwood - F9,2024-05-10,40,40,260410 Hdcp,17,Ironwood Front 9
+Mike Clay,white,man,Oakwood - Palms,2024-05-17,47,47,260410 Hdcp,17,Oakwood Palms
+Mike Clay,white,man,Ironwood - B9,2024-05-24,40,40,260410 Hdcp,17,Ironwood Back 9
+Mike Clay,white,man,Oakwood - Palms,2024-05-31,49,49,260410 Hdcp,17,Oakwood Palms
+Mike Clay,white,man,Oakwood - Sonoran,2024-06-07,41,41,260410 Hdcp,17,Oakwood Sonoran
+Mike Clay,white,man,Oakwood - Palms,2024-06-14,44,44,260410 Hdcp,17,Oakwood Palms
+Mike Clay,white,man,Oakwood - Sonoran,2024-06-21,39,39,260410 Hdcp,17,Oakwood Sonoran
+Mike Clay,white,man,Oakwood - Sonoran,2024-07-05,42,42,260410 Hdcp,17,Oakwood Sonoran
+Mike Clay,white,man,Oakwood - Sonoran,2024-07-12,38,38,260410 Hdcp,17,Oakwood Sonoran
+Mike Clay,white,man,Oakwood - Palms,2024-07-19,47,47,260410 Hdcp,17,Oakwood Palms
+Mike Clay,white,man,Oakwood - Sonoran,2024-07-26,43,43,260410 Hdcp,17,Oakwood Sonoran
+Mike Clay,white,man,Oakwood - Palms,2024-08-02,46,46,260410 Hdcp,17,Oakwood Palms
+Mike Clay,white,man,Oakwood - Sonoran,2024-08-09,45,45,260410 Hdcp,17,Oakwood Sonoran
+Mike Clay,white,man,Oakwood - Palms,2024-08-16,41,41,260410 Hdcp,17,Oakwood Palms
+Mike Clay,white,man,Oakwood - Sonoran,2024-08-23,47,47,260410 Hdcp,17,Oakwood Sonoran
+Mike Clay,white,man,Oakwood - Palms,2024-08-30,47,47,260410 Hdcp,17,Oakwood Palms
+Mike Clay,white,man,Oakwood - Sonoran,2024-09-06,51,51,260410 Hdcp,17,Oakwood Sonoran
+Mike Clay,white,man,Oakwood - Palms,2024-09-13,51,51,260410 Hdcp,17,Oakwood Palms
+Mike Clay,white,man,Oakwood - Sonoran,2024-09-20,45,45,260410 Hdcp,17,Oakwood Sonoran
+Mike Clay,white,man,Ironwood - F9,2025-04-25,41,41,260410 Hdcp,17,Ironwood Front 9
+Mike Clay,white,man,Oakwood - Palms,2025-05-02,44,44,260410 Hdcp,17,Oakwood Palms
+Mike Clay,white,man,Ironwood - B9,2025-05-09,41,41,260410 Hdcp,17,Ironwood Back 9
+Mike Clay,white,man,Oakwood - Lakes,2025-05-16,46,46,260410 Hdcp,17,Oakwood Lakes
+Mike Clay,white,man,Oakwood - Sonoran,2025-05-30,46,46,260410 Hdcp,17,Oakwood Sonoran
+Mike Clay,white,man,Oakwood - Palms,2025-06-06,47,47,260410 Hdcp,17,Oakwood Palms
+Mike Clay,white,man,Oakwood - Sonoran,2025-06-13,43,43,260410 Hdcp,17,Oakwood Sonoran
+Mike Clay,white,man,Oakwood - Lakes,2025-06-20,49,49,260410 Hdcp,17,Oakwood Lakes
+Mike Clay,white,man,Oakwood - Palms,2025-06-27,40,40,260410 Hdcp,17,Oakwood Palms
+Mike Clay,white,man,Oakwood - Lakes,2025-07-04,45,45,260410 Hdcp,17,Oakwood Lakes
+Mike Clay,white,man,Oakwood - Sonoran,2025-07-11,43,43,260410 Hdcp,17,Oakwood Sonoran
+Mike Clay,white,man,Oakwood - Lakes,2025-07-18,44,44,260410 Hdcp,17,Oakwood Lakes
+Mike Clay,white,man,Oakwood - Palms,2025-07-25,48,48,260410 Hdcp,17,Oakwood Palms
+Mike Clay,white,man,Oakwood - Sonoran,2025-08-01,43,43,260410 Hdcp,17,Oakwood Sonoran
+Mike Clay,white,man,Oakwood - Palms,2025-08-15,48,48,260410 Hdcp,17,Oakwood Palms
+Mike Clay,white,man,Oakwood - Sonoran,2025-08-22,46,46,260410 Hdcp,17,Oakwood Sonoran
+Mike Clay,white,man,Oakwood - Lakes,2025-08-29,45,45,260410 Hdcp,17,Oakwood Lakes
+Mike Clay,white,man,Oakwood - Palms,2025-09-12,52,52,260410 Hdcp,17,Oakwood Palms
+Mike Clay,white,man,Oakwood - Sonoran,2025-09-19,46,46,260410 Hdcp,17,Oakwood Sonoran
+Mike Clay,white,man,Oakwood - Lakes,2025-09-26,52,52,260410 Hdcp,17,Oakwood Lakes
+Mike Del Col,blue,man,Ironwood - B9,2025-05-09,37,37,260410 Hdcp,20,Ironwood Back 9
+Mike Del Col,blue,man,Ironwood - F9,2025-05-23,39,39,260410 Hdcp,20,Ironwood Front 9
+Mike Del Col,blue,man,Oakwood - Palms,2025-06-06,51,51,260410 Hdcp,20,Oakwood Palms
+Mike Del Col,blue,man,Oakwood - Sonoran,2025-06-13,39,39,260410 Hdcp,20,Oakwood Sonoran
+Mike Del Col,blue,man,Oakwood - Lakes,2025-07-04,50,50,260410 Hdcp,20,Oakwood Lakes
+Mike Del Col,blue,man,Oakwood - Sonoran,2025-07-11,44,44,260410 Hdcp,20,Oakwood Sonoran
+Mike Del Col,blue,man,Oakwood - Sonoran,2025-08-01,47,47,260410 Hdcp,20,Oakwood Sonoran
+Natasha Ericsson,yellow,woman,Oakwood - Sonoran,2025-05-30,60,60,260410 Hdcp,21,Oakwood Sonoran
+Natasha Ericsson,yellow,woman,Oakwood - Palms,2025-06-06,61,61,260410 Hdcp,21,Oakwood Palms
+Natasha Ericsson,yellow,woman,Oakwood - Sonoran,2025-06-13,56,56,260410 Hdcp,21,Oakwood Sonoran
+Natasha Ericsson,yellow,woman,Oakwood - Lakes,2025-06-20,56,56,260410 Hdcp,21,Oakwood Lakes
+Natasha Ericsson,yellow,woman,Oakwood - Palms,2025-06-27,56,56,260410 Hdcp,21,Oakwood Palms
+Natasha Ericsson,yellow,woman,Oakwood - Sonoran,2025-07-11,53,53,260410 Hdcp,21,Oakwood Sonoran
+Natasha Ericsson,yellow,woman,Oakwood - Lakes,2025-07-18,56,56,260410 Hdcp,21,Oakwood Lakes
+Natasha Ericsson,yellow,woman,Oakwood - Palms,2025-07-25,58,58,260410 Hdcp,21,Oakwood Palms
+Natasha Ericsson,yellow,woman,Oakwood - Sonoran,2025-08-01,54,54,260410 Hdcp,21,Oakwood Sonoran
+Natasha Ericsson,yellow,woman,Oakwood - Lakes,2025-08-08,65,65,260410 Hdcp,21,Oakwood Lakes
+Natasha Ericsson,yellow,woman,Oakwood - Sonoran,2025-08-22,51,51,260410 Hdcp,21,Oakwood Sonoran
+Natasha Ericsson,yellow,woman,Oakwood - Lakes,2025-08-29,52,52,260410 Hdcp,21,Oakwood Lakes
+Natasha Ericsson,yellow,woman,Oakwood - Lakes,2025-09-05,58,58,260410 Hdcp,21,Oakwood Lakes
+Natasha Ericsson,yellow,woman,Oakwood - Palms,2025-09-12,64,64,260410 Hdcp,21,Oakwood Palms
+Natasha Ericsson,yellow,woman,Oakwood - Lakes,2025-09-26,62,62,260410 Hdcp,21,Oakwood Lakes
+Peter Pestalozzi,blue,man,Ironwood - F9,2024-04-12,37,37,260410 Hdcp,45,Ironwood F9
+Peter Pestalozzi,blue,man,Ironwood - B9,2024-04-26,40,40,260410 Hdcp,45,Ironwood Back 9
+Peter Pestalozzi,blue,man,Oakwood - Sonoran,2024-05-03,38,38,260410 Hdcp,45,Oakwood Sonoran
+Peter Pestalozzi,blue,man,Ironwood - F9,2024-05-10,35,35,260410 Hdcp,45,Ironwood Front 9
+Peter Pestalozzi,blue,man,Oakwood - Palms,2024-05-17,38,38,260410 Hdcp,45,Oakwood Palms
+Peter Pestalozzi,blue,man,Ironwood - B9,2024-05-24,37,37,260410 Hdcp,45,Ironwood Back 9
+Peter Pestalozzi,blue,man,Oakwood - Palms,2024-05-31,40,40,260410 Hdcp,45,Oakwood Palms
+Peter Pestalozzi,blue,man,Oakwood - Sonoran,2024-06-07,38,38,260410 Hdcp,45,Oakwood Sonoran
+Peter Pestalozzi,blue,man,Oakwood - Palms,2024-06-14,38,38,260410 Hdcp,45,Oakwood Palms
+Peter Pestalozzi,blue,man,Oakwood - Sonoran,2024-06-21,36,36,260410 Hdcp,45,Oakwood Sonoran
+Peter Pestalozzi,blue,man,Oakwood - Palms,2024-06-28,37,37,260410 Hdcp,45,Oakwood Palms
+Peter Pestalozzi,blue,man,Oakwood - Sonoran,2024-07-05,35,35,260410 Hdcp,45,Oakwood Sonoran
+Peter Pestalozzi,blue,man,Oakwood - Sonoran,2024-07-12,37,37,260410 Hdcp,45,Oakwood Sonoran
+Peter Pestalozzi,blue,man,Oakwood - Palms,2024-07-19,35,35,260410 Hdcp,45,Oakwood Palms
+Peter Pestalozzi,blue,man,Oakwood - Palms,2024-08-02,41,41,260410 Hdcp,45,Oakwood Palms
+Peter Pestalozzi,blue,man,Oakwood - Palms,2024-08-30,36,36,260410 Hdcp,45,Oakwood Palms
+Peter Pestalozzi,blue,man,Oakwood - Sonoran,2024-09-06,40,40,260410 Hdcp,45,Oakwood Sonoran
+Peter Pestalozzi,blue,man,Oakwood - Palms,2024-09-13,36,36,260410 Hdcp,45,Oakwood Palms
+Peter Pestalozzi,blue,man,Oakwood - Sonoran,2024-09-20,34,34,260410 Hdcp,45,Oakwood Sonoran
+Peter Pestalozzi,blue,man,Ironwood - F9,2025-04-25,35,35,260410 Hdcp,45,Ironwood Front 9
+Peter Pestalozzi,blue,man,Oakwood - Palms,2025-05-02,43,43,260410 Hdcp,45,Oakwood Palms
+Peter Pestalozzi,blue,man,Oakwood - Lakes,2025-05-16,38,38,260410 Hdcp,45,Oakwood Lakes
+Peter Pestalozzi,blue,man,Ironwood - F9,2025-05-23,32,32,260410 Hdcp,45,Ironwood Front 9
+Peter Pestalozzi,blue,man,Oakwood - Sonoran,2025-05-30,35,35,260410 Hdcp,45,Oakwood Sonoran
+Peter Pestalozzi,blue,man,Oakwood - Palms,2025-06-06,36,36,260410 Hdcp,45,Oakwood Palms
+Peter Pestalozzi,blue,man,Oakwood - Sonoran,2025-06-13,38,38,260410 Hdcp,45,Oakwood Sonoran
+Peter Pestalozzi,blue,man,Oakwood - Lakes,2025-06-20,37,37,260410 Hdcp,45,Oakwood Lakes
+Peter Pestalozzi,blue,man,Oakwood - Palms,2025-06-27,39,39,260410 Hdcp,45,Oakwood Palms
+Peter Pestalozzi,blue,man,Oakwood - Lakes,2025-07-04,38,38,260410 Hdcp,45,Oakwood Lakes
+Peter Pestalozzi,blue,man,Oakwood - Sonoran,2025-07-11,38,38,260410 Hdcp,45,Oakwood Sonoran
+Peter Pestalozzi,blue,man,Oakwood - Lakes,2025-07-18,38,38,260410 Hdcp,45,Oakwood Lakes
+Peter Pestalozzi,blue,man,Oakwood - Palms,2025-07-25,36,36,260410 Hdcp,45,Oakwood Palms
+Peter Pestalozzi,blue,man,Oakwood - Sonoran,2025-08-01,37,37,260410 Hdcp,45,Oakwood Sonoran
+Peter Pestalozzi,blue,man,Oakwood - Lakes,2025-08-08,39,39,260410 Hdcp,45,Oakwood Lakes
+Peter Pestalozzi,blue,man,Oakwood - Lakes,2025-09-05,41,41,260410 Hdcp,45,Oakwood Lakes
+Peter Pestalozzi,blue,man,Oakwood - Palms,2025-09-12,35,35,260410 Hdcp,45,Oakwood Palms
+Peter Pestalozzi,blue,man,Oakwood - Sonoran,2025-09-19,35,35,260410 Hdcp,45,Oakwood Sonoran
+Peter Pestalozzi,blue,man,Oakwood - Lakes,2025-09-26,41,41,260410 Hdcp,45,Oakwood Lakes
+Rich Johnson,white,man,Oakwood - Sonoran,2024-08-09,40,40,260410 Hdcp,35,Oakwood Sonoran
+Rich Johnson,white,man,Oakwood - Palms,2024-08-16,45,45,260410 Hdcp,35,Oakwood Palms
+Rich Johnson,white,man,Oakwood - Sonoran,2024-08-23,45,45,260410 Hdcp,35,Oakwood Sonoran
+Rich Johnson,white,man,Oakwood - Palms,2024-09-13,46,46,260410 Hdcp,35,Oakwood Palms
+Rich Johnson,white,man,Ironwood - F9,2025-04-25,43,43,260410 Hdcp,35,Ironwood Front 9
+Rich Johnson,white,man,Oakwood - Lakes,2025-06-20,49,49,260410 Hdcp,35,Oakwood Lakes
+Rich Johnson,white,man,Oakwood - Palms,2025-06-27,45,45,260410 Hdcp,35,Oakwood Palms
+Rich Johnson,white,man,Oakwood - Lakes,2025-07-04,40,40,260410 Hdcp,35,Oakwood Lakes
+Rich Johnson,white,man,Oakwood - Sonoran,2025-08-01,40,40,260410 Hdcp,35,Oakwood Sonoran
+Rich Johnson,white,man,Oakwood - Lakes,2025-08-08,45,45,260410 Hdcp,35,Oakwood Lakes
+Rich Johnson,white,man,Oakwood - Sonoran,2025-08-22,42,42,260410 Hdcp,35,Oakwood Sonoran
+Rich Johnson,white,man,Oakwood - Lakes,2025-08-29,42,42,260410 Hdcp,35,Oakwood Lakes
+Rich Johnson,white,man,Oakwood - Lakes,2025-09-05,43,43,260410 Hdcp,35,Oakwood Lakes
+Rich Johnson,white,man,Oakwood - Palms,2025-09-12,45,45,260410 Hdcp,35,Oakwood Palms
+Rich Johnson,white,man,Oakwood - Sonoran,2025-09-19,44,44,260410 Hdcp,35,Oakwood Sonoran
+Rich Johnson,white,man,Oakwood - Lakes,2025-09-26,46,46,260410 Hdcp,35,Oakwood Lakes
+Sandy Hudson,yellow,woman,Oakwood - Lakes,2025-05-16,54,54,260410 Hdcp,32,Oakwood Lakes
+Sandy Hudson,yellow,woman,Oakwood - Palms,2025-06-27,57,57,260410 Hdcp,32,Oakwood Palms
+Stein Ericsson,blue,man,Ironwood - F9,2024-04-12,42,42,260410 Hdcp,22,Ironwood F9
+Stein Ericsson,blue,man,Oakwood - Lakes,2024-04-19,42,42,260410 Hdcp,22,Oakwood Lakes
+Stein Ericsson,blue,man,Ironwood - B9,2024-04-26,41,41,260410 Hdcp,22,Ironwood Back 9
+Stein Ericsson,blue,man,Oakwood - Sonoran,2024-05-03,49,49,260410 Hdcp,22,Oakwood Sonoran
+Stein Ericsson,blue,man,Ironwood - F9,2024-05-10,38,38,260410 Hdcp,22,Ironwood Front 9
+Stein Ericsson,blue,man,Oakwood - Palms,2024-05-17,44,44,260410 Hdcp,22,Oakwood Palms
+Stein Ericsson,blue,man,Ironwood - B9,2024-05-24,43,43,260410 Hdcp,22,Ironwood Back 9
+Stein Ericsson,blue,man,Oakwood - Sonoran,2024-06-07,43,43,260410 Hdcp,22,Oakwood Sonoran
+Stein Ericsson,blue,man,Oakwood - Palms,2024-06-14,44,44,260410 Hdcp,22,Oakwood Palms
+Stein Ericsson,blue,man,Oakwood - Sonoran,2024-07-05,45,45,260410 Hdcp,22,Oakwood Sonoran
+Stein Ericsson,blue,man,Oakwood - Sonoran,2024-07-12,43,43,260410 Hdcp,22,Oakwood Sonoran
+Stein Ericsson,blue,man,Oakwood - Palms,2024-07-19,46,46,260410 Hdcp,22,Oakwood Palms
+Stein Ericsson,blue,man,Oakwood - Palms,2024-08-02,38,38,260410 Hdcp,22,Oakwood Palms
+Stein Ericsson,blue,man,Oakwood - Palms,2024-08-16,47,47,260410 Hdcp,22,Oakwood Palms
+Stein Ericsson,blue,man,Oakwood - Sonoran,2024-08-23,44,44,260410 Hdcp,22,Oakwood Sonoran
+Stein Ericsson,blue,man,Oakwood - Palms,2024-08-30,42,42,260410 Hdcp,22,Oakwood Palms
+Stein Ericsson,blue,man,Oakwood - Sonoran,2024-09-06,45,45,260410 Hdcp,22,Oakwood Sonoran
+Stein Ericsson,blue,man,Oakwood - Palms,2024-09-13,43,43,260410 Hdcp,22,Oakwood Palms
+Stein Ericsson,blue,man,Ironwood - F9,2025-04-25,37,37,260410 Hdcp,22,Ironwood Front 9
+Stein Ericsson,blue,man,Ironwood - B9,2025-05-09,44,44,260410 Hdcp,22,Ironwood Back 9
+Stein Ericsson,blue,man,Oakwood - Lakes,2025-05-16,43,43,260410 Hdcp,22,Oakwood Lakes
+Stein Ericsson,blue,man,Ironwood - F9,2025-05-23,40,40,260410 Hdcp,22,Ironwood Front 9
+Stein Ericsson,blue,man,Oakwood - Sonoran,2025-05-30,43,43,260410 Hdcp,22,Oakwood Sonoran
+Stein Ericsson,blue,man,Oakwood - Sonoran,2025-06-13,52,52,260410 Hdcp,22,Oakwood Sonoran
+Stein Ericsson,blue,man,Oakwood - Lakes,2025-06-20,48,48,260410 Hdcp,22,Oakwood Lakes
+Stein Ericsson,blue,man,Oakwood - Palms,2025-06-27,42,42,260410 Hdcp,22,Oakwood Palms
+Stein Ericsson,blue,man,Oakwood - Sonoran,2025-07-11,44,44,260410 Hdcp,22,Oakwood Sonoran
+Stein Ericsson,blue,man,Oakwood - Palms,2025-07-25,45,45,260410 Hdcp,22,Oakwood Palms
+Stein Ericsson,blue,man,Oakwood - Sonoran,2025-08-01,42,42,260410 Hdcp,22,Oakwood Sonoran
+Stein Ericsson,blue,man,Oakwood - Lakes,2025-08-08,46,46,260410 Hdcp,22,Oakwood Lakes
+Stein Ericsson,blue,man,Oakwood - Sonoran,2025-08-22,43,43,260410 Hdcp,22,Oakwood Sonoran
+Stein Ericsson,blue,man,Oakwood - Lakes,2025-08-29,45,45,260410 Hdcp,22,Oakwood Lakes
+Stein Ericsson,blue,man,Oakwood - Palms,2025-09-12,44,44,260410 Hdcp,22,Oakwood Palms
+Stein Ericsson,blue,man,Oakwood - Sonoran,2025-09-19,43,43,260410 Hdcp,22,Oakwood Sonoran
+Stein Ericsson,blue,man,Oakwood - Lakes,2025-09-26,46,46,260410 Hdcp,22,Oakwood Lakes
+Stephen Hart,blue,man,Ironwood - B9,2024-04-26,40,40,260410 Hdcp,27,Ironwood Back 9
+Stephen Hart,blue,man,Oakwood - Palms,2024-05-17,45,45,260410 Hdcp,27,Oakwood Palms
+Stephen Hart,blue,man,Ironwood - B9,2024-05-24,45,45,260410 Hdcp,27,Ironwood Back 9
+Stephen Hart,blue,man,Oakwood - Palms,2024-05-31,46,46,260410 Hdcp,27,Oakwood Palms
+Stephen Hart,blue,man,Oakwood - Sonoran,2024-06-07,45,45,260410 Hdcp,27,Oakwood Sonoran
+Stephen Hart,blue,man,Oakwood - Palms,2024-06-14,43,43,260410 Hdcp,27,Oakwood Palms
+Stephen Hart,blue,man,Oakwood - Sonoran,2024-06-21,44,44,260410 Hdcp,27,Oakwood Sonoran
+Stephen Hart,blue,man,Oakwood - Palms,2024-06-28,45,45,260410 Hdcp,27,Oakwood Palms
+Stephen Hart,blue,man,Oakwood - Sonoran,2024-07-12,43,43,260410 Hdcp,27,Oakwood Sonoran
+Stephen Hart,blue,man,Oakwood - Palms,2024-07-19,47,47,260410 Hdcp,27,Oakwood Palms
+Stephen Hart,blue,man,Oakwood - Sonoran,2024-07-26,42,42,260410 Hdcp,27,Oakwood Sonoran
+Stephen Hart,blue,man,Oakwood - Palms,2024-08-16,45,45,260410 Hdcp,27,Oakwood Palms
+Stephen Hart,blue,man,Oakwood - Sonoran,2024-08-23,43,43,260410 Hdcp,27,Oakwood Sonoran
+Stephen Hart,blue,man,Oakwood - Palms,2024-09-13,46,46,260410 Hdcp,27,Oakwood Palms
+Stephen Hart,blue,man,Oakwood - Sonoran,2024-09-20,42,42,260410 Hdcp,27,Oakwood Sonoran
+Stephen Hart,blue,man,Ironwood - F9,2025-04-25,43,43,260410 Hdcp,27,Ironwood Front 9
+Stephen Hart,blue,man,Oakwood - Palms,2025-06-06,48,48,260410 Hdcp,27,Oakwood Palms
+Stephen Hart,blue,man,Oakwood - Lakes,2025-06-20,43,43,260410 Hdcp,27,Oakwood Lakes
+Stephen Hart,blue,man,Oakwood - Palms,2025-06-27,44,44,260410 Hdcp,27,Oakwood Palms
+Stephen Hart,blue,man,Oakwood - Lakes,2025-07-04,45,45,260410 Hdcp,27,Oakwood Lakes
+Stephen Hart,blue,man,Oakwood - Sonoran,2025-07-11,43,43,260410 Hdcp,27,Oakwood Sonoran
+Stephen Hart,blue,man,Oakwood - Sonoran,2025-08-01,38,38,260410 Hdcp,27,Oakwood Sonoran
+Stephen Hart,blue,man,Oakwood - Lakes,2025-08-08,43,43,260410 Hdcp,27,Oakwood Lakes
+Stephen Hart,blue,man,Oakwood - Palms,2025-08-15,48,48,260410 Hdcp,27,Oakwood Palms
+Stephen Hart,blue,man,Oakwood - Sonoran,2025-08-22,47,47,260410 Hdcp,27,Oakwood Sonoran
+Stephen Hart,blue,man,Oakwood - Lakes,2025-08-29,47,47,260410 Hdcp,27,Oakwood Lakes
+Stephen Hart,blue,man,Oakwood - Palms,2025-09-12,42,42,260410 Hdcp,27,Oakwood Palms
+Stephen Hart,blue,man,Oakwood - Lakes,2025-09-26,46,46,260410 Hdcp,27,Oakwood Lakes
+Steve Schultz,blue,man,Ironwood - F9,2024-05-10,41,41,260410 Hdcp,47,Ironwood Front 9
+Steve Schultz,blue,man,Oakwood - Palms,2024-05-17,45,45,260410 Hdcp,47,Oakwood Palms
+Steve Schultz,blue,man,Ironwood - B9,2024-05-24,46,46,260410 Hdcp,47,Ironwood Back 9
+Steve Schultz,blue,man,Oakwood - Palms,2024-05-31,43,43,260410 Hdcp,47,Oakwood Palms
+Steve Schultz,blue,man,Oakwood - Sonoran,2024-06-07,45,45,260410 Hdcp,47,Oakwood Sonoran
+Steve Schultz,blue,man,Oakwood - Palms,2024-07-19,43,43,260410 Hdcp,47,Oakwood Palms
+Steve Schultz,blue,man,Oakwood - Sonoran,2024-07-26,43,43,260410 Hdcp,47,Oakwood Sonoran
+Steve Schultz,blue,man,Oakwood - Palms,2024-08-02,44,44,260410 Hdcp,47,Oakwood Palms
+Steve Schultz,blue,man,Oakwood - Sonoran,2024-08-09,43,43,260410 Hdcp,47,Oakwood Sonoran
+Steve Schultz,blue,man,Ironwood - F9,2025-04-25,47,47,260410 Hdcp,47,Ironwood Front 9
+Steve Schultz,blue,man,Oakwood - Palms,2025-05-02,48,48,260410 Hdcp,47,Oakwood Palms
+Steve Schultz,blue,man,Ironwood - B9,2025-05-09,40,40,260410 Hdcp,47,Ironwood Back 9
+Steve Schultz,blue,man,Oakwood - Lakes,2025-05-16,44,44,260410 Hdcp,47,Oakwood Lakes
+Steve Schultz,blue,man,Ironwood - F9,2025-05-23,39,39,260410 Hdcp,47,Ironwood Front 9
+Steve Schultz,blue,man,Oakwood - Sonoran,2025-05-30,42,42,260410 Hdcp,47,Oakwood Sonoran
+Steve Schultz,blue,man,Oakwood - Sonoran,2025-06-13,47,47,260410 Hdcp,47,Oakwood Sonoran
+Steve Schultz,blue,man,Oakwood - Lakes,2025-07-04,45,45,260410 Hdcp,47,Oakwood Lakes
+Steve Schultz,blue,man,Oakwood - Sonoran,2025-07-11,46,46,260410 Hdcp,47,Oakwood Sonoran
+Steve Schultz,blue,man,Oakwood - Lakes,2025-07-18,44,44,260410 Hdcp,47,Oakwood Lakes
+Steve Schultz,blue,man,Oakwood - Sonoran,2025-08-01,45,45,260410 Hdcp,47,Oakwood Sonoran
+Steve Schultz,blue,man,Oakwood - Lakes,2025-08-08,46,46,260410 Hdcp,47,Oakwood Lakes
+Steve Schultz,blue,man,Oakwood - Palms,2025-08-15,45,45,260410 Hdcp,47,Oakwood Palms
+Steve Schultz,blue,man,Oakwood - Lakes,2025-08-29,47,47,260410 Hdcp,47,Oakwood Lakes
+Teri Hoeft,white,woman,Ironwood - F9,2024-04-12,38,38,260410 Hdcp,29,Ironwood F9
+Teri Hoeft,white,woman,Oakwood - Lakes,2024-04-19,40,40,260410 Hdcp,29,Oakwood Lakes
+Teri Hoeft,white,woman,Ironwood - B9,2024-04-26,37,37,260410 Hdcp,29,Ironwood Back 9
+Teri Hoeft,white,woman,Oakwood - Sonoran,2024-05-03,40,40,260410 Hdcp,29,Oakwood Sonoran
+Teri Hoeft,white,woman,Ironwood - F9,2024-05-10,38,38,260410 Hdcp,29,Ironwood Front 9
+Teri Hoeft,white,woman,Oakwood - Palms,2024-05-17,39,39,260410 Hdcp,29,Oakwood Palms
+Teri Hoeft,white,woman,Ironwood - B9,2024-05-24,40,40,260410 Hdcp,29,Ironwood Back 9
+Teri Hoeft,white,woman,Oakwood - Palms,2024-05-31,45,45,260410 Hdcp,29,Oakwood Palms
+Teri Hoeft,white,woman,Oakwood - Sonoran,2024-06-07,38,38,260410 Hdcp,29,Oakwood Sonoran
+Teri Hoeft,white,woman,Oakwood - Palms,2024-06-14,43,43,260410 Hdcp,29,Oakwood Palms
+Teri Hoeft,white,woman,Oakwood - Sonoran,2024-06-21,38,38,260410 Hdcp,29,Oakwood Sonoran
+Teri Hoeft,white,woman,Oakwood - Palms,2024-06-28,38,38,260410 Hdcp,29,Oakwood Palms
+Teri Hoeft,white,woman,Oakwood - Sonoran,2024-07-05,38,38,260410 Hdcp,29,Oakwood Sonoran
+Teri Hoeft,white,woman,Oakwood - Sonoran,2024-07-12,36,36,260410 Hdcp,29,Oakwood Sonoran
+Teri Hoeft,white,woman,Oakwood - Palms,2024-08-16,39,39,260410 Hdcp,29,Oakwood Palms
+Teri Hoeft,white,woman,Oakwood - Sonoran,2024-08-23,41,41,260410 Hdcp,29,Oakwood Sonoran
+Teri Hoeft,white,woman,Oakwood - Palms,2024-08-30,43,43,260410 Hdcp,29,Oakwood Palms
+Teri Hoeft,white,woman,Oakwood - Sonoran,2024-09-06,41,41,260410 Hdcp,29,Oakwood Sonoran
+Teri Hoeft,white,woman,Oakwood - Palms,2024-09-13,44,44,260410 Hdcp,29,Oakwood Palms
+Teri Hoeft,white,woman,Oakwood - Sonoran,2024-09-20,43,43,260410 Hdcp,29,Oakwood Sonoran
+Teri Hoeft,white,woman,Ironwood - F9,2025-04-25,34,34,260410 Hdcp,29,Ironwood Front 9
+Teri Hoeft,white,woman,Oakwood - Palms,2025-05-02,41,41,260410 Hdcp,29,Oakwood Palms
+Teri Hoeft,white,woman,Ironwood - B9,2025-05-09,38,38,260410 Hdcp,29,Ironwood Back 9
+Teri Hoeft,white,woman,Ironwood - F9,2025-05-23,38,38,260410 Hdcp,29,Ironwood Front 9
+Teri Hoeft,white,woman,Oakwood - Palms,2025-06-06,45,45,260410 Hdcp,29,Oakwood Palms
+Teri Hoeft,white,woman,Oakwood - Sonoran,2025-06-13,39,39,260410 Hdcp,29,Oakwood Sonoran
+Teri Hoeft,white,woman,Oakwood - Palms,2025-06-27,38,38,260410 Hdcp,29,Oakwood Palms
+Teri Hoeft,white,woman,Oakwood - Lakes,2025-07-04,43,43,260410 Hdcp,29,Oakwood Lakes
+Teri Hoeft,white,woman,Oakwood - Sonoran,2025-07-11,41,41,260410 Hdcp,29,Oakwood Sonoran
+Teri Hoeft,white,woman,Oakwood - Sonoran,2025-08-01,42,42,260410 Hdcp,29,Oakwood Sonoran
+Teri Hoeft,white,woman,Oakwood - Lakes,2025-08-08,39,39,260410 Hdcp,29,Oakwood Lakes
+Teri Hoeft,white,woman,Oakwood - Palms,2025-08-15,48,48,260410 Hdcp,29,Oakwood Palms
+Teri Hoeft,white,woman,Oakwood - Lakes,2025-08-29,42,42,260410 Hdcp,29,Oakwood Lakes
+Teri Hoeft,white,woman,Oakwood - Lakes,2025-09-05,44,44,260410 Hdcp,29,Oakwood Lakes
+Tom Sleasman,blue,man,Ironwood - F9,2024-04-12,43,43,260410 Hdcp,48,Ironwood F9
+Tom Sleasman,blue,man,Oakwood - Lakes,2024-04-19,41,41,260410 Hdcp,48,Oakwood Lakes
+Tom Sleasman,blue,man,Ironwood - B9,2024-04-26,41,41,260410 Hdcp,48,Ironwood Back 9
+Tom Sleasman,blue,man,Oakwood - Sonoran,2024-05-03,41,41,260410 Hdcp,48,Oakwood Sonoran
+Tom Sleasman,blue,man,Ironwood - F9,2024-05-10,36,36,260410 Hdcp,48,Ironwood Front 9
+Tom Sleasman,blue,man,Oakwood - Palms,2024-05-17,39,39,260410 Hdcp,48,Oakwood Palms
+Tom Sleasman,blue,man,Ironwood - B9,2024-05-24,37,37,260410 Hdcp,48,Ironwood Back 9
+Tom Sleasman,blue,man,Oakwood - Palms,2024-05-31,42,42,260410 Hdcp,48,Oakwood Palms
+Tom Sleasman,blue,man,Oakwood - Sonoran,2024-06-07,41,41,260410 Hdcp,48,Oakwood Sonoran
+Tom Sleasman,blue,man,Oakwood - Sonoran,2024-06-21,38,38,260410 Hdcp,48,Oakwood Sonoran
+Tom Sleasman,blue,man,Oakwood - Palms,2024-06-28,39,39,260410 Hdcp,48,Oakwood Palms
+Tom Sleasman,blue,man,Oakwood - Sonoran,2024-07-05,38,38,260410 Hdcp,48,Oakwood Sonoran
+Tom Sleasman,blue,man,Oakwood - Palms,2024-07-19,42,42,260410 Hdcp,48,Oakwood Palms
+Tom Sleasman,blue,man,Oakwood - Sonoran,2024-07-26,40,40,260410 Hdcp,48,Oakwood Sonoran
+Tom Sleasman,blue,man,Oakwood - Palms,2024-08-02,40,40,260410 Hdcp,48,Oakwood Palms
+Tom Sleasman,blue,man,Oakwood - Sonoran,2024-08-09,40,40,260410 Hdcp,48,Oakwood Sonoran
+Tom Sleasman,blue,man,Oakwood - Sonoran,2024-08-23,42,42,260410 Hdcp,48,Oakwood Sonoran
+Tom Sleasman,blue,man,Oakwood - Palms,2024-08-30,40,40,260410 Hdcp,48,Oakwood Palms
+Tom Sleasman,blue,man,Oakwood - Sonoran,2024-09-06,38,38,260410 Hdcp,48,Oakwood Sonoran
+Tom Sleasman,blue,man,Oakwood - Palms,2024-09-13,43,43,260410 Hdcp,48,Oakwood Palms
+Tom Sleasman,blue,man,Oakwood - Sonoran,2024-09-20,40,40,260410 Hdcp,48,Oakwood Sonoran
+Tom Sleasman,blue,man,Ironwood - F9,2025-04-25,40,40,260410 Hdcp,48,Ironwood Front 9
+Tom Sleasman,blue,man,Ironwood - B9,2025-05-09,37,37,260410 Hdcp,48,Ironwood Back 9
+Tom Sleasman,blue,man,Oakwood - Lakes,2025-05-16,44,44,260410 Hdcp,48,Oakwood Lakes
+Tom Sleasman,blue,man,Ironwood - F9,2025-05-23,40,40,260410 Hdcp,48,Ironwood Front 9
+Tom Sleasman,blue,man,Oakwood - Sonoran,2025-05-30,40,40,260410 Hdcp,48,Oakwood Sonoran
+Tom Sleasman,blue,man,Oakwood - Palms,2025-06-06,43,43,260410 Hdcp,48,Oakwood Palms
+Tom Sleasman,blue,man,Oakwood - Sonoran,2025-06-13,42,42,260410 Hdcp,48,Oakwood Sonoran
+Tom Sleasman,blue,man,Oakwood - Lakes,2025-06-20,40,40,260410 Hdcp,48,Oakwood Lakes
+Tom Sleasman,blue,man,Oakwood - Palms,2025-06-27,38,38,260410 Hdcp,48,Oakwood Palms
+Tom Sleasman,blue,man,Oakwood - Lakes,2025-07-04,47,47,260410 Hdcp,48,Oakwood Lakes
+Tom Sleasman,blue,man,Oakwood - Palms,2025-07-25,40,40,260410 Hdcp,48,Oakwood Palms
+Tom Sleasman,blue,man,Oakwood - Sonoran,2025-08-01,36,36,260410 Hdcp,48,Oakwood Sonoran
+Tom Sleasman,blue,man,Oakwood - Lakes,2025-08-08,45,45,260410 Hdcp,48,Oakwood Lakes
+Tom Sleasman,blue,man,Oakwood - Palms,2025-08-15,39,39,260410 Hdcp,48,Oakwood Palms
+Tom Sleasman,blue,man,Oakwood - Sonoran,2025-08-22,42,42,260410 Hdcp,48,Oakwood Sonoran
+Tom Sleasman,blue,man,Oakwood - Lakes,2025-08-29,43,43,260410 Hdcp,48,Oakwood Lakes
+Tom Sleasman,blue,man,Oakwood - Lakes,2025-09-05,39,39,260410 Hdcp,48,Oakwood Lakes
+Tom Sleasman,blue,man,Oakwood - Palms,2025-09-12,44,44,260410 Hdcp,48,Oakwood Palms
+Tom Sleasman,blue,man,Oakwood - Lakes,2025-09-26,43,43,260410 Hdcp,48,Oakwood Lakes
+Troy Kincade,blue,man,Ironwood - F9,2024-04-12,37,37,260410 Hdcp,40,Ironwood F9
+Troy Kincade,blue,man,Oakwood - Lakes,2024-04-19,48,48,260410 Hdcp,40,Oakwood Lakes
+Troy Kincade,blue,man,Ironwood - F9,2024-05-10,42,42,260410 Hdcp,40,Ironwood Front 9
+Troy Kincade,blue,man,Oakwood - Sonoran,2024-09-20,48,48,260410 Hdcp,40,Oakwood Sonoran
+Troy Kincade,blue,man,Ironwood - B9,2025-05-09,46,46,260410 Hdcp,40,Ironwood Back 9
+Troy Kincade,blue,man,Oakwood - Lakes,2025-05-16,45,45,260410 Hdcp,40,Oakwood Lakes
+Troy Kincade,blue,man,Ironwood - F9,2025-05-23,38,38,260410 Hdcp,40,Ironwood Front 9
+Troy Kincade,blue,man,Oakwood - Sonoran,2025-05-30,42,42,260410 Hdcp,40,Oakwood Sonoran
+Troy Kincade,blue,man,Oakwood - Palms,2025-06-06,48,48,260410 Hdcp,40,Oakwood Palms
+Troy Kincade,blue,man,Oakwood - Sonoran,2025-06-13,46,46,260410 Hdcp,40,Oakwood Sonoran
+Troy Kincade,blue,man,Oakwood - Palms,2025-08-15,44,44,260410 Hdcp,40,Oakwood Palms
+Troy Kincade,blue,man,Oakwood - Lakes,2025-09-05,42,42,260410 Hdcp,40,Oakwood Lakes
+Wayne Davis,blue,man,Ironwood - F9,2024-04-12,53,53,260410 Hdcp,19,Ironwood F9
+Wayne Davis,blue,man,Oakwood - Lakes,2024-04-19,49,49,260410 Hdcp,19,Oakwood Lakes
+Wayne Davis,blue,man,Ironwood - B9,2024-04-26,52,52,260410 Hdcp,19,Ironwood Back 9
+Wayne Davis,blue,man,Oakwood - Sonoran,2024-05-03,46,46,260410 Hdcp,19,Oakwood Sonoran
+Wayne Davis,blue,man,Ironwood - F9,2024-05-10,47,47,260410 Hdcp,19,Ironwood Front 9
+Wayne Davis,blue,man,Oakwood - Palms,2024-05-17,49,49,260410 Hdcp,19,Oakwood Palms
+Wayne Davis,blue,man,Ironwood - B9,2024-05-24,52,52,260410 Hdcp,19,Ironwood Back 9
+Wayne Davis,blue,man,Oakwood - Palms,2024-05-31,52,52,260410 Hdcp,19,Oakwood Palms
+Wayne Davis,blue,man,Oakwood - Sonoran,2024-06-07,51,51,260410 Hdcp,19,Oakwood Sonoran
+Wayne Davis,blue,man,Oakwood - Palms,2024-06-14,49,49,260410 Hdcp,19,Oakwood Palms
+Wayne Davis,blue,man,Oakwood - Sonoran,2024-06-21,47,47,260410 Hdcp,19,Oakwood Sonoran
+Wayne Davis,blue,man,Oakwood - Palms,2024-06-28,53,53,260410 Hdcp,19,Oakwood Palms
+Wayne Davis,blue,man,Oakwood - Sonoran,2024-07-12,58,58,260410 Hdcp,19,Oakwood Sonoran
+Wayne Davis,blue,man,Oakwood - Palms,2024-07-19,51,51,260410 Hdcp,19,Oakwood Palms
+Wayne Davis,blue,man,Oakwood - Sonoran,2024-08-09,54,54,260410 Hdcp,19,Oakwood Sonoran
+Wayne Davis,blue,man,Oakwood - Palms,2024-08-16,48,48,260410 Hdcp,19,Oakwood Palms
+Wayne Davis,blue,man,Oakwood - Sonoran,2024-09-06,44,44,260410 Hdcp,19,Oakwood Sonoran
+Wayne Davis,blue,man,Oakwood - Palms,2024-09-13,51,51,260410 Hdcp,19,Oakwood Palms
+Wayne Davis,blue,man,Oakwood - Sonoran,2024-09-20,52,52,260410 Hdcp,19,Oakwood Sonoran
+Wayne Davis,blue,man,Ironwood - B9,2025-05-09,44,44,260410 Hdcp,19,Ironwood Back 9
+Wayne Davis,blue,man,Oakwood - Lakes,2025-05-16,46,46,260410 Hdcp,19,Oakwood Lakes
+Wayne Davis,blue,man,Ironwood - F9,2025-05-23,45,45,260410 Hdcp,19,Ironwood Front 9
+Wayne Davis,blue,man,Oakwood - Sonoran,2025-05-30,42,42,260410 Hdcp,19,Oakwood Sonoran
+Wayne Davis,blue,man,Oakwood - Palms,2025-06-06,47,47,260410 Hdcp,19,Oakwood Palms
+Wayne Davis,blue,man,Oakwood - Sonoran,2025-06-13,45,45,260410 Hdcp,19,Oakwood Sonoran
+Wayne Davis,blue,man,Oakwood - Lakes,2025-06-20,52,52,260410 Hdcp,19,Oakwood Lakes
+Wayne Davis,blue,man,Oakwood - Palms,2025-06-27,51,51,260410 Hdcp,19,Oakwood Palms
+Wayne Davis,blue,man,Oakwood - Lakes,2025-07-04,47,47,260410 Hdcp,19,Oakwood Lakes
+Wayne Davis,blue,man,Oakwood - Sonoran,2025-07-11,47,47,260410 Hdcp,19,Oakwood Sonoran
+Wayne Davis,blue,man,Oakwood - Lakes,2025-07-18,51,51,260410 Hdcp,19,Oakwood Lakes
+Wayne Davis,blue,man,Oakwood - Palms,2025-07-25,46,46,260410 Hdcp,19,Oakwood Palms
+Wayne Davis,blue,man,Oakwood - Sonoran,2025-08-01,49,49,260410 Hdcp,19,Oakwood Sonoran
+Wayne Davis,blue,man,Oakwood - Lakes,2025-08-08,47,47,260410 Hdcp,19,Oakwood Lakes
+Wayne Davis,blue,man,Oakwood - Palms,2025-08-15,48,48,260410 Hdcp,19,Oakwood Palms
+Wayne Davis,blue,man,Oakwood - Sonoran,2025-08-22,43,43,260410 Hdcp,19,Oakwood Sonoran
+Wayne Davis,blue,man,Oakwood - Lakes,2025-08-29,50,50,260410 Hdcp,19,Oakwood Lakes
+Wayne Davis,blue,man,Oakwood - Lakes,2025-09-05,48,48,260410 Hdcp,19,Oakwood Lakes
+Wayne Davis,blue,man,Oakwood - Palms,2025-09-12,50,50,260410 Hdcp,19,Oakwood Palms
+Wayne Davis,blue,man,Oakwood - Sonoran,2025-09-19,50,50,260410 Hdcp,19,Oakwood Sonoran
+Wayne Davis,blue,man,Oakwood - Lakes,2025-09-26,61,61,260410 Hdcp,19,Oakwood Lakes
+Will Hooke,blue,man,Ironwood - B9,2024-04-26,37,37,260410 Hdcp,30,Ironwood Back 9
+Will Hooke,blue,man,Oakwood - Sonoran,2024-05-03,38,38,260410 Hdcp,30,Oakwood Sonoran
+Will Hooke,blue,man,Ironwood - F9,2024-05-10,36,36,260410 Hdcp,30,Ironwood Front 9
+Will Hooke,blue,man,Oakwood - Palms,2024-05-31,41,41,260410 Hdcp,30,Oakwood Palms
+Will Hooke,blue,man,Oakwood - Sonoran,2024-06-07,41,41,260410 Hdcp,30,Oakwood Sonoran
+Will Hooke,blue,man,Oakwood - Palms,2024-06-14,39,39,260410 Hdcp,30,Oakwood Palms
+Will Hooke,blue,man,Oakwood - Sonoran,2024-06-21,42,42,260410 Hdcp,30,Oakwood Sonoran
+Will Hooke,blue,man,Oakwood - Palms,2024-06-28,40,40,260410 Hdcp,30,Oakwood Palms
+Will Hooke,blue,man,Oakwood - Sonoran,2024-07-12,40,40,260410 Hdcp,30,Oakwood Sonoran
+Will Hooke,blue,man,Oakwood - Sonoran,2024-07-26,39,39,260410 Hdcp,30,Oakwood Sonoran
+Will Hooke,blue,man,Oakwood - Sonoran,2024-08-09,39,39,260410 Hdcp,30,Oakwood Sonoran
+Will Hooke,blue,man,Oakwood - Palms,2024-08-30,36,36,260410 Hdcp,30,Oakwood Palms
+Will Hooke,blue,man,Oakwood - Sonoran,2024-09-06,38,38,260410 Hdcp,30,Oakwood Sonoran
+Will Hooke,blue,man,Oakwood - Palms,2024-09-13,39,39,260410 Hdcp,30,Oakwood Palms
+Will Hooke,blue,man,Oakwood - Sonoran,2024-09-20,36,36,260410 Hdcp,30,Oakwood Sonoran
+Will Hooke,blue,man,Ironwood - F9,2025-04-25,37,37,260410 Hdcp,30,Ironwood Front 9
+Will Hooke,blue,man,Oakwood - Palms,2025-05-02,39,39,260410 Hdcp,30,Oakwood Palms
+Will Hooke,blue,man,Ironwood - B9,2025-05-09,33,33,260410 Hdcp,30,Ironwood Back 9
+Will Hooke,blue,man,Oakwood - Sonoran,2025-06-13,38,38,260410 Hdcp,30,Oakwood Sonoran
+Will Hooke,blue,man,Oakwood - Lakes,2025-06-20,39,39,260410 Hdcp,30,Oakwood Lakes
+Will Hooke,blue,man,Oakwood - Palms,2025-06-27,37,37,260410 Hdcp,30,Oakwood Palms
+Will Hooke,blue,man,Oakwood - Lakes,2025-07-18,36,36,260410 Hdcp,30,Oakwood Lakes
+Will Hooke,blue,man,Oakwood - Palms,2025-07-25,37,37,260410 Hdcp,30,Oakwood Palms
+Will Hooke,blue,man,Oakwood - Sonoran,2025-08-01,38,38,260410 Hdcp,30,Oakwood Sonoran
+Will Hooke,blue,man,Oakwood - Palms,2025-08-15,38,38,260410 Hdcp,30,Oakwood Palms
+Will Hooke,blue,man,Oakwood - Sonoran,2025-08-22,40,40,260410 Hdcp,30,Oakwood Sonoran
+Will Hooke,blue,man,Oakwood - Lakes,2025-08-29,36,36,260410 Hdcp,30,Oakwood Lakes
+Will Hooke,blue,man,Oakwood - Lakes,2025-09-05,37,37,260410 Hdcp,30,Oakwood Lakes
+Will Hooke,blue,man,Oakwood - Sonoran,2025-09-19,39,39,260410 Hdcp,30,Oakwood Sonoran
+Will Hooke,blue,man,Oakwood - Lakes,2025-09-26,41,41,260410 Hdcp,30,Oakwood Lakes

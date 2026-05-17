@@ -81,6 +81,11 @@ type WeekPageData = {
       kind: 'HCP' | 'NEW' | 'EST'
       value: string | null
     }
+    pairingHandicap: {
+      label: 'IDX' | 'CH'
+      value: number
+    }
+    opponentInitials: string[]
   }>
   courses: Array<{
     id: string
@@ -945,7 +950,8 @@ export function WeekClient({ initialData }: WeekClientProps) {
               handicapMode={data.currentWeek.handicapMode}
               unmatchedPresentPlayers={unmatchedPresentPlayers.map((player) => ({
                 playerId: player.playerId,
-                name: player.name
+                name: player.name,
+                pairingHandicap: player.pairingHandicap
               }))}
               currentCourseTeeOptions={currentCourseTeeOptions}
               allScoresComplete={allScoresComplete}
@@ -990,7 +996,8 @@ export function WeekClient({ initialData }: WeekClientProps) {
         matchCount={data.currentWeek.matchCount}
         unmatchedPresentPlayers={unmatchedPresentPlayers.map((player) => ({
           playerId: player.playerId,
-          name: player.name
+          name: player.name,
+          pairingHandicap: player.pairingHandicap
         }))}
         locked={data.currentWeek.locked}
         allScoresComplete={allScoresComplete}

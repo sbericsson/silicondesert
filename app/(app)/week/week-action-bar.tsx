@@ -93,6 +93,10 @@ export function WeekActionBar({
   const lockedNote = locked ? ' · Locked' : ''
   const unmatchedCount = unmatchedPresentPlayers.length
 
+  function getManualPlayerLabel(player: UnmatchedPlayer) {
+    return `${player.name} - ${player.pairingHandicap.label} ${player.pairingHandicap.value}`
+  }
+
   function scrollToPairings() {
     const el = document.getElementById('pairings')
     if (el) {
@@ -127,7 +131,7 @@ export function WeekActionBar({
               <option value="">Select player 1</option>
               {unmatchedPresentPlayers.map((player) => (
                 <option key={player.playerId} value={player.playerId}>
-                  {player.name}
+                  {getManualPlayerLabel(player)}
                 </option>
               ))}
             </select>
@@ -143,7 +147,7 @@ export function WeekActionBar({
                 .filter((player) => player.playerId !== manualPlayer1Id)
                 .map((player) => (
                   <option key={player.playerId} value={player.playerId}>
-                    {player.name}
+                    {getManualPlayerLabel(player)}
                   </option>
                 ))}
             </select>

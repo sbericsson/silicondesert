@@ -14,6 +14,11 @@ export type AttendancePlayer = {
     kind: 'HCP' | 'NEW' | 'EST'
     value: string | null
   }
+  pairingHandicap: {
+    label: 'IDX' | 'CH'
+    value: number
+  }
+  opponentInitials: string[]
 }
 
 interface AttendanceListProps {
@@ -75,11 +80,16 @@ export function AttendanceList({
                 }`}
               />
               <span
-                className={`flex-1 text-sm ${
+                className={`flex min-w-0 flex-1 flex-wrap items-baseline gap-x-2 gap-y-1 text-sm ${
                   player.present ? 'font-semibold text-text-primary' : 'text-text-secondary'
                 }`}
               >
-                {player.name}
+                <span>{player.name}</span>
+                {player.opponentInitials.length > 0 ? (
+                  <span className="font-condensed text-[11px] font-semibold uppercase tracking-widest text-text-muted">
+                    {player.opponentInitials.join(' ')}
+                  </span>
+                ) : null}
               </span>
               <span
                 className={`rounded px-2 py-1 text-[11px] font-semibold ${

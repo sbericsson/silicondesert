@@ -86,6 +86,10 @@ export function WeekPairingsActionBar({
     manualButtonRef.current?.focus()
   }
 
+  function getManualPlayerLabel(player: UnmatchedPlayer) {
+    return `${player.name} - ${player.pairingHandicap.label} ${player.pairingHandicap.value}`
+  }
+
   return (
     <div
       className="fixed bottom-[calc(var(--app-nav-h)+var(--app-tab-h))] left-0 right-0 z-20 border-t border-surface-border bg-surface-elevated/95 backdrop-blur xl:hidden"
@@ -112,7 +116,7 @@ export function WeekPairingsActionBar({
               <option value="">Select player 1</option>
               {unmatchedPresentPlayers.map((player) => (
                 <option key={player.playerId} value={player.playerId}>
-                  {player.name}
+                  {getManualPlayerLabel(player)}
                 </option>
               ))}
             </select>
@@ -128,7 +132,7 @@ export function WeekPairingsActionBar({
                 .filter((player) => player.playerId !== manualPlayer1Id)
                 .map((player) => (
                   <option key={player.playerId} value={player.playerId}>
-                    {player.name}
+                    {getManualPlayerLabel(player)}
                   </option>
                 ))}
             </select>

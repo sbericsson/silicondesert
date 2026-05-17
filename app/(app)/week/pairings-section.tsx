@@ -36,6 +36,10 @@ export type PairingMatch = {
 export type UnmatchedPlayer = {
   playerId: string
   name: string
+  pairingHandicap: {
+    label: 'IDX' | 'CH'
+    value: number
+  }
 }
 
 interface PairingsSectionProps {
@@ -97,6 +101,10 @@ export function PairingsSection({
   onCopyResultsShareText,
   onCloseCurrentWeek
 }: PairingsSectionProps) {
+  function getManualPlayerLabel(player: UnmatchedPlayer) {
+    return `${player.name} - ${player.pairingHandicap.label} ${player.pairingHandicap.value}`
+  }
+
   return (
     <section id="pairings" className="rounded-xl border border-surface-border bg-surface-elevated p-4">
       <div className="flex items-center justify-between gap-3">
@@ -346,7 +354,7 @@ export function PairingsSection({
               <option value="">Select player 1</option>
               {unmatchedPresentPlayers.map((player) => (
                 <option key={player.playerId} value={player.playerId}>
-                  {player.name}
+                  {getManualPlayerLabel(player)}
                 </option>
               ))}
             </select>
@@ -361,7 +369,7 @@ export function PairingsSection({
                 .filter((player) => player.playerId !== manualPlayer1Id)
                 .map((player) => (
                   <option key={player.playerId} value={player.playerId}>
-                    {player.name}
+                    {getManualPlayerLabel(player)}
                   </option>
                 ))}
             </select>

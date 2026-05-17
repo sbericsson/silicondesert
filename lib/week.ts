@@ -17,6 +17,14 @@ function phoenixStartOfDay(isoDate: string) {
   return new Date(`${isoDate}T00:00:00-07:00`)
 }
 
+function getPlayerInitials(name: string) {
+  return name
+    .trim()
+    .split(/\s+/)
+    .map((part) => part[0]?.toUpperCase() ?? '')
+    .join('')
+}
+
 export function isWeekOverdue(date: Date, isoDate: string) {
   return date < phoenixStartOfDay(isoDate)
 }
@@ -239,10 +247,37 @@ export async function getCurrentWeekPageData() {
         },
         select: {
           player1Id: true,
-          player2Id: true
-        }
+          player2Id: true,
+          player2ScorecardOnly: true,
+          player1: {
+            select: {
+              name: true
+            }
+          },
+          player2: {
+            select: {
+              name: true
+            }
+          }
+        },
+        orderBy: { createdAt: 'asc' }
       })
     : []
+  const opponentInitialsByPlayerId = new Map<string, Set<string>>()
+
+  for (const match of priorMatches) {
+    if (match.player2ScorecardOnly) {
+      continue
+    }
+
+    const player1Opponents = opponentInitialsByPlayerId.get(match.player1Id) ?? new Set<string>()
+    player1Opponents.add(getPlayerInitials(match.player2.name))
+    opponentInitialsByPlayerId.set(match.player1Id, player1Opponents)
+
+    const player2Opponents = opponentInitialsByPlayerId.get(match.player2Id) ?? new Set<string>()
+    player2Opponents.add(getPlayerInitials(match.player1.name))
+    opponentInitialsByPlayerId.set(match.player2Id, player2Opponents)
+  }
 
   const attendanceByPlayerId = new Map(
     (currentWeek?.attendance ?? []).map((entry) => [entry.playerId, entry])
@@ -251,6 +286,24 @@ export async function getCurrentWeekPageData() {
   const attendance = players.map((player) => {
     const status = attendanceByPlayerId.get(player.id)
     const handicap = getPlayerHandicapDisplay(player)
+    const teeColor = currentWeek
+      ? getPlayerSeasonTeeColor(
+          player.seasonTeeChoices,
+          currentWeek.seasonId,
+          player.gender,
+          player.defaultTeeColor
+        )
+      : getDefaultTeeColorForGender(player.gender)
+    const handicapIndexValue = getPlayerHandicapIndexValue(player)
+    const courseTee = currentWeek?.course
+      ? getCourseTee(currentWeek.course.tees, teeColor, player.gender, {
+          color: 'white',
+          gender: 'man',
+          nineHolePar: currentWeek.course.nineHolePar,
+          nineHoleRating: currentWeek.course.nineHoleRating,
+          nineHoleSlope: currentWeek.course.nineHoleSlope
+        })
+      : null
 
     return {
       playerId: player.id,
@@ -259,15 +312,13 @@ export async function getCurrentWeekPageData() {
       ctpPoolPaid: status?.ctpPoolPaid ?? false,
       longestPuttPoolPaid: status?.longestPuttPoolPaid ?? false,
       checkedInAt: status?.checkedInAt?.toISOString() ?? null,
-      teeColor: currentWeek
-        ? getPlayerSeasonTeeColor(
-            player.seasonTeeChoices,
-            currentWeek.seasonId,
-            player.gender,
-            player.defaultTeeColor
-          )
-        : getDefaultTeeColorForGender(player.gender),
-      handicap
+      teeColor,
+      handicap,
+      pairingHandicap: {
+        label: currentWeek?.handicapMode === 'course' ? 'CH' as const : 'IDX' as const,
+        value: getPlayingHandicap(currentWeek?.handicapMode, handicapIndexValue, courseTee)
+      },
+      opponentInitials: Array.from(opponentInitialsByPlayerId.get(player.id) ?? [])
     }
   }).sort((a, b) => comparePlayerNamesByLastName(a.name, b.name))
 

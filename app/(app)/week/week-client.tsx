@@ -7,7 +7,9 @@ import { buildPublicUrl } from '@/lib/public-url'
 import { DEFAULT_TRAILING_PLAYER_NAME } from '@/lib/week-commissioner'
 import { AttendanceList } from '@/app/(app)/week/attendance-list'
 import { PairingsSection } from '@/app/(app)/week/pairings-section'
-import { WeekActionBar } from '@/app/(app)/week/week-action-bar'
+import { WeekPairingsActionBar } from '@/app/(app)/week/week-pairings-action-bar'
+import { WeekTabBar } from '@/app/(app)/week/week-tab-bar'
+import type { WeekTab } from '@/app/(app)/week/week-tab-bar'
 import { WeekSummaryStrip } from '@/app/(app)/week/week-summary-strip'
 
 type WeekPageData = {
@@ -116,6 +118,7 @@ export function WeekClient({ initialData }: WeekClientProps) {
   const [message, setMessage] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [copyMessage, setCopyMessage] = useState<string | null>(null)
+  const [activeTab, setActiveTab] = useState<WeekTab>('checkin')
 
   useEffect(() => {
     setData(initialData)
@@ -809,7 +812,7 @@ export function WeekClient({ initialData }: WeekClientProps) {
 
   return (
     <>
-      <section className="space-y-4 px-4 py-6 pb-44 xl:px-6 xl:pb-6">
+      <section className="space-y-4 px-4 py-6 pb-52 xl:px-6 xl:pb-6">
         <header className="rounded-xl border border-surface-border bg-surface-elevated p-4">
           <p className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
             Silicon Desert Golf League
@@ -935,8 +938,8 @@ export function WeekClient({ initialData }: WeekClientProps) {
           </section>
         ) : null}
 
-        <div className="flex flex-col gap-4">
-          <div className="order-1 xl:order-2">
+        <div className="flex flex-col gap-4 xl:flex-row">
+          <div className={`xl:flex-1 xl:order-2 ${activeTab === 'pairings' ? '' : 'hidden xl:block'}`}>
             <PairingsSection
               weekId={data.currentWeek.id}
               matches={data.currentWeek.matches}
@@ -969,7 +972,7 @@ export function WeekClient({ initialData }: WeekClientProps) {
             />
           </div>
 
-          <div className="order-2 xl:order-1">
+          <div className={`xl:flex-1 xl:order-1 ${activeTab === 'checkin' ? '' : 'hidden xl:block'}`}>
             <AttendanceList
               attendance={data.attendance}
               presentCount={data.presentCount}
@@ -985,31 +988,41 @@ export function WeekClient({ initialData }: WeekClientProps) {
         </div>
       </section>
 
-      <WeekActionBar
+      <WeekTabBar
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
         presentCount={data.presentCount}
         matchCount={data.currentWeek.matchCount}
-        unmatchedPresentPlayers={unmatchedPresentPlayers.map((player) => ({
-          playerId: player.playerId,
-          name: player.name
-        }))}
+        unmatchedCount={unmatchedPresentPlayers.length}
         locked={data.currentWeek.locked}
-        allScoresComplete={allScoresComplete}
-        canCloseWeek={canCloseWeek}
-        canGeneratePairings={canGeneratePairings}
-        canCreateManualPairing={canCreateManualPairing}
-        manualPlayer1Id={manualPlayer1Id}
-        manualPlayer2Id={manualPlayer2Id}
-        generateBlockReason={generateBlockReason}
-        isRefreshing={isRefreshing}
-        onManualPlayer1Change={setManualPlayer1Id}
-        onManualPlayer2Change={setManualPlayer2Id}
-        onGeneratePairings={generatePairings}
-        onSetLockState={setLockState}
-        onCreateManualPairing={createManualPairing}
-        onCopyPairingsLink={copyPairingsLink}
-        onCopyResultsShareText={copyResultsShareText}
-        onCloseCurrentWeek={closeCurrentWeek}
       />
+
+      {activeTab === 'pairings' ? (
+        <WeekPairingsActionBar
+          unmatchedPresentPlayers={unmatchedPresentPlayers.map((player) => ({
+            playerId: player.playerId,
+            name: player.name
+          }))}
+          locked={data.currentWeek.locked}
+          allScoresComplete={allScoresComplete}
+          canCloseWeek={canCloseWeek}
+          canGeneratePairings={canGeneratePairings}
+          canCreateManualPairing={canCreateManualPairing}
+          manualPlayer1Id={manualPlayer1Id}
+          manualPlayer2Id={manualPlayer2Id}
+          matchCount={data.currentWeek.matchCount}
+          generateBlockReason={generateBlockReason}
+          isRefreshing={isRefreshing}
+          onManualPlayer1Change={setManualPlayer1Id}
+          onManualPlayer2Change={setManualPlayer2Id}
+          onGeneratePairings={generatePairings}
+          onSetLockState={setLockState}
+          onCreateManualPairing={createManualPairing}
+          onCopyPairingsLink={copyPairingsLink}
+          onCopyResultsShareText={copyResultsShareText}
+          onCloseCurrentWeek={closeCurrentWeek}
+        />
+      ) : null}
     </>
   )
 }

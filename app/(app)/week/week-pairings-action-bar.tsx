@@ -3,9 +3,7 @@
 import { useEffect, useId, useRef, useState } from 'react'
 import type { UnmatchedPlayer } from '@/app/(app)/week/pairings-section'
 
-interface WeekActionBarProps {
-  presentCount: number
-  matchCount: number
+interface WeekPairingsActionBarProps {
   unmatchedPresentPlayers: UnmatchedPlayer[]
   locked: boolean
   allScoresComplete: boolean
@@ -14,6 +12,7 @@ interface WeekActionBarProps {
   canCreateManualPairing: boolean
   manualPlayer1Id: string
   manualPlayer2Id: string
+  matchCount: number
   generateBlockReason: string | null
   isRefreshing: boolean
   onManualPlayer1Change: (value: string) => void
@@ -26,9 +25,7 @@ interface WeekActionBarProps {
   onCloseCurrentWeek: () => void
 }
 
-export function WeekActionBar({
-  presentCount,
-  matchCount,
+export function WeekPairingsActionBar({
   unmatchedPresentPlayers,
   locked,
   allScoresComplete,
@@ -37,6 +34,7 @@ export function WeekActionBar({
   canCreateManualPairing,
   manualPlayer1Id,
   manualPlayer2Id,
+  matchCount,
   generateBlockReason,
   isRefreshing,
   onManualPlayer1Change,
@@ -47,7 +45,7 @@ export function WeekActionBar({
   onCopyPairingsLink,
   onCopyResultsShareText,
   onCloseCurrentWeek
-}: WeekActionBarProps) {
+}: WeekPairingsActionBarProps) {
   const panelId = useId()
   const reasonId = useId()
   const [manualOpen, setManualOpen] = useState(false)
@@ -88,22 +86,9 @@ export function WeekActionBar({
     manualButtonRef.current?.focus()
   }
 
-  const parityNote =
-    presentCount > 0 && presentCount % 2 === 1 ? ' · Threesome' : ''
-  const lockedNote = locked ? ' · Locked' : ''
-  const unmatchedCount = unmatchedPresentPlayers.length
-
-  function scrollToPairings() {
-    const el = document.getElementById('pairings')
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'start' })
-    }
-  }
-
   return (
     <div
-      className="fixed bottom-[var(--app-nav-h)] left-0 right-0 z-20 border-t border-surface-border bg-surface-elevated/95 backdrop-blur xl:hidden"
-      style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
+      className="fixed bottom-[calc(var(--app-nav-h)+var(--app-tab-h))] left-0 right-0 z-20 border-t border-surface-border bg-surface-elevated/95 backdrop-blur xl:hidden"
     >
       {!locked && manualOpen ? (
         <div
@@ -169,21 +154,6 @@ export function WeekActionBar({
       ) : null}
 
       <div className="mx-auto max-w-5xl px-3 py-2">
-        <div className="flex items-center justify-between gap-3 px-1 pb-1 text-[11px] font-semibold uppercase tracking-wide text-text-secondary">
-          <span className="font-condensed">
-            {presentCount} checked in{parityNote}
-            {lockedNote}
-          </span>
-          <button
-            type="button"
-            onClick={scrollToPairings}
-            aria-label="Jump to pairings section"
-            className="font-condensed rounded-md px-2 py-1 text-accent-text"
-          >
-            {matchCount} paired · {unmatchedCount} left
-          </button>
-        </div>
-
         {!locked && generateBlockReason ? (
           <p
             id={reasonId}

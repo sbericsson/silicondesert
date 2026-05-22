@@ -36,7 +36,7 @@ export async function POST(
             where: {
               id: { not: params.id }
             },
-            select: { id: true }
+            select: { id: true, date: true }
           }
         }
       },
@@ -107,7 +107,9 @@ export async function POST(
     )
   }
 
-  const priorWeekIds = week.season.weeks.map((seasonWeek) => seasonWeek.id)
+  const priorWeekIds = week.season.weeks
+    .filter((seasonWeek) => seasonWeek.date.getTime() <= week.date.getTime())
+    .map((seasonWeek) => seasonWeek.id)
   const priorMatches = priorWeekIds.length
     ? await prisma.match.findMany({
         where: {
@@ -115,7 +117,8 @@ export async function POST(
         },
         select: {
           player1Id: true,
-          player2Id: true
+          player2Id: true,
+          player2ScorecardOnly: true
         }
       })
     : []
@@ -150,7 +153,7 @@ export async function POST(
   const pairingResult = {
     matches: [{ player1: pairingInput[0], player2: pairingInput[1] }],
     threesome: null,
-    flags: buildPairingFlags([{ player1: pairingInput[0], player2: pairingInput[1] }], priorMatches)
+    flags: buildPairingFlags([{ player1: pairingInput[0], player2: pairingInput[1] }], priorMatches.filter((m) => !m.player2ScorecardOnly))
   }
 
   const createdMatch = await prisma.$transaction(async (tx) => {

@@ -242,7 +242,8 @@ export async function getCurrentWeekPageData() {
         where: {
           week: {
             seasonId: currentWeek.seasonId,
-            id: { not: currentWeek.id }
+            id: { not: currentWeek.id },
+            date: { lte: currentWeek.date }
           }
         },
         select: {
@@ -427,7 +428,7 @@ export async function getCurrentWeekPageData() {
                   }
                 }
               ],
-              priorMatches
+              priorMatches.filter((m) => !m.player2ScorecardOnly)
             )
 
             return {

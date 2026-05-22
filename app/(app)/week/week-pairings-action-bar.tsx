@@ -172,9 +172,26 @@ export function WeekPairingsActionBar({
             <button
               type="button"
               className="font-condensed flex-1 min-h-[44px] rounded-lg bg-accent px-3 py-2 text-sm font-bold uppercase tracking-wide text-white"
-              onClick={allScoresComplete ? onCopyResultsShareText : onCopyPairingsLink}
+              onClick={onCopyPairingsLink}
             >
-              {allScoresComplete ? 'Share Results' : 'Copy Link'}
+              Copy Link
+            </button>
+            {allScoresComplete ? (
+              <button
+                type="button"
+                className="font-condensed flex-1 min-h-[44px] rounded-lg bg-accent px-3 py-2 text-sm font-bold uppercase tracking-wide text-white"
+                onClick={onCopyResultsShareText}
+              >
+                Share Results
+              </button>
+            ) : null}
+            <button
+              type="button"
+              className="font-condensed min-h-[44px] rounded-lg bg-surface-sunken px-3 py-2 text-sm font-bold uppercase tracking-wide text-text-primary disabled:cursor-not-allowed disabled:text-text-disabled"
+              onClick={() => onSetLockState(false)}
+              disabled={isRefreshing}
+            >
+              Unlock
             </button>
             {canCloseWeek ? (
               <button
@@ -185,16 +202,7 @@ export function WeekPairingsActionBar({
               >
                 Close Week
               </button>
-            ) : (
-              <button
-                type="button"
-                className="font-condensed min-h-[44px] rounded-lg bg-surface-sunken px-3 py-2 text-sm font-bold uppercase tracking-wide text-text-primary"
-                onClick={() => onSetLockState(false)}
-                disabled={isRefreshing}
-              >
-                Unlock
-              </button>
-            )}
+            ) : null}
           </div>
         ) : (
           <div className="flex items-stretch gap-2">

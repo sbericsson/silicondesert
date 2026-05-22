@@ -23,9 +23,7 @@ export function WeekSummaryStrip({
   const [open, setOpen] = useState(setupIncomplete)
 
   useEffect(() => {
-    if (setupIncomplete) {
-      setOpen(true)
-    }
+    setOpen(setupIncomplete)
   }, [setupIncomplete])
 
   return (

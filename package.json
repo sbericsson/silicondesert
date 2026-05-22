@@ -10,6 +10,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "db:migrate": "prisma migrate deploy",
+    "db:recompute-index-esc": "tsx scripts/recompute-index-esc-rounds.ts",
     "db:studio": "prisma studio",
     "db:seed": "tsx prisma/seed.ts"
   },

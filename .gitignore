@@ -12,5 +12,6 @@ dist
 *.log
 *.tsbuildinfo
 historical_rounds_import.sql
-scripts/
+scripts/*
+!scripts/recompute-index-esc-rounds.ts
 outputs/

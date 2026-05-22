@@ -3,6 +3,7 @@ import {
   applyESC,
   courseHandicap,
   exactHandicapIndex,
+  roundToWholeHandicap,
   scoreDifferential,
   strokesReceivedOnHole
 } from '@/lib/handicap'
@@ -233,6 +234,8 @@ export async function getMatchScorePageData(weekId: string, matchId: string) {
     player2Tee.nineHoleRating,
     player2Tee.nineHolePar
   )
+  const player1EscHandicap = roundToWholeHandicap(player1Index)
+  const player2EscHandicap = roundToWholeHandicap(player2Index)
   const player1PlayingHandicap =
     firstRoundPlayer1Index === null
       ? match.player1PlayingHandicap ??
@@ -254,8 +257,8 @@ export async function getMatchScorePageData(weekId: string, matchId: string) {
       player2PlayingHandicap,
       hole.strokeIndex
     )
-    const player1AdjustedStrokesReceived = strokesReceivedOnHole(player1CourseHandicap, hole.strokeIndex)
-    const player2AdjustedStrokesReceived = strokesReceivedOnHole(player2CourseHandicap, hole.strokeIndex)
+    const player1AdjustedStrokesReceived = strokesReceivedOnHole(player1EscHandicap, hole.strokeIndex)
+    const player2AdjustedStrokesReceived = strokesReceivedOnHole(player2EscHandicap, hole.strokeIndex)
 
     return {
       holeNumber: hole.holeNumber,
@@ -457,18 +460,8 @@ export async function submitMatchScores(input: {
   )
   const scoringPlayer1Index = firstRoundPlayer1Index ?? player1Index
   const scoringPlayer2Index = firstRoundPlayer2Index ?? player2Index
-  const player1EscHandicap = courseHandicap(
-    scoringPlayer1Index,
-    player1Tee.nineHoleSlope,
-    player1Tee.nineHoleRating,
-    player1Tee.nineHolePar
-  )
-  const player2EscHandicap = courseHandicap(
-    scoringPlayer2Index,
-    player2Tee.nineHoleSlope,
-    player2Tee.nineHoleRating,
-    player2Tee.nineHolePar
-  )
+  const player1EscHandicap = roundToWholeHandicap(scoringPlayer1Index)
+  const player2EscHandicap = roundToWholeHandicap(scoringPlayer2Index)
   const player1PlayingHandicap =
     firstRoundPlayer1Index === null
       ? match.player1PlayingHandicap ??

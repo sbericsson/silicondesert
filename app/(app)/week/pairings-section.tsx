@@ -2,7 +2,6 @@
 
 import type { TeeColor } from '@prisma/client'
 import Link from 'next/link'
-import { DesktopScoreEntry } from '@/app/(app)/week/desktop-score-entry'
 
 export type PairingMatch = {
   id: string
@@ -31,6 +30,7 @@ export type PairingMatch = {
   }>
   locked: boolean
   scoreComplete: boolean
+  hasScores: boolean
 }
 
 export type UnmatchedPlayer = {
@@ -64,6 +64,7 @@ interface PairingsSectionProps {
   onSetLockState: (locked: boolean) => void
   onCreateManualPairing: () => void
   onRemovePairing: (matchId: string) => void
+  onClearMatchScores: (matchId: string) => void
   onUpdateMatchTee: (
     matchId: string,
     field: 'player1TeeOverrideColor' | 'player2TeeOverrideColor',
@@ -96,6 +97,7 @@ export function PairingsSection({
   onSetLockState,
   onCreateManualPairing,
   onRemovePairing,
+  onClearMatchScores,
   onUpdateMatchTee,
   onCopyPairingsLink,
   onCopyResultsShareText,
@@ -289,24 +291,45 @@ export function PairingsSection({
                 </div>
               ) : null}
               {locked ? (
-                <div className="mt-3 xl:hidden">
+                <div className="mt-3 flex items-center gap-4 xl:justify-end">
                   <Link
                     href={`/week/matches/${match.id}`}
-                    className="text-sm font-semibold text-accent-text"
+                    className="text-sm font-semibold text-accent-text xl:hidden"
                   >
                     Enter Scores
                   </Link>
+                  {match.hasScores ? (
+                    <button
+                      type="button"
+                      className="text-sm font-semibold text-danger-text"
+                      onClick={() => onClearMatchScores(match.id)}
+                      disabled={isRefreshing}
+                    >
+                      Clear Scores
+                    </button>
+                  ) : null}
                 </div>
               ) : (
-                <div className="mt-3">
-                  <button
-                    type="button"
-                    className="text-sm font-semibold text-danger-text"
-                    onClick={() => onRemovePairing(match.id)}
-                    disabled={isRefreshing}
-                  >
-                    Remove Pairing
-                  </button>
+                <div className="mt-3 flex items-center gap-4">
+                  {match.hasScores ? (
+                    <button
+                      type="button"
+                      className="text-sm font-semibold text-danger-text"
+                      onClick={() => onClearMatchScores(match.id)}
+                      disabled={isRefreshing}
+                    >
+                      Clear Scores
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      className="text-sm font-semibold text-danger-text"
+                      onClick={() => onRemovePairing(match.id)}
+                      disabled={isRefreshing}
+                    >
+                      Remove Pairing
+                    </button>
+                  )}
                 </div>
               )}
             </div>
@@ -314,27 +337,6 @@ export function PairingsSection({
         </div>
       ) : null}
 
-      {locked && matches.length > 0 ? (
-        <div className="mt-4 hidden xl:block">
-          <div className="rounded-xl border border-surface-border bg-surface-elevated">
-            <div className="border-b border-surface-border px-6 py-3">
-              <p className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
-                Score Entry
-              </p>
-            </div>
-            <DesktopScoreEntry
-              matches={matches.map((match) => ({
-                id: match.id,
-                player1Name: match.player1Name,
-                player2Name: match.player2Name,
-                scoreComplete: match.scoreComplete,
-                player2ScorecardOnly: match.player2ScorecardOnly,
-                weekId
-              }))}
-            />
-          </div>
-        </div>
-      ) : null}
 
       {!locked ? (
         <div className="mt-4 hidden rounded-lg border border-dashed border-surface-border bg-surface-base p-4 xl:block">

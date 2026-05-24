@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { getApiSession, unauthorizedResponse } from '@/lib/api-auth'
 import { writeAuditLog } from '@/lib/audit'
@@ -142,7 +142,7 @@ export async function POST(
 }
 
 export async function DELETE(
-  _request: Request,
+  request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   const session = await getApiSession()
@@ -184,7 +184,8 @@ export async function DELETE(
     return NextResponse.json({ error: 'Week is not locked' }, { status: 409 })
   }
 
-  if (week.matches.some((match) => match.holeScores.length > 0)) {
+  const force = request.nextUrl.searchParams.get('force') === 'true'
+  if (!force && week.matches.some((match) => match.holeScores.length > 0)) {
     return NextResponse.json(
       { error: 'Weeks with entered scores cannot be unlocked' },
       { status: 409 }

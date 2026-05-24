@@ -73,11 +73,13 @@ For even player counts, a greedy algorithm pairs from the sorted handicap list. 
 
 The commissioner can override any pairing before locking the card. Pairings with a handicap gap > 6 or with repeat opponents are flagged.
 
+After locking, the card can be unlocked for corrections — with a confirmation step if scores have already been entered. Individual match scores can also be cleared without affecting other matches.
+
 ---
 
 ## Tech stack
 
-- **Next.js 14** — app router, server components, server actions
+- **Next.js 14** — app router, server components, API routes
 - **TypeScript**
 - **PostgreSQL** + **Prisma** — schema, migrations, seed
 - **NextAuth** — commissioner authentication (username/password)

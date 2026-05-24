@@ -87,10 +87,6 @@ export async function DELETE(
     return NextResponse.json({ error: 'Closed weeks cannot be edited' }, { status: 409 })
   }
 
-  if (!match.week.locked) {
-    return NextResponse.json({ error: 'Only locked matches can have scores cleared' }, { status: 409 })
-  }
-
   await prisma.$transaction(async (tx) => {
     await tx.holeScore.deleteMany({ where: { matchId: params.matchId } })
 

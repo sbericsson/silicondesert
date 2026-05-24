@@ -63,6 +63,7 @@ type WeekPageData = {
       }>
       locked: boolean
       scoreComplete: boolean
+      hasScores: boolean
     }>
   } | null
   upcomingWeek: {
@@ -124,6 +125,7 @@ export function WeekClient({ initialData }: WeekClientProps) {
   const [message, setMessage] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [copyMessage, setCopyMessage] = useState<string | null>(null)
+  const [showForceUnlockConfirm, setShowForceUnlockConfirm] = useState(false)
   const [activeTab, setActiveTab] = useState<WeekTab>('checkin')
 
   useEffect(() => {
@@ -468,13 +470,23 @@ export function WeekClient({ initialData }: WeekClientProps) {
     }, 'Match tee updated.')
   }
 
-  async function setLockState(locked: boolean) {
+  async function setLockState(locked: boolean, force = false) {
     if (!data.currentWeek) {
       return
     }
 
+    if (!locked && !force && data.currentWeek.matches.some((m) => m.hasScores)) {
+      setShowForceUnlockConfirm(true)
+      return
+    }
+
+    setShowForceUnlockConfirm(false)
+    const url = !locked && force
+      ? `/api/weeks/${data.currentWeek.id}/pairings/lock?force=true`
+      : `/api/weeks/${data.currentWeek.id}/pairings/lock`
+
     await runAction(async () => {
-      const response = await fetch(`/api/weeks/${data.currentWeek?.id}/pairings/lock`, {
+      const response = await fetch(url, {
         method: locked ? 'POST' : 'DELETE'
       })
 
@@ -483,6 +495,24 @@ export function WeekClient({ initialData }: WeekClientProps) {
         throw new Error(payload?.error ?? 'Unable to update lock state')
       }
     }, locked ? 'Pairings locked.' : 'Pairings unlocked.')
+  }
+
+  async function clearMatchScores(matchId: string) {
+    if (!data.currentWeek) {
+      return
+    }
+
+    await runAction(async () => {
+      const response = await fetch(
+        `/api/weeks/${data.currentWeek?.id}/matches/${matchId}/scores`,
+        { method: 'DELETE' }
+      )
+
+      if (!response.ok) {
+        const payload = await response.json().catch(() => null)
+        throw new Error(payload?.error ?? 'Unable to clear match scores')
+      }
+    }, 'Match scores cleared.')
   }
 
   async function startUpcomingWeek() {
@@ -874,6 +904,30 @@ export function WeekClient({ initialData }: WeekClientProps) {
           </div>
         ) : null}
 
+        {showForceUnlockConfirm ? (
+          <div className="rounded-md border border-warning bg-warning-dim px-4 py-3 text-sm text-warning-text">
+            <p className="font-semibold">Some matches have scores entered.</p>
+            <p className="mt-1">Unlocking will keep existing scores but allow you to edit pairings. Scores for any match you modify will need to be cleared and re-entered.</p>
+            <div className="mt-3 flex gap-2">
+              <button
+                type="button"
+                className="font-condensed rounded-lg bg-warning px-4 py-2 text-sm font-bold uppercase tracking-wide text-white disabled:opacity-70"
+                onClick={() => setLockState(false, true)}
+                disabled={isRefreshing}
+              >
+                Unlock Anyway
+              </button>
+              <button
+                type="button"
+                className="font-condensed rounded-lg bg-surface-sunken px-4 py-2 text-sm font-bold uppercase tracking-wide text-text-primary"
+                onClick={() => setShowForceUnlockConfirm(false)}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        ) : null}
+
         <p className="sr-only" aria-live="polite">
           {copyMessage ?? ''}
         </p>
@@ -972,6 +1026,7 @@ export function WeekClient({ initialData }: WeekClientProps) {
               onSetLockState={setLockState}
               onCreateManualPairing={createManualPairing}
               onRemovePairing={removePairing}
+              onClearMatchScores={clearMatchScores}
               onUpdateMatchTee={updateMatchTee}
               onCopyPairingsLink={copyPairingsLink}
               onCopyResultsShareText={copyResultsShareText}

@@ -30,6 +30,7 @@ export type PairingMatch = {
   }>
   locked: boolean
   scoreComplete: boolean
+  hasScores: boolean
 }
 
 export type UnmatchedPlayer = {
@@ -63,6 +64,7 @@ interface PairingsSectionProps {
   onSetLockState: (locked: boolean) => void
   onCreateManualPairing: () => void
   onRemovePairing: (matchId: string) => void
+  onClearMatchScores: (matchId: string) => void
   onUpdateMatchTee: (
     matchId: string,
     field: 'player1TeeOverrideColor' | 'player2TeeOverrideColor',
@@ -95,6 +97,7 @@ export function PairingsSection({
   onSetLockState,
   onCreateManualPairing,
   onRemovePairing,
+  onClearMatchScores,
   onUpdateMatchTee,
   onCopyPairingsLink,
   onCopyResultsShareText,
@@ -288,13 +291,23 @@ export function PairingsSection({
                 </div>
               ) : null}
               {locked ? (
-                <div className="mt-3 xl:hidden">
+                <div className="mt-3 flex items-center gap-4 xl:justify-end">
                   <Link
                     href={`/week/matches/${match.id}`}
-                    className="text-sm font-semibold text-accent-text"
+                    className="text-sm font-semibold text-accent-text xl:hidden"
                   >
                     Enter Scores
                   </Link>
+                  {match.hasScores ? (
+                    <button
+                      type="button"
+                      className="text-sm font-semibold text-danger-text"
+                      onClick={() => onClearMatchScores(match.id)}
+                      disabled={isRefreshing}
+                    >
+                      Clear Scores
+                    </button>
+                  ) : null}
                 </div>
               ) : (
                 <div className="mt-3">

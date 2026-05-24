@@ -153,6 +153,9 @@ export async function getCurrentWeekRecord() {
               },
               seasonTeeChoices: true
             }
+          },
+          _count: {
+            select: { holeScores: true }
           }
         },
         orderBy: { createdAt: 'asc' }
@@ -452,7 +455,8 @@ export async function getCurrentWeekPageData() {
               player2ScorecardOnly: match.player2ScorecardOnly,
               warnings,
               locked: match.locked,
-              scoreComplete: match.matchPlayLeadBy !== null
+              scoreComplete: match.matchPlayLeadBy !== null,
+              hasScores: match._count.holeScores > 0
             }
           })
         }

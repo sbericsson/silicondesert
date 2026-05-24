@@ -310,15 +310,26 @@ export function PairingsSection({
                   ) : null}
                 </div>
               ) : (
-                <div className="mt-3">
-                  <button
-                    type="button"
-                    className="text-sm font-semibold text-danger-text"
-                    onClick={() => onRemovePairing(match.id)}
-                    disabled={isRefreshing}
-                  >
-                    Remove Pairing
-                  </button>
+                <div className="mt-3 flex items-center gap-4">
+                  {match.hasScores ? (
+                    <button
+                      type="button"
+                      className="text-sm font-semibold text-danger-text"
+                      onClick={() => onClearMatchScores(match.id)}
+                      disabled={isRefreshing}
+                    >
+                      Clear Scores
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      className="text-sm font-semibold text-danger-text"
+                      onClick={() => onRemovePairing(match.id)}
+                      disabled={isRefreshing}
+                    >
+                      Remove Pairing
+                    </button>
+                  )}
                 </div>
               )}
             </div>

@@ -2,7 +2,6 @@
 
 import type { TeeColor } from '@prisma/client'
 import Link from 'next/link'
-import { DesktopScoreEntry } from '@/app/(app)/week/desktop-score-entry'
 
 export type PairingMatch = {
   id: string
@@ -314,27 +313,6 @@ export function PairingsSection({
         </div>
       ) : null}
 
-      {locked && matches.length > 0 ? (
-        <div className="mt-4 hidden xl:block">
-          <div className="rounded-xl border border-surface-border bg-surface-elevated">
-            <div className="border-b border-surface-border px-6 py-3">
-              <p className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
-                Score Entry
-              </p>
-            </div>
-            <DesktopScoreEntry
-              matches={matches.map((match) => ({
-                id: match.id,
-                player1Name: match.player1Name,
-                player2Name: match.player2Name,
-                scoreComplete: match.scoreComplete,
-                player2ScorecardOnly: match.player2ScorecardOnly,
-                weekId
-              }))}
-            />
-          </div>
-        </div>
-      ) : null}
 
       {!locked ? (
         <div className="mt-4 hidden rounded-lg border border-dashed border-surface-border bg-surface-base p-4 xl:block">

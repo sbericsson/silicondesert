@@ -9,6 +9,7 @@ import { AttendanceList } from '@/app/(app)/week/attendance-list'
 import { PairingsSection } from '@/app/(app)/week/pairings-section'
 import { WeekPairingsActionBar } from '@/app/(app)/week/week-pairings-action-bar'
 import { WeekTabBar } from '@/app/(app)/week/week-tab-bar'
+import { DesktopScoreEntry } from '@/app/(app)/week/desktop-score-entry'
 import type { WeekTab } from '@/app/(app)/week/week-tab-bar'
 import { WeekSummaryStrip } from '@/app/(app)/week/week-summary-strip'
 
@@ -992,6 +993,28 @@ export function WeekClient({ initialData }: WeekClientProps) {
             />
           </div>
         </div>
+
+        {data.currentWeek.locked && data.currentWeek.matches.length > 0 ? (
+          <div className="hidden xl:block">
+            <div className="rounded-xl border border-surface-border bg-surface-elevated">
+              <div className="border-b border-surface-border px-6 py-3">
+                <p className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
+                  Score Entry
+                </p>
+              </div>
+              <DesktopScoreEntry
+                matches={data.currentWeek.matches.map((match) => ({
+                  id: match.id,
+                  player1Name: match.player1Name,
+                  player2Name: match.player2Name,
+                  scoreComplete: match.scoreComplete,
+                  player2ScorecardOnly: match.player2ScorecardOnly,
+                  weekId: data.currentWeek!.id
+                }))}
+              />
+            </div>
+          </div>
+        ) : null}
       </section>
 
       <WeekTabBar

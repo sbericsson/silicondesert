@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getApiSession, unauthorizedResponse } from '@/lib/api-auth'
 import { getMatchScorePageData, submitMatchScores } from '@/lib/match-score'
 import { revalidateWeekPages } from '@/lib/revalidate-week-pages'
+import { prisma } from '@/lib/db'
+import { writeAuditLog } from '@/lib/audit'
 
 export async function GET(
   _request: Request,
@@ -48,4 +50,69 @@ export async function POST(
       { status: 400 }
     )
   }
+}
+
+export async function DELETE(
+  _request: Request,
+  { params }: { params: { id: string; matchId: string } }
+) {
+  const session = await getApiSession()
+  if (!session) {
+    return unauthorizedResponse()
+  }
+
+  const match = await prisma.match.findUnique({
+    where: { id: params.matchId },
+    include: {
+      week: {
+        select: {
+          id: true,
+          locked: true,
+          completedAt: true,
+          season: { select: { archivedAt: true } }
+        }
+      }
+    }
+  })
+
+  if (!match || match.week.id !== params.id) {
+    return NextResponse.json({ error: 'Match not found' }, { status: 404 })
+  }
+
+  if (match.week.season.archivedAt) {
+    return NextResponse.json({ error: 'Archived seasons cannot be edited' }, { status: 409 })
+  }
+
+  if (match.week.completedAt) {
+    return NextResponse.json({ error: 'Closed weeks cannot be edited' }, { status: 409 })
+  }
+
+  if (!match.week.locked) {
+    return NextResponse.json({ error: 'Only locked matches can have scores cleared' }, { status: 409 })
+  }
+
+  await prisma.$transaction(async (tx) => {
+    await tx.holeScore.deleteMany({ where: { matchId: params.matchId } })
+
+    await tx.match.update({
+      where: { id: params.matchId },
+      data: {
+        matchPlayLeadBy: null,
+        matchPlayHolesRemaining: null,
+        matchPlayWinnerId: null
+      }
+    })
+
+    await writeAuditLog(tx, {
+      weekId: params.id,
+      action: 'match_scores_clear',
+      field: 'holeScores',
+      oldValue: 'scores',
+      newValue: 'cleared'
+    })
+  })
+
+  revalidateWeekPages(params.id)
+
+  return NextResponse.json({ ok: true })
 }

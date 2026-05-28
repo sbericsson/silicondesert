@@ -47,11 +47,12 @@ export async function PUT(request: Request, { params }: RouteParams) {
     await tx.courseHole.deleteMany({ where: { courseId: params.id } })
     if (holes.length > 0) {
       await tx.courseHole.createMany({
-        data: holes.map((hole: { holeNumber: number; par: number; strokeIndex: number }) => ({
+        data: holes.map((hole: { holeNumber: number; par: number; strokeIndex: number; womenStrokeIndex: number }) => ({
           courseId: params.id,
           holeNumber: Number(hole.holeNumber),
           par: Number(hole.par),
-          strokeIndex: Number(hole.strokeIndex)
+          strokeIndex: Number(hole.strokeIndex),
+          womenStrokeIndex: Number(hole.womenStrokeIndex) || Number(hole.strokeIndex)
         }))
       })
     }

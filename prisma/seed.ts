@@ -25,6 +25,7 @@ const courses: Array<{
     holeNumber: number
     par: number
     strokeIndex: number
+    womenStrokeIndex: number
   }>
 }> = [
   {
@@ -47,15 +48,15 @@ const courses: Array<{
       { color: TeeColor.silver, gender: Gender.woman, nineHolePar: 36, nineHoleRating: 32.9, nineHoleSlope: 112 }
     ],
     holes: [
-      { holeNumber: 1, par: 4, strokeIndex: 11 },
-      { holeNumber: 2, par: 5, strokeIndex: 9 },
-      { holeNumber: 3, par: 4, strokeIndex: 3 },
-      { holeNumber: 4, par: 3, strokeIndex: 17 },
-      { holeNumber: 5, par: 4, strokeIndex: 5 },
-      { holeNumber: 6, par: 4, strokeIndex: 13 },
-      { holeNumber: 7, par: 3, strokeIndex: 15 },
-      { holeNumber: 8, par: 4, strokeIndex: 1 },
-      { holeNumber: 9, par: 5, strokeIndex: 7 }
+      { holeNumber: 1, par: 4, strokeIndex: 11, womenStrokeIndex: 11 },
+      { holeNumber: 2, par: 5, strokeIndex: 9,  womenStrokeIndex: 9  },
+      { holeNumber: 3, par: 4, strokeIndex: 3,  womenStrokeIndex: 3  },
+      { holeNumber: 4, par: 3, strokeIndex: 17, womenStrokeIndex: 17 },
+      { holeNumber: 5, par: 4, strokeIndex: 5,  womenStrokeIndex: 5  },
+      { holeNumber: 6, par: 4, strokeIndex: 13, womenStrokeIndex: 13 },
+      { holeNumber: 7, par: 3, strokeIndex: 15, womenStrokeIndex: 15 },
+      { holeNumber: 8, par: 4, strokeIndex: 1,  womenStrokeIndex: 1  },
+      { holeNumber: 9, par: 5, strokeIndex: 7,  womenStrokeIndex: 7  }
     ]
   },
   {
@@ -78,15 +79,15 @@ const courses: Array<{
       { color: TeeColor.silver, gender: Gender.woman, nineHolePar: 36, nineHoleRating: 31.9, nineHoleSlope: 98 }
     ],
     holes: [
-      { holeNumber: 1, par: 4, strokeIndex: 5 },
-      { holeNumber: 2, par: 4, strokeIndex: 11 },
-      { holeNumber: 3, par: 3, strokeIndex: 13 },
-      { holeNumber: 4, par: 4, strokeIndex: 3 },
-      { holeNumber: 5, par: 5, strokeIndex: 15 },
-      { holeNumber: 6, par: 4, strokeIndex: 17 },
-      { holeNumber: 7, par: 4, strokeIndex: 7 },
-      { holeNumber: 8, par: 3, strokeIndex: 9 },
-      { holeNumber: 9, par: 5, strokeIndex: 1 }
+      { holeNumber: 1, par: 4, strokeIndex: 5,  womenStrokeIndex: 5  },
+      { holeNumber: 2, par: 4, strokeIndex: 11, womenStrokeIndex: 11 },
+      { holeNumber: 3, par: 3, strokeIndex: 13, womenStrokeIndex: 13 },
+      { holeNumber: 4, par: 4, strokeIndex: 3,  womenStrokeIndex: 3  },
+      { holeNumber: 5, par: 5, strokeIndex: 15, womenStrokeIndex: 15 },
+      { holeNumber: 6, par: 4, strokeIndex: 17, womenStrokeIndex: 17 },
+      { holeNumber: 7, par: 4, strokeIndex: 7,  womenStrokeIndex: 7  },
+      { holeNumber: 8, par: 3, strokeIndex: 9,  womenStrokeIndex: 9  },
+      { holeNumber: 9, par: 5, strokeIndex: 1,  womenStrokeIndex: 1  }
     ]
   },
   {
@@ -109,15 +110,15 @@ const courses: Array<{
       { color: TeeColor.silver, gender: Gender.woman, nineHolePar: 36, nineHoleRating: 33.1, nineHoleSlope: 114 }
     ],
     holes: [
-      { holeNumber: 1, par: 5, strokeIndex: 7 },
-      { holeNumber: 2, par: 3, strokeIndex: 15 },
-      { holeNumber: 3, par: 4, strokeIndex: 3 },
-      { holeNumber: 4, par: 4, strokeIndex: 11 },
-      { holeNumber: 5, par: 4, strokeIndex: 9 },
-      { holeNumber: 6, par: 3, strokeIndex: 13 },
-      { holeNumber: 7, par: 5, strokeIndex: 1 },
-      { holeNumber: 8, par: 4, strokeIndex: 17 },
-      { holeNumber: 9, par: 4, strokeIndex: 5 }
+      { holeNumber: 1, par: 5, strokeIndex: 7,  womenStrokeIndex: 7  },
+      { holeNumber: 2, par: 3, strokeIndex: 15, womenStrokeIndex: 15 },
+      { holeNumber: 3, par: 4, strokeIndex: 3,  womenStrokeIndex: 3  },
+      { holeNumber: 4, par: 4, strokeIndex: 11, womenStrokeIndex: 11 },
+      { holeNumber: 5, par: 4, strokeIndex: 9,  womenStrokeIndex: 9  },
+      { holeNumber: 6, par: 3, strokeIndex: 13, womenStrokeIndex: 13 },
+      { holeNumber: 7, par: 5, strokeIndex: 1,  womenStrokeIndex: 1  },
+      { holeNumber: 8, par: 4, strokeIndex: 17, womenStrokeIndex: 17 },
+      { holeNumber: 9, par: 4, strokeIndex: 5,  womenStrokeIndex: 5  }
     ]
   },
   {
@@ -140,15 +141,15 @@ const courses: Array<{
       { color: TeeColor.silver, gender: Gender.woman, nineHolePar: 34, nineHoleRating: 29.65, nineHoleSlope: 92 }
     ],
     holes: [
-      { holeNumber: 1, par: 5, strokeIndex: 1 },
-      { holeNumber: 2, par: 4, strokeIndex: 15 },
-      { holeNumber: 3, par: 4, strokeIndex: 7 },
-      { holeNumber: 4, par: 3, strokeIndex: 13 },
-      { holeNumber: 5, par: 4, strokeIndex: 17 },
-      { holeNumber: 6, par: 3, strokeIndex: 9 },
-      { holeNumber: 7, par: 4, strokeIndex: 11 },
-      { holeNumber: 8, par: 3, strokeIndex: 5 },
-      { holeNumber: 9, par: 4, strokeIndex: 3 }
+      { holeNumber: 1, par: 5, strokeIndex: 1,  womenStrokeIndex: 1  },
+      { holeNumber: 2, par: 4, strokeIndex: 15, womenStrokeIndex: 15 },
+      { holeNumber: 3, par: 4, strokeIndex: 7,  womenStrokeIndex: 7  },
+      { holeNumber: 4, par: 3, strokeIndex: 13, womenStrokeIndex: 13 },
+      { holeNumber: 5, par: 4, strokeIndex: 17, womenStrokeIndex: 17 },
+      { holeNumber: 6, par: 3, strokeIndex: 9,  womenStrokeIndex: 9  },
+      { holeNumber: 7, par: 4, strokeIndex: 11, womenStrokeIndex: 11 },
+      { holeNumber: 8, par: 3, strokeIndex: 5,  womenStrokeIndex: 5  },
+      { holeNumber: 9, par: 4, strokeIndex: 3,  womenStrokeIndex: 3  }
     ]
   },
   {
@@ -171,15 +172,15 @@ const courses: Array<{
       { color: TeeColor.silver, gender: Gender.woman, nineHolePar: 33, nineHoleRating: 29.65, nineHoleSlope: 92 }
     ],
     holes: [
-      { holeNumber: 1, par: 3, strokeIndex: 12 },
-      { holeNumber: 2, par: 4, strokeIndex: 10 },
-      { holeNumber: 3, par: 4, strokeIndex: 2 },
-      { holeNumber: 4, par: 3, strokeIndex: 18 },
-      { holeNumber: 5, par: 4, strokeIndex: 16 },
-      { holeNumber: 6, par: 3, strokeIndex: 6 },
-      { holeNumber: 7, par: 4, strokeIndex: 14 },
-      { holeNumber: 8, par: 3, strokeIndex: 8 },
-      { holeNumber: 9, par: 5, strokeIndex: 4 }
+      { holeNumber: 1, par: 3, strokeIndex: 12, womenStrokeIndex: 12 },
+      { holeNumber: 2, par: 4, strokeIndex: 10, womenStrokeIndex: 10 },
+      { holeNumber: 3, par: 4, strokeIndex: 2,  womenStrokeIndex: 2  },
+      { holeNumber: 4, par: 3, strokeIndex: 18, womenStrokeIndex: 18 },
+      { holeNumber: 5, par: 4, strokeIndex: 16, womenStrokeIndex: 16 },
+      { holeNumber: 6, par: 3, strokeIndex: 6,  womenStrokeIndex: 6  },
+      { holeNumber: 7, par: 4, strokeIndex: 14, womenStrokeIndex: 14 },
+      { holeNumber: 8, par: 3, strokeIndex: 8,  womenStrokeIndex: 8  },
+      { holeNumber: 9, par: 5, strokeIndex: 4,  womenStrokeIndex: 4  }
     ]
   }
 ]
@@ -265,13 +266,15 @@ async function main() {
         },
         update: {
           par: hole.par,
-          strokeIndex: hole.strokeIndex
+          strokeIndex: hole.strokeIndex,
+          womenStrokeIndex: hole.womenStrokeIndex
         },
         create: {
           courseId: createdCourse.id,
           holeNumber: hole.holeNumber,
           par: hole.par,
-          strokeIndex: hole.strokeIndex
+          strokeIndex: hole.strokeIndex,
+          womenStrokeIndex: hole.womenStrokeIndex
         }
       })
     }

@@ -84,6 +84,7 @@ type RosterPageData = {
       holeNumber: number
       par: number
       strokeIndex: number
+      womenStrokeIndex: number
     }>
   }>
   seasons: Array<{
@@ -238,7 +239,7 @@ export function RosterClient({ initialData }: RosterClientProps) {
 
   // Course editor state
   type CourseEditorTee = { _key: string; color: TeeColor; gender: Gender; nineHolePar: string; nineHoleRating: string; nineHoleSlope: string }
-  type CourseEditorHole = { holeNumber: number; par: string; strokeIndex: string }
+  type CourseEditorHole = { holeNumber: number; par: string; strokeIndex: string; womenStrokeIndex: string }
   const [editingCourseId, setEditingCourseId] = useState<string | 'new' | null>(null)
   const [courseName, setCourseName] = useState('')
   const [courseNineHolePar, setCourseNineHolePar] = useState('36')
@@ -246,7 +247,7 @@ export function RosterClient({ initialData }: RosterClientProps) {
   const [courseNineHoleSlope, setCourseNineHoleSlope] = useState('')
   const [courseTees, setCourseTees] = useState<CourseEditorTee[]>([])
   const [courseHoles, setCourseHoles] = useState<CourseEditorHole[]>(
-    Array.from({ length: 9 }, (_, i) => ({ holeNumber: i + 1, par: '4', strokeIndex: String(i + 1) }))
+    Array.from({ length: 9 }, (_, i) => ({ holeNumber: i + 1, par: '4', strokeIndex: String(i + 1), womenStrokeIndex: String(i + 1) }))
   )
   const [confirmDeleteCourse, setConfirmDeleteCourse] = useState(false)
 
@@ -272,7 +273,7 @@ export function RosterClient({ initialData }: RosterClientProps) {
       setCourseNineHoleRating('')
       setCourseNineHoleSlope('')
       setCourseTees([])
-      setCourseHoles(Array.from({ length: 9 }, (_, i) => ({ holeNumber: i + 1, par: '4', strokeIndex: String(i + 1) })))
+      setCourseHoles(Array.from({ length: 9 }, (_, i) => ({ holeNumber: i + 1, par: '4', strokeIndex: String(i + 1), womenStrokeIndex: String(i + 1) })))
     } else {
       setEditingCourseId(course.id)
       setCourseName(course.name)
@@ -289,8 +290,8 @@ export function RosterClient({ initialData }: RosterClientProps) {
       })))
       setCourseHoles(
         course.holes.length > 0
-          ? course.holes.map((h) => ({ holeNumber: h.holeNumber, par: String(h.par), strokeIndex: String(h.strokeIndex) }))
-          : Array.from({ length: 9 }, (_, i) => ({ holeNumber: i + 1, par: '4', strokeIndex: String(i + 1) }))
+          ? course.holes.map((h) => ({ holeNumber: h.holeNumber, par: String(h.par), strokeIndex: String(h.strokeIndex), womenStrokeIndex: String(h.womenStrokeIndex) }))
+          : Array.from({ length: 9 }, (_, i) => ({ holeNumber: i + 1, par: '4', strokeIndex: String(i + 1), womenStrokeIndex: String(i + 1) }))
       )
     }
   }
@@ -323,7 +324,7 @@ export function RosterClient({ initialData }: RosterClientProps) {
     setCourseTees((prev) => prev.filter((_, i) => i !== index))
   }
 
-  function updateCourseHole(holeNumber: number, field: 'par' | 'strokeIndex', value: string) {
+  function updateCourseHole(holeNumber: number, field: 'par' | 'strokeIndex' | 'womenStrokeIndex', value: string) {
     setCourseHoles((prev) => prev.map((h) => h.holeNumber === holeNumber ? { ...h, [field]: value } : h))
   }
 
@@ -339,7 +340,7 @@ export function RosterClient({ initialData }: RosterClientProps) {
       nineHoleRating: Number(courseNineHoleRating) || 36.0,
       nineHoleSlope: Number(courseNineHoleSlope) || 113,
       tees: courseTees.map((t) => ({ color: t.color, gender: t.gender, nineHolePar: Number(t.nineHolePar), nineHoleRating: Number(t.nineHoleRating), nineHoleSlope: Number(t.nineHoleSlope) })),
-      holes: courseHoles.map((h) => ({ holeNumber: h.holeNumber, par: Number(h.par) || 4, strokeIndex: Number(h.strokeIndex) || h.holeNumber }))
+      holes: courseHoles.map((h) => ({ holeNumber: h.holeNumber, par: Number(h.par) || 4, strokeIndex: Number(h.strokeIndex) || h.holeNumber, womenStrokeIndex: Number(h.womenStrokeIndex) || Number(h.strokeIndex) || h.holeNumber }))
     }
 
     const url = editingCourseId === 'new' ? '/api/courses' : `/api/courses/${editingCourseId}`
@@ -2423,14 +2424,15 @@ export function RosterClient({ initialData }: RosterClientProps) {
 
           <div>
             <p className="mb-2 font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">Holes</p>
-            <div className="grid grid-cols-[40px_1fr_1fr] gap-2 mb-1.5 px-1">
+            <div className="grid grid-cols-[40px_1fr_1fr_1fr] gap-2 mb-1.5 px-1">
               <p className="font-condensed text-[10px] font-semibold uppercase tracking-widest text-text-muted">#</p>
               <p className="font-condensed text-[10px] font-semibold uppercase tracking-widest text-text-muted">Par</p>
-              <p className="font-condensed text-[10px] font-semibold uppercase tracking-widest text-text-muted">Stroke Index</p>
+              <p className="font-condensed text-[10px] font-semibold uppercase tracking-widest text-text-muted">Men SI</p>
+              <p className="font-condensed text-[10px] font-semibold uppercase tracking-widest text-text-muted">Women SI</p>
             </div>
             <div className="space-y-1.5">
               {courseHoles.map((hole) => (
-                <div key={hole.holeNumber} className="grid grid-cols-[40px_1fr_1fr] gap-2 items-center">
+                <div key={hole.holeNumber} className="grid grid-cols-[40px_1fr_1fr_1fr] gap-2 items-center">
                   <span className="font-condensed pl-1 text-xs font-semibold text-text-muted">{hole.holeNumber}</span>
                   <input
                     className="w-full rounded-md border border-surface-border bg-surface-sunken px-2 py-2 text-sm text-text-primary"
@@ -2443,6 +2445,12 @@ export function RosterClient({ initialData }: RosterClientProps) {
                     inputMode="numeric"
                     value={hole.strokeIndex}
                     onChange={(e) => updateCourseHole(hole.holeNumber, 'strokeIndex', e.target.value)}
+                  />
+                  <input
+                    className="w-full rounded-md border border-surface-border bg-surface-sunken px-2 py-2 text-sm text-text-primary"
+                    inputMode="numeric"
+                    value={hole.womenStrokeIndex}
+                    onChange={(e) => updateCourseHole(hole.holeNumber, 'womenStrokeIndex', e.target.value)}
                   />
                 </div>
               ))}

@@ -45,12 +45,13 @@ enum Gender {
 }
 
 model CourseHole {
-  id          String @id @default(cuid())
-  courseId    String
-  holeNumber  Int
-  par         Int
-  strokeIndex Int
-  course      Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  id               String @id @default(cuid())
+  courseId         String
+  holeNumber       Int
+  par              Int
+  strokeIndex      Int
+  womenStrokeIndex Int
+  course           Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
 
   @@unique([courseId, holeNumber])
 }

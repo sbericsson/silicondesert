@@ -130,6 +130,7 @@ async function rescoreLockedWeekMatchesForHandicapMode(
       match.holeScores.map((score) => [`${score.playerId}:${score.holeNumber}`, score.grossScore])
     )
     const hasSavedScores = match.holeScores.length > 0
+    const anyWoman = match.player1.gender === 'woman' || match.player2.gender === 'woman'
     const outcome = hasSavedScores
       ? calculateMatchOutcomeFromGrossScores({
           player1Id: match.player1Id,
@@ -139,7 +140,7 @@ async function rescoreLockedWeekMatchesForHandicapMode(
           player2ScorecardOnly: match.player2ScorecardOnly,
           holes: week.course.holes.map((hole) => ({
             holeNumber: hole.holeNumber,
-            strokeIndex: hole.strokeIndex,
+            strokeIndex: anyWoman ? hole.womenStrokeIndex : hole.strokeIndex,
             player1GrossScore: grossScoreByKey.get(`${match.player1Id}:${hole.holeNumber}`) ?? null,
             player2GrossScore: grossScoreByKey.get(`${match.player2Id}:${hole.holeNumber}`) ?? null
           }))

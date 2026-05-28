@@ -52,10 +52,11 @@ export async function POST(request: Request) {
         }))
       },
       holes: {
-        create: holes.map((hole: { holeNumber: number; par: number; strokeIndex: number }) => ({
+        create: holes.map((hole: { holeNumber: number; par: number; strokeIndex: number; womenStrokeIndex: number }) => ({
           holeNumber: Number(hole.holeNumber),
           par: Number(hole.par),
-          strokeIndex: Number(hole.strokeIndex)
+          strokeIndex: Number(hole.strokeIndex),
+          womenStrokeIndex: Number(hole.womenStrokeIndex) || Number(hole.strokeIndex)
         }))
       }
     }

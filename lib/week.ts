@@ -25,6 +25,45 @@ function getPlayerInitials(name: string) {
     .join('')
 }
 
+// When two players share the same initials (e.g. George Jones and Greg
+// Janovsky both reduce to "GJ"), append the second letter of the last name so
+// they read as "GJo" and "GJa" respectively.
+function getDisambiguatedInitials(name: string) {
+  const parts = name.trim().split(/\s+/)
+  if (parts.length <= 1) {
+    const only = parts[0] ?? ''
+    return (only[0]?.toUpperCase() ?? '') + (only[1]?.toLowerCase() ?? '')
+  }
+  const lastName = parts[parts.length - 1]
+  const leading = parts
+    .slice(0, -1)
+    .map((part) => part[0]?.toUpperCase() ?? '')
+    .join('')
+  const lastDisplay = (lastName[0]?.toUpperCase() ?? '') + (lastName[1]?.toLowerCase() ?? '')
+  return leading + lastDisplay
+}
+
+// Builds a resolver that maps a player name to display initials, disambiguating
+// only the names whose base initials collide with a different player.
+function createInitialsResolver(names: Iterable<string>) {
+  const namesByInitials = new Map<string, Set<string>>()
+  for (const name of names) {
+    const base = getPlayerInitials(name)
+    const group = namesByInitials.get(base) ?? new Set<string>()
+    group.add(name.trim())
+    namesByInitials.set(base, group)
+  }
+
+  return (name: string) => {
+    const base = getPlayerInitials(name)
+    const group = namesByInitials.get(base)
+    if (!group || group.size <= 1) {
+      return base
+    }
+    return getDisambiguatedInitials(name)
+  }
+}
+
 export function isWeekOverdue(date: Date, isoDate: string) {
   return date < phoenixStartOfDay(isoDate)
 }
@@ -267,21 +306,31 @@ export async function getCurrentWeekPageData() {
         orderBy: { createdAt: 'asc' }
       })
     : []
-  const opponentInitialsByPlayerId = new Map<string, Set<string>>()
+  const opponentNamesByPlayerId = new Map<string, Set<string>>()
+  const allOpponentNames = new Set<string>()
 
   for (const match of priorMatches) {
     if (match.player2ScorecardOnly) {
       continue
     }
 
-    const player1Opponents = opponentInitialsByPlayerId.get(match.player1Id) ?? new Set<string>()
-    player1Opponents.add(getPlayerInitials(match.player2.name))
-    opponentInitialsByPlayerId.set(match.player1Id, player1Opponents)
+    const player1Opponents = opponentNamesByPlayerId.get(match.player1Id) ?? new Set<string>()
+    player1Opponents.add(match.player2.name)
+    opponentNamesByPlayerId.set(match.player1Id, player1Opponents)
+    allOpponentNames.add(match.player2.name)
 
-    const player2Opponents = opponentInitialsByPlayerId.get(match.player2Id) ?? new Set<string>()
-    player2Opponents.add(getPlayerInitials(match.player1.name))
-    opponentInitialsByPlayerId.set(match.player2Id, player2Opponents)
+    const player2Opponents = opponentNamesByPlayerId.get(match.player2Id) ?? new Set<string>()
+    player2Opponents.add(match.player1.name)
+    opponentNamesByPlayerId.set(match.player2Id, player2Opponents)
+    allOpponentNames.add(match.player1.name)
   }
+
+  // Disambiguate against every player name and every prior opponent name so the
+  // displayed initials stay consistent across the whole check-in list.
+  const resolveInitials = createInitialsResolver([
+    ...players.map((player) => player.name),
+    ...allOpponentNames
+  ])
 
   const attendanceByPlayerId = new Map(
     (currentWeek?.attendance ?? []).map((entry) => [entry.playerId, entry])
@@ -322,7 +371,7 @@ export async function getCurrentWeekPageData() {
         label: currentWeek?.handicapMode === 'course' ? 'CH' as const : 'IDX' as const,
         value: getPlayingHandicap(currentWeek?.handicapMode, handicapIndexValue, courseTee)
       },
-      opponentInitials: Array.from(opponentInitialsByPlayerId.get(player.id) ?? [])
+      opponentInitials: Array.from(opponentNamesByPlayerId.get(player.id) ?? []).map(resolveInitials)
     }
   }).sort((a, b) => comparePlayerNamesByLastName(a.name, b.name))
 

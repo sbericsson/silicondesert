@@ -86,7 +86,7 @@ export function AttendanceList({
               >
                 <span>{player.name}</span>
                 {player.opponentInitials.length > 0 ? (
-                  <span className="font-condensed text-[11px] font-semibold uppercase tracking-widest text-text-muted">
+                  <span className="font-condensed text-[11px] font-semibold tracking-widest text-text-muted">
                     {player.opponentInitials.join(' ')}
                   </span>
                 ) : null}

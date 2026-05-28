@@ -150,7 +150,8 @@ describe('submitMatchScores', () => {
           holes: Array.from({ length: 9 }, (_, index) => ({
             holeNumber: index + 1,
             par: 4,
-            strokeIndex: index + 1
+            strokeIndex: index + 1,
+            womenStrokeIndex: index + 1
           }))
         }
       },
@@ -262,7 +263,8 @@ describe('submitMatchScores', () => {
           holes: Array.from({ length: 9 }, (_, index) => ({
             holeNumber: index + 1,
             par: 4,
-            strokeIndex: index + 1
+            strokeIndex: index + 1,
+            womenStrokeIndex: index + 1
           }))
         }
       },
@@ -365,7 +367,8 @@ describe('submitMatchScores', () => {
           holes: [1, 5, 4, 8, 9, 7, 6, 2, 3].map((strokeIndex, index) => ({
             holeNumber: index + 1,
             par: 4,
-            strokeIndex
+            strokeIndex,
+            womenStrokeIndex: strokeIndex
           }))
         }
       },
@@ -481,7 +484,8 @@ describe('submitMatchScores', () => {
           holes: Array.from({ length: 9 }, (_, index) => ({
             holeNumber: index + 1,
             par: 4,
-            strokeIndex: index + 1
+            strokeIndex: index + 1,
+            womenStrokeIndex: index + 1
           }))
         }
       },
@@ -594,7 +598,8 @@ describe('submitMatchScores', () => {
           holes: [1, 5, 4, 8, 9, 7, 6, 2, 3].map((strokeIndex, index) => ({
             holeNumber: index + 1,
             par: 4,
-            strokeIndex
+            strokeIndex,
+            womenStrokeIndex: strokeIndex
           }))
         }
       },

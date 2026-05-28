@@ -249,21 +249,26 @@ export async function getMatchScorePageData(weekId: string, matchId: string) {
 
   const scoreMap = new Map(holeScores.map((score) => [`${score.playerId}:${score.holeNumber}`, score]))
 
+  const anyWoman = match.player1.gender === 'woman' || match.player2.gender === 'woman'
+
   const rows = match.week.course.holes.map((hole) => {
     const p1 = scoreMap.get(`${match.player1Id}:${hole.holeNumber}`)
     const p2 = scoreMap.get(`${match.player2Id}:${hole.holeNumber}`)
+    const matchStrokeIndex = anyWoman ? hole.womenStrokeIndex : hole.strokeIndex
+    const player1EscStrokeIndex = match.player1.gender === 'woman' ? hole.womenStrokeIndex : hole.strokeIndex
+    const player2EscStrokeIndex = match.player2.gender === 'woman' ? hole.womenStrokeIndex : hole.strokeIndex
     const { player1MatchStrokes, player2MatchStrokes } = getMatchStrokeAllocation(
       player1PlayingHandicap,
       player2PlayingHandicap,
-      hole.strokeIndex
+      matchStrokeIndex
     )
-    const player1AdjustedStrokesReceived = strokesReceivedOnHole(player1EscHandicap, hole.strokeIndex)
-    const player2AdjustedStrokesReceived = strokesReceivedOnHole(player2EscHandicap, hole.strokeIndex)
+    const player1AdjustedStrokesReceived = strokesReceivedOnHole(player1EscHandicap, player1EscStrokeIndex)
+    const player2AdjustedStrokesReceived = strokesReceivedOnHole(player2EscHandicap, player2EscStrokeIndex)
 
     return {
       holeNumber: hole.holeNumber,
       par: hole.par,
-      strokeIndex: hole.strokeIndex,
+      strokeIndex: matchStrokeIndex,
       player1StrokesReceived: player1MatchStrokes,
       player1AdjustedStrokesReceived,
       player2StrokesReceived: player2MatchStrokes,
@@ -474,6 +479,7 @@ export async function submitMatchScores(input: {
       : getPlayingHandicap(match.week.handicapMode, scoringPlayer2Index, player2Tee)
 
   const holeByNumber = new Map(course.holes.map((hole) => [hole.holeNumber, hole]))
+  const anyWoman = match.player1.gender === 'woman' || match.player2.gender === 'woman'
 
   const processedP1 = player1Scores.map((score) => {
     const hole = holeByNumber.get(score.holeNumber)
@@ -481,12 +487,14 @@ export async function submitMatchScores(input: {
       throw new Error('Invalid hole')
     }
 
+    const matchStrokeIndex = anyWoman ? hole.womenStrokeIndex : hole.strokeIndex
+    const escStrokeIndex = match.player1.gender === 'woman' ? hole.womenStrokeIndex : hole.strokeIndex
     const { player1MatchStrokes } = getMatchStrokeAllocation(
       player1PlayingHandicap,
       player2PlayingHandicap,
-      hole.strokeIndex
+      matchStrokeIndex
     )
-    const handicapStrokes = strokesReceivedOnHole(player1EscHandicap, hole.strokeIndex)
+    const handicapStrokes = strokesReceivedOnHole(player1EscHandicap, escStrokeIndex)
     const adjustedScore = applyESC(score.grossScore, hole.par, handicapStrokes)
 
     return {
@@ -503,12 +511,14 @@ export async function submitMatchScores(input: {
       throw new Error('Invalid hole')
     }
 
+    const matchStrokeIndex = anyWoman ? hole.womenStrokeIndex : hole.strokeIndex
+    const escStrokeIndex = match.player2.gender === 'woman' ? hole.womenStrokeIndex : hole.strokeIndex
     const { player2MatchStrokes } = getMatchStrokeAllocation(
       player1PlayingHandicap,
       player2PlayingHandicap,
-      hole.strokeIndex
+      matchStrokeIndex
     )
-    const handicapStrokes = strokesReceivedOnHole(player2EscHandicap, hole.strokeIndex)
+    const handicapStrokes = strokesReceivedOnHole(player2EscHandicap, escStrokeIndex)
     const adjustedScore = applyESC(score.grossScore, hole.par, handicapStrokes)
 
     return {

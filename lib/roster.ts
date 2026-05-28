@@ -136,7 +136,8 @@ export async function getRosterPageData() {
       holes: course.holes.map((hole) => ({
         holeNumber: hole.holeNumber,
         par: hole.par,
-        strokeIndex: hole.strokeIndex
+        strokeIndex: hole.strokeIndex,
+        womenStrokeIndex: hole.womenStrokeIndex
       }))
     })),
     seasons: seasons.map((season) => ({

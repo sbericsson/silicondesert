@@ -717,6 +717,28 @@ export function RosterClient({ initialData }: RosterClientProps) {
     }))
   }
 
+  function updateEditingPlayerDefaultTeeColor(teeColor: TeeColor) {
+    const previousDefaultTeeColor = editingPlayerDefaultTeeColor
+
+    setEditingPlayerDefaultTeeColor(teeColor)
+    setEditingPlayerSeasonTeeChoices((current) => {
+      const next = { ...current }
+
+      for (const season of data.seasons) {
+        if (season.archivedAt) {
+          continue
+        }
+
+        const currentSeasonTeeColor = current[season.id] ?? previousDefaultTeeColor
+        if (currentSeasonTeeColor === previousDefaultTeeColor) {
+          next[season.id] = teeColor
+        }
+      }
+
+      return next
+    })
+  }
+
   function handlePlayerCellPhoneChange(value: string) {
     setPlayerCellPhone(formatUsPhoneInput(value))
   }
@@ -1011,8 +1033,9 @@ export function RosterClient({ initialData }: RosterClientProps) {
             value={editingPlayerGender}
             onChange={(event) => {
               const nextGender = event.target.value as Gender
+              const nextDefaultTeeColor = getDefaultTeeColorForGender(nextGender)
               setEditingPlayerGender(nextGender)
-              setEditingPlayerDefaultTeeColor(getDefaultTeeColorForGender(nextGender))
+              updateEditingPlayerDefaultTeeColor(nextDefaultTeeColor)
             }}
           >
             <option value="man">Man</option>
@@ -1021,7 +1044,7 @@ export function RosterClient({ initialData }: RosterClientProps) {
           <select
             className="w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
             value={editingPlayerDefaultTeeColor}
-            onChange={(event) => setEditingPlayerDefaultTeeColor(event.target.value as TeeColor)}
+            onChange={(event) => updateEditingPlayerDefaultTeeColor(event.target.value as TeeColor)}
           >
             <option value="blue">Standard tee: Blue</option>
             <option value="white">Standard tee: White</option>
@@ -1065,7 +1088,7 @@ export function RosterClient({ initialData }: RosterClientProps) {
                   </div>
                   <select
                     className="w-full rounded-md border border-surface-border bg-surface-elevated px-3 py-2.5 text-sm text-text-primary"
-                    value={editingPlayerSeasonTeeChoices[season.id] ?? getDefaultTeeColorForGender(editingPlayerGender)}
+                    value={editingPlayerSeasonTeeChoices[season.id] ?? editingPlayerDefaultTeeColor}
                     onChange={(event) =>
                       updateEditingPlayerSeasonTeeChoice(season.id, event.target.value as TeeColor)
                     }

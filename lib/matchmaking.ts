@@ -3,6 +3,7 @@ export interface Player {
   name: string
   handicapIndex: number
   checkInOrder: number
+  earlyBirdRequested?: boolean
 }
 
 export interface PriorMatch {
@@ -17,6 +18,13 @@ export interface PairingResult {
     matchA: { player1: Player; player2: Player }
     matchBRef: { player: Player; referencePlayer: Player }
   } | null
+  groups: Array<
+    | { type: 'match'; match: { player1: Player; player2: Player } }
+    | {
+        type: 'threesome'
+        threesome: NonNullable<PairingResult['threesome']>
+      }
+  >
   flags: Array<{
     player1Id: string
     player2Id: string
@@ -187,6 +195,66 @@ function spreadMatchesByHandicap(
   return [...spread, ...trailingMatches]
 }
 
+function earlyBirdCount(match: { player1: Player; player2: Player }) {
+  return Number(Boolean(match.player1.earlyBirdRequested)) + Number(Boolean(match.player2.earlyBirdRequested))
+}
+
+function earlyBirdCountForThreesome(threesome: NonNullable<PairingResult['threesome']>) {
+  return (
+    Number(Boolean(threesome.pivot.earlyBirdRequested)) +
+    Number(Boolean(threesome.matchA.player2.earlyBirdRequested)) +
+    Number(Boolean(threesome.matchBRef.player.earlyBirdRequested))
+  )
+}
+
+function orderPairingGroups(
+  matches: Array<{ player1: Player; player2: Player }>,
+  threesome: PairingResult['threesome'],
+  trailingPlayerId: string | null
+): PairingResult['groups'] {
+  const trailingGroups: PairingResult['groups'] = []
+  const standardGroups: PairingResult['groups'] = []
+
+  matches.forEach((match) => {
+    const group = { type: 'match' as const, match }
+    if (
+      trailingPlayerId &&
+      (match.player1.id === trailingPlayerId || match.player2.id === trailingPlayerId)
+    ) {
+      trailingGroups.push(group)
+    } else {
+      standardGroups.push(group)
+    }
+  })
+
+  if (threesome) {
+    const group = { type: 'threesome' as const, threesome }
+    if (trailingPlayerId && threesome.pivot.id === trailingPlayerId) {
+      trailingGroups.push(group)
+    } else {
+      standardGroups.push(group)
+    }
+  }
+
+  const earlyBirdRank = (group: PairingResult['groups'][number]) =>
+    group.type === 'match' ? earlyBirdCount(group.match) : earlyBirdCountForThreesome(group.threesome)
+
+  return [
+    ...standardGroups
+      .map((group, index) => ({ group, index }))
+      .sort((left, right) => {
+        const earlyComparison = earlyBirdRank(right.group) - earlyBirdRank(left.group)
+        if (earlyComparison !== 0) {
+          return earlyComparison
+        }
+
+        return left.index - right.index
+      })
+      .map(({ group }) => group),
+    ...trailingGroups
+  ]
+}
+
 export function generatePairings(
   players: Player[],
   priorMatchesThisSeason: PriorMatch[],
@@ -291,6 +359,7 @@ export function generatePairings(
 
   matches = spreadMatchesByHandicap(matches, trailingPlayer?.id ?? null)
 
+  const groups = orderPairingGroups(matches, threesome, trailingPlayer?.id ?? null)
   const allFlagMatches = threesome
     ? [...matches, threesome.matchA, { player1: threesome.matchBRef.player, player2: threesome.matchBRef.referencePlayer }]
     : matches
@@ -298,6 +367,7 @@ export function generatePairings(
   return {
     matches,
     threesome,
+    groups,
     flags: buildFlags(allFlagMatches, repeatCounts)
   }
 }

@@ -8,6 +8,7 @@ export type AttendancePlayer = {
   present: boolean
   ctpPoolPaid: boolean
   longestPuttPoolPaid: boolean
+  earlyBirdRequested: boolean
   checkedInAt: string | null
   teeColor: TeeColor
   handicap: {
@@ -32,7 +33,7 @@ interface AttendanceListProps {
   onToggleAttendance: (playerId: string, present: boolean) => void
   onUpdatePrizePoolStatus: (
     playerId: string,
-    field: 'ctpPoolPaid' | 'longestPuttPoolPaid',
+    field: 'ctpPoolPaid' | 'longestPuttPoolPaid' | 'earlyBirdRequested',
     value: boolean
   ) => void
 }
@@ -104,6 +105,21 @@ export function AttendanceList({
                 {player.teeColor.toUpperCase()}
               </span>
             </button>
+            <label className="flex items-center gap-1 rounded bg-surface-sunken px-2 py-1 text-[11px] font-semibold text-text-secondary">
+              <input
+                type="checkbox"
+                checked={player.earlyBirdRequested}
+                onChange={(event) =>
+                  onUpdatePrizePoolStatus(player.playerId, 'earlyBirdRequested', event.target.checked)
+                }
+                disabled={
+                  isRefreshing ||
+                  pendingAttendancePlayerIds.includes(player.playerId) ||
+                  !player.present
+                }
+              />
+              Early
+            </label>
             <label className="flex items-center gap-1 rounded bg-surface-sunken px-2 py-1 text-[11px] font-semibold text-text-secondary">
               <input
                 type="checkbox"

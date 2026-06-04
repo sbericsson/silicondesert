@@ -40,6 +40,61 @@ describe('generatePairings', () => {
     expect(averageHandicaps).toEqual([3.5, 5.5, 1.5, 7.5])
   })
 
+  it('orders early-bird matches before standard matches', () => {
+    const result = generatePairings(
+      [
+        { id: 'a', name: 'A', handicapIndex: 1, checkInOrder: 1, earlyBirdRequested: true },
+        { id: 'b', name: 'B', handicapIndex: 2, checkInOrder: 2 },
+        { id: 'c', name: 'C', handicapIndex: 3, checkInOrder: 3 },
+        { id: 'd', name: 'D', handicapIndex: 4, checkInOrder: 4 },
+        { id: 'e', name: 'E', handicapIndex: 5, checkInOrder: 5 },
+        { id: 'f', name: 'F', handicapIndex: 6, checkInOrder: 6 },
+        { id: 'g', name: 'G', handicapIndex: 7, checkInOrder: 7 },
+        { id: 'h', name: 'H', handicapIndex: 8, checkInOrder: 8 }
+      ],
+      []
+    )
+
+    expect(result.groups[0]).toMatchObject({
+      type: 'match',
+      match: {
+        player1: { id: 'a' },
+        player2: { id: 'b' }
+      }
+    })
+  })
+
+  it('orders matches with two early-bird players before matches with one early-bird player', () => {
+    const result = generatePairings(
+      [
+        { id: 'a', name: 'A', handicapIndex: 1, checkInOrder: 1, earlyBirdRequested: true },
+        { id: 'b', name: 'B', handicapIndex: 2, checkInOrder: 2, earlyBirdRequested: true },
+        { id: 'c', name: 'C', handicapIndex: 3, checkInOrder: 3, earlyBirdRequested: true },
+        { id: 'd', name: 'D', handicapIndex: 4, checkInOrder: 4 },
+        { id: 'e', name: 'E', handicapIndex: 5, checkInOrder: 5 },
+        { id: 'f', name: 'F', handicapIndex: 6, checkInOrder: 6 },
+        { id: 'g', name: 'G', handicapIndex: 7, checkInOrder: 7 },
+        { id: 'h', name: 'H', handicapIndex: 8, checkInOrder: 8 }
+      ],
+      []
+    )
+
+    expect(result.groups[0]).toMatchObject({
+      type: 'match',
+      match: {
+        player1: { id: 'a' },
+        player2: { id: 'b' }
+      }
+    })
+    expect(result.groups[1]).toMatchObject({
+      type: 'match',
+      match: {
+        player1: { id: 'c' },
+        player2: { id: 'd' }
+      }
+    })
+  })
+
   it('creates a threesome for an odd player count with the last arrival as pivot', () => {
     const result = generatePairings(
       [
@@ -69,6 +124,34 @@ describe('generatePairings', () => {
 
     expect(result.threesome).toBeNull()
     expect(result.matches.at(-1)?.player1.id).toBe('peter')
+  })
+
+  it('keeps the trailing player group last even when that player requests early', () => {
+    const result = generatePairings(
+      [
+        { id: 'a', name: 'A', handicapIndex: 1, checkInOrder: 1, earlyBirdRequested: true },
+        { id: 'b', name: 'B', handicapIndex: 2, checkInOrder: 2 },
+        { id: 'c', name: 'C', handicapIndex: 3, checkInOrder: 3 },
+        { id: 'd', name: 'D', handicapIndex: 4, checkInOrder: 4 },
+        {
+          id: 'peter',
+          name: 'Peter Pestalozzi',
+          handicapIndex: 5,
+          checkInOrder: 5,
+          earlyBirdRequested: true
+        },
+        { id: 'f', name: 'F', handicapIndex: 6, checkInOrder: 6 }
+      ],
+      [],
+      { trailingPlayerId: 'peter' }
+    )
+
+    expect(result.groups.at(-1)).toMatchObject({
+      type: 'match',
+      match: {
+        player1: { id: 'peter' }
+      }
+    })
   })
 
   it('weights Peter Pestalozzi toward a stronger final standard opponent', () => {
@@ -140,6 +223,26 @@ describe('generatePairings', () => {
     expect(result.threesome?.matchA.player1.id).toBe('peter')
     expect(result.threesome?.matchA.player2.id).toBe('strong')
     expect(result.threesome?.matchBRef.player.id).toBe('strong-peer')
+  })
+
+  it('can order an early-bird threesome before standard matches', () => {
+    const result = generatePairings(
+      [
+        { id: 'a', name: 'A', handicapIndex: 1, checkInOrder: 1 },
+        { id: 'b', name: 'B', handicapIndex: 2, checkInOrder: 2 },
+        { id: 'c', name: 'C', handicapIndex: 3, checkInOrder: 3 },
+        { id: 'd', name: 'D', handicapIndex: 4, checkInOrder: 4 },
+        { id: 'e', name: 'E', handicapIndex: 5, checkInOrder: 5, earlyBirdRequested: true }
+      ],
+      []
+    )
+
+    expect(result.groups[0]).toMatchObject({
+      type: 'threesome',
+      threesome: {
+        pivot: { id: 'e' }
+      }
+    })
   })
 })
 

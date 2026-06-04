@@ -170,7 +170,8 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
       id: entry.player.id,
       name: entry.player.name,
       handicapIndex: getPlayingHandicap(week.handicapMode, handicapIndexValue, tee),
-      checkInOrder: index + 1
+      checkInOrder: index + 1,
+      earlyBirdRequested: entry.earlyBirdRequested
     }
   })
 
@@ -191,39 +192,39 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
       })
     }
 
-    for (const match of generated.matches) {
-      createdMatches.push(
-        await tx.match.create({
-          data: {
-            weekId: params.id,
-            player1Id: match.player1.id,
-            player2Id: match.player2.id
-          }
-        })
-      )
-    }
+    for (const group of generated.groups) {
+      if (group.type === 'match') {
+        createdMatches.push(
+          await tx.match.create({
+            data: {
+              weekId: params.id,
+              player1Id: group.match.player1.id,
+              player2Id: group.match.player2.id
+            }
+          })
+        )
+      } else {
+        createdMatches.push(
+          await tx.match.create({
+            data: {
+              weekId: params.id,
+              player1Id: group.threesome.matchA.player1.id,
+              player2Id: group.threesome.matchA.player2.id
+            }
+          })
+        )
 
-    if (generated.threesome) {
-      createdMatches.push(
-        await tx.match.create({
-          data: {
-            weekId: params.id,
-            player1Id: generated.threesome.matchA.player1.id,
-            player2Id: generated.threesome.matchA.player2.id
-          }
-        })
-      )
-
-      createdMatches.push(
-        await tx.match.create({
-          data: {
-            weekId: params.id,
-            player1Id: generated.threesome.matchBRef.player.id,
-            player2Id: generated.threesome.matchBRef.referencePlayer.id,
-            player2ScorecardOnly: true
-          }
-        })
-      )
+        createdMatches.push(
+          await tx.match.create({
+            data: {
+              weekId: params.id,
+              player1Id: group.threesome.matchBRef.player.id,
+              player2Id: group.threesome.matchBRef.referencePlayer.id,
+              player2ScorecardOnly: true
+            }
+          })
+        )
+      }
     }
 
     await writeAuditLog(tx, {

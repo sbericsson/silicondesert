@@ -79,6 +79,7 @@ type WeekPageData = {
     present: boolean
     ctpPoolPaid: boolean
     longestPuttPoolPaid: boolean
+    earlyBirdRequested: boolean
     checkedInAt: string | null
     teeColor: TeeColor
     handicap: {
@@ -166,6 +167,7 @@ export function WeekClient({ initialData }: WeekClientProps) {
     present: boolean
     ctpPoolPaid: boolean
     longestPuttPoolPaid: boolean
+    earlyBirdRequested: boolean
     checkedInAt: string | null
   }) {
     setData((current) => {
@@ -176,6 +178,7 @@ export function WeekClient({ initialData }: WeekClientProps) {
               present: record.present,
               ctpPoolPaid: record.ctpPoolPaid,
               longestPuttPoolPaid: record.longestPuttPoolPaid,
+              earlyBirdRequested: record.earlyBirdRequested,
               checkedInAt: record.checkedInAt
             }
           : player
@@ -232,6 +235,7 @@ export function WeekClient({ initialData }: WeekClientProps) {
       present,
       ctpPoolPaid: false,
       longestPuttPoolPaid: false,
+      earlyBirdRequested: false,
       checkedInAt: present ? currentPlayer?.checkedInAt ?? new Date().toISOString() : null
     })
     setAttendancePending(playerId, true)
@@ -261,6 +265,7 @@ export function WeekClient({ initialData }: WeekClientProps) {
         present: payload.present,
         ctpPoolPaid: payload.ctpPoolPaid,
         longestPuttPoolPaid: payload.longestPuttPoolPaid,
+        earlyBirdRequested: payload.earlyBirdRequested,
         checkedInAt: payload.checkedInAt
       })
     } catch (actionError) {
@@ -277,7 +282,7 @@ export function WeekClient({ initialData }: WeekClientProps) {
 
   async function updatePrizePoolStatus(
     playerId: string,
-    field: 'ctpPoolPaid' | 'longestPuttPoolPaid',
+    field: 'ctpPoolPaid' | 'longestPuttPoolPaid' | 'earlyBirdRequested',
     value: boolean
   ) {
     if (!data.currentWeek) {
@@ -298,6 +303,8 @@ export function WeekClient({ initialData }: WeekClientProps) {
       ctpPoolPaid: field === 'ctpPoolPaid' ? value : currentPlayer.ctpPoolPaid,
       longestPuttPoolPaid:
         field === 'longestPuttPoolPaid' ? value : currentPlayer.longestPuttPoolPaid,
+      earlyBirdRequested:
+        field === 'earlyBirdRequested' ? value : currentPlayer.earlyBirdRequested,
       checkedInAt: currentPlayer.checkedInAt
     })
     setAttendancePending(playerId, true)
@@ -327,6 +334,7 @@ export function WeekClient({ initialData }: WeekClientProps) {
         present: payload.present,
         ctpPoolPaid: payload.ctpPoolPaid,
         longestPuttPoolPaid: payload.longestPuttPoolPaid,
+        earlyBirdRequested: payload.earlyBirdRequested,
         checkedInAt: payload.checkedInAt
       })
     } catch (actionError) {

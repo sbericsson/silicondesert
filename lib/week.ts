@@ -364,6 +364,7 @@ export async function getCurrentWeekPageData() {
       present: status?.present ?? false,
       ctpPoolPaid: status?.ctpPoolPaid ?? false,
       longestPuttPoolPaid: status?.longestPuttPoolPaid ?? false,
+      earlyBirdRequested: status?.earlyBirdRequested ?? false,
       checkedInAt: status?.checkedInAt?.toISOString() ?? null,
       teeColor,
       handicap,

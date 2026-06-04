@@ -18,15 +18,20 @@ export async function POST(
   const ctpPoolPaid = typeof body.ctpPoolPaid === 'boolean' ? body.ctpPoolPaid : undefined
   const longestPuttPoolPaid =
     typeof body.longestPuttPoolPaid === 'boolean' ? body.longestPuttPoolPaid : undefined
+  const earlyBirdRequested =
+    typeof body.earlyBirdRequested === 'boolean' ? body.earlyBirdRequested : undefined
 
   if (
     !playerId ||
-    (present === undefined && ctpPoolPaid === undefined && longestPuttPoolPaid === undefined)
+    (present === undefined &&
+      ctpPoolPaid === undefined &&
+      longestPuttPoolPaid === undefined &&
+      earlyBirdRequested === undefined)
   ) {
     return NextResponse.json(
       {
         error:
-          'playerId and at least one of present, ctpPoolPaid, or longestPuttPoolPaid are required'
+          'playerId and at least one of present, ctpPoolPaid, longestPuttPoolPaid, or earlyBirdRequested are required'
       },
       { status: 400 }
     )
@@ -84,17 +89,20 @@ export async function POST(
       })
 
       if (!existing && present === undefined) {
-        throw new Error('Check in the player before marking prize-pool status')
+        throw new Error('Check in the player before updating weekly attendance options')
       }
 
       if (existing && present === undefined && !existing.present) {
-        throw new Error('Only checked-in players can be marked as paid into the prize pools')
+        throw new Error('Only checked-in players can update weekly attendance options')
       }
 
       const nextPresent = present ?? existing?.present ?? false
       const nextCtpPoolPaid = nextPresent ? (ctpPoolPaid ?? existing?.ctpPoolPaid ?? false) : false
       const nextLongestPuttPoolPaid = nextPresent
         ? (longestPuttPoolPaid ?? existing?.longestPuttPoolPaid ?? false)
+        : false
+      const nextEarlyBirdRequested = nextPresent
+        ? (earlyBirdRequested ?? existing?.earlyBirdRequested ?? false)
         : false
 
       const record = existing
@@ -109,6 +117,7 @@ export async function POST(
               present: nextPresent,
               ctpPoolPaid: nextCtpPoolPaid,
               longestPuttPoolPaid: nextLongestPuttPoolPaid,
+              earlyBirdRequested: nextEarlyBirdRequested,
               checkedInAt: nextPresent ? existing.checkedInAt ?? new Date() : null
             }
           })
@@ -119,6 +128,7 @@ export async function POST(
               present: nextPresent,
               ctpPoolPaid: nextCtpPoolPaid,
               longestPuttPoolPaid: nextLongestPuttPoolPaid,
+              earlyBirdRequested: nextEarlyBirdRequested,
               checkedInAt: nextPresent ? new Date() : null
             }
           })
@@ -156,6 +166,20 @@ export async function POST(
           field: 'longestPuttPoolPaid',
           oldValue: existing ? String(existing.longestPuttPoolPaid) : null,
           newValue: String(nextLongestPuttPoolPaid)
+        })
+      }
+
+      if (
+        earlyBirdRequested !== undefined &&
+        (existing?.earlyBirdRequested ?? false) !== nextEarlyBirdRequested
+      ) {
+        await writeAuditLog(tx, {
+          weekId: params.id,
+          playerId,
+          action: 'attendance_early_bird',
+          field: 'earlyBirdRequested',
+          oldValue: existing ? String(existing.earlyBirdRequested) : null,
+          newValue: String(nextEarlyBirdRequested)
         })
       }
 

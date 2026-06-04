@@ -38,7 +38,7 @@ interface GeneratePairingsOptions {
 }
 
 const TRAILING_PLAYER_PAIR_WEIGHT = 4
-const REPEAT_PAIRING_PENALTY = 16
+const REPEAT_PAIRING_PENALTY = 20
 
 function pairKey(player1Id: string, player2Id: string) {
   return [player1Id, player2Id].sort().join(':')
@@ -47,8 +47,8 @@ function pairKey(player1Id: string, player2Id: string) {
 function pairCost(player1: Player, player2: Player, repeatCounts: Map<string, number>) {
   const gap = Math.abs(player1.handicapIndex - player2.handicapIndex)
   const priorCount = repeatCounts.get(pairKey(player1.id, player2.id)) ?? 0
-  // A 1x repeat is treated like an 8-stroke gap, so any non-repeat with a gap
-  // of 7.5 or less wins over a repeat.
+  // A 1x repeat is treated like a 10-stroke gap, so any non-repeat with a gap
+  // of 9.5 or less wins over a repeat.
   return gap * 2 + priorCount * REPEAT_PAIRING_PENALTY
 }
 

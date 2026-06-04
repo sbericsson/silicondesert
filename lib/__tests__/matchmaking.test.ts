@@ -64,7 +64,7 @@ describe('generatePairings', () => {
     })
   })
 
-  it('spreads early-bird players across more early groups', () => {
+  it('orders all early-bird groups before standard-only groups', () => {
     const result = generatePairings(
       [
         { id: 'a', name: 'A', handicapIndex: 1, checkInOrder: 1, earlyBirdRequested: true },
@@ -88,7 +88,47 @@ describe('generatePairings', () => {
         Number(Boolean(group.match.player2.earlyBirdRequested))
     })
 
-    expect(earlyCounts).toEqual([1, 1, 1, 0])
+    expect(earlyCounts).toEqual([2, 1, 0, 0])
+  })
+
+  it('allows early-bird players to pair together when they are the best fit', () => {
+    const result = generatePairings(
+      [
+        { id: 'early-a', name: 'Early A', handicapIndex: 1, checkInOrder: 1, earlyBirdRequested: true },
+        { id: 'early-b', name: 'Early B', handicapIndex: 2, checkInOrder: 2, earlyBirdRequested: true },
+        { id: 'high-a', name: 'High A', handicapIndex: 20, checkInOrder: 3 },
+        { id: 'high-b', name: 'High B', handicapIndex: 21, checkInOrder: 4 }
+      ],
+      []
+    )
+
+    expect(result.groups[0]).toMatchObject({
+      type: 'match',
+      match: {
+        player1: { id: 'early-a' },
+        player2: { id: 'early-b' }
+      }
+    })
+  })
+
+  it('uses repeat history when choosing an early-bird opponent', () => {
+    const result = generatePairings(
+      [
+        { id: 'early-a', name: 'Early A', handicapIndex: 1, checkInOrder: 1, earlyBirdRequested: true },
+        { id: 'early-b', name: 'Early B', handicapIndex: 2, checkInOrder: 2, earlyBirdRequested: true },
+        { id: 'standard-a', name: 'Standard A', handicapIndex: 4, checkInOrder: 3 },
+        { id: 'standard-b', name: 'Standard B', handicapIndex: 5, checkInOrder: 4 }
+      ],
+      [{ player1Id: 'early-a', player2Id: 'early-b' }]
+    )
+
+    expect(result.groups[0]).toMatchObject({
+      type: 'match',
+      match: {
+        player1: { id: 'early-a' },
+        player2: { id: 'standard-a' }
+      }
+    })
   })
 
   it('creates a threesome for an odd player count with the last arrival as pivot', () => {
@@ -122,7 +162,7 @@ describe('generatePairings', () => {
     expect(result.matches.at(-1)?.player1.id).toBe('peter')
   })
 
-  it('keeps the trailing player group last even when that player requests early', () => {
+  it('keeps the trailing player group last when that player did not request early', () => {
     const result = generatePairings(
       [
         { id: 'a', name: 'A', handicapIndex: 1, checkInOrder: 1, earlyBirdRequested: true },
@@ -133,8 +173,7 @@ describe('generatePairings', () => {
           id: 'peter',
           name: 'Peter Pestalozzi',
           handicapIndex: 5,
-          checkInOrder: 5,
-          earlyBirdRequested: true
+          checkInOrder: 5
         },
         { id: 'f', name: 'F', handicapIndex: 6, checkInOrder: 6 }
       ],

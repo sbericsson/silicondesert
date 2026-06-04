@@ -38,6 +38,7 @@ interface GeneratePairingsOptions {
 }
 
 const TRAILING_PLAYER_PAIR_WEIGHT = 4
+const REPEAT_PAIRING_PENALTY = 16
 
 function pairKey(player1Id: string, player2Id: string) {
   return [player1Id, player2Id].sort().join(':')
@@ -46,9 +47,9 @@ function pairKey(player1Id: string, player2Id: string) {
 function pairCost(player1: Player, player2: Player, repeatCounts: Map<string, number>) {
   const gap = Math.abs(player1.handicapIndex - player2.handicapIndex)
   const priorCount = repeatCounts.get(pairKey(player1.id, player2.id)) ?? 0
-  // Repeat penalty 13 = a 1x repeat is treated like a 6.5-stroke gap, so any
-  // non-repeat with a gap of 6 or less wins over a repeat.
-  return gap * 2 + priorCount * 13
+  // A 1x repeat is treated like an 8-stroke gap, so any non-repeat with a gap
+  // of 7.5 or less wins over a repeat.
+  return gap * 2 + priorCount * REPEAT_PAIRING_PENALTY
 }
 
 function buildRepeatCounts(priorMatchesThisSeason: PriorMatch[]) {
@@ -89,6 +90,55 @@ function greedyMatches(players: Player[], repeatCounts: Map<string, number>) {
   }
 
   return matches
+}
+
+function comparePlayersByHandicapThenKey(playerA: Player, playerB: Player) {
+  const handicapComparison = playerA.handicapIndex - playerB.handicapIndex
+  if (handicapComparison !== 0) {
+    return handicapComparison
+  }
+
+  return playerA.id.localeCompare(playerB.id)
+}
+
+function bestOpponentIndex(
+  player: Player,
+  candidates: Player[],
+  repeatCounts: Map<string, number>
+) {
+  let bestIndex = 0
+  let bestCost = Number.POSITIVE_INFINITY
+
+  candidates.forEach((candidate, index) => {
+    const cost = pairCost(player, candidate, repeatCounts)
+    if (cost < bestCost) {
+      bestCost = cost
+      bestIndex = index
+    }
+  })
+
+  return bestIndex
+}
+
+function earlyPriorityMatches(players: Player[], repeatCounts: Map<string, number>) {
+  const remaining = [...players].sort(comparePlayersByHandicapThenKey)
+  const matches: Array<{ player1: Player; player2: Player }> = []
+
+  while (remaining.length > 1) {
+    const earlyIndex = remaining.findIndex((player) => player.earlyBirdRequested)
+    if (earlyIndex === -1) {
+      break
+    }
+
+    const [earlyPlayer] = remaining.splice(earlyIndex, 1)
+    const opponent = remaining[bestOpponentIndex(earlyPlayer, remaining, repeatCounts)]
+    const opponentIndex = remaining.findIndex((player) => player.id === opponent.id)
+
+    remaining.splice(opponentIndex, 1)
+    matches.push({ player1: earlyPlayer, player2: opponent })
+  }
+
+  return [...matches, ...greedyMatches(remaining, repeatCounts)]
 }
 
 function buildFlags(
@@ -199,56 +249,6 @@ function earlyBirdCount(match: { player1: Player; player2: Player }) {
   return Number(Boolean(match.player1.earlyBirdRequested)) + Number(Boolean(match.player2.earlyBirdRequested))
 }
 
-function rebalanceEarlyBirdMatches(
-  matches: Array<{ player1: Player; player2: Player }>,
-  repeatCounts: Map<string, number>,
-  trailingPlayerId: string | null
-) {
-  const balancedMatches = [...matches]
-  const includesTrailingPlayer = (match: { player1: Player; player2: Player }) =>
-    Boolean(
-      trailingPlayerId &&
-        (match.player1.id === trailingPlayerId || match.player2.id === trailingPlayerId)
-    )
-
-  while (true) {
-    const earlyPairIndex = balancedMatches.findIndex(
-      (match) => earlyBirdCount(match) === 2 && !includesTrailingPlayer(match)
-    )
-    const standardPairIndex = balancedMatches.findIndex(
-      (match) => earlyBirdCount(match) === 0 && !includesTrailingPlayer(match)
-    )
-
-    if (earlyPairIndex === -1 || standardPairIndex === -1) {
-      return balancedMatches
-    }
-
-    const earlyPair = balancedMatches[earlyPairIndex]
-    const standardPair = balancedMatches[standardPairIndex]
-    const [earlyPlayer1, earlyPlayer2] = [earlyPair.player1, earlyPair.player2]
-    const [standardPlayer1, standardPlayer2] = [standardPair.player1, standardPair.player2]
-    const candidates = [
-      [
-        { player1: earlyPlayer1, player2: standardPlayer1 },
-        { player1: earlyPlayer2, player2: standardPlayer2 }
-      ],
-      [
-        { player1: earlyPlayer1, player2: standardPlayer2 },
-        { player1: earlyPlayer2, player2: standardPlayer1 }
-      ]
-    ]
-    const [bestFirstMatch, bestSecondMatch] = candidates.reduce((best, candidate) => {
-      const bestCost = totalMatchCost(best, repeatCounts)
-      const candidateCost = totalMatchCost(candidate, repeatCounts)
-
-      return candidateCost < bestCost ? candidate : best
-    })
-
-    balancedMatches[earlyPairIndex] = bestFirstMatch
-    balancedMatches[standardPairIndex] = bestSecondMatch
-  }
-}
-
 function earlyBirdCountForThreesome(threesome: NonNullable<PairingResult['threesome']>) {
   return (
     Number(Boolean(threesome.pivot.earlyBirdRequested)) +
@@ -336,7 +336,7 @@ export function generatePairings(
             const remainingPool = pairingPool.filter(
               (player) => player.id !== trailingPlayer.id && player.id !== candidate.id
             )
-            const leadingMatches = greedyMatches(remainingPool, repeatCounts)
+            const leadingMatches = earlyPriorityMatches(remainingPool, repeatCounts)
             const candidateMatches = [...leadingMatches, { player1: trailingPlayer, player2: candidate }]
             const candidateCost =
               totalMatchCost(leadingMatches, repeatCounts) +
@@ -348,11 +348,9 @@ export function generatePairings(
             }
           }
 
-          return bestMatches ?? greedyMatches(pairingPool, repeatCounts)
+          return bestMatches ?? earlyPriorityMatches(pairingPool, repeatCounts)
         })()
-      : greedyMatches(pairingPool, repeatCounts)
-
-  matches = rebalanceEarlyBirdMatches(matches, repeatCounts, trailingPlayer?.id ?? null)
+      : earlyPriorityMatches(pairingPool, repeatCounts)
 
   let threesome: PairingResult['threesome'] = null
 

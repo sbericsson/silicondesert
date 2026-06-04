@@ -239,6 +239,7 @@ export function RosterClient({ initialData }: RosterClientProps) {
   const [editingPlayerImportedRounds, setEditingPlayerImportedRounds] = useState<
     ImportedRoundEditor[]
   >([])
+  const [editingPlayerImportedRoundsDirty, setEditingPlayerImportedRoundsDirty] = useState(false)
   const [editingPlayerRoundsExpanded, setEditingPlayerRoundsExpanded] = useState(false)
   const [editingPlayerSeasonTeeChoices, setEditingPlayerSeasonTeeChoices] = useState<
     Record<string, TeeColor>
@@ -527,6 +528,7 @@ export function RosterClient({ initialData }: RosterClientProps) {
       setEditingPlayerCellPhone('')
       setEditingPlayerSeedHandicap('')
       setEditingPlayerImportedRounds([])
+      setEditingPlayerImportedRoundsDirty(false)
       setEditingPlayerRoundsExpanded(false)
       setEditingPlayerSeasonTeeChoices({})
     }
@@ -557,7 +559,9 @@ export function RosterClient({ initialData }: RosterClientProps) {
       coursePar: number
     }> = []
 
-    for (const [index, round] of editingPlayerImportedRounds
+    const shouldSaveImportedRounds = editingPlayerImportedRoundsDirty
+
+    for (const [index, round] of (shouldSaveImportedRounds ? editingPlayerImportedRounds : [])
       .filter((candidate) => !isBlankImportedRound(candidate))
       .entries()) {
       if (!round.date) {
@@ -636,7 +640,7 @@ export function RosterClient({ initialData }: RosterClientProps) {
       })
     }
 
-    if (normalizedImportedRounds.length > 20) {
+    if (shouldSaveImportedRounds && normalizedImportedRounds.length > 20) {
       setError('Enter at most 20 prior handicap rounds.')
       return
     }
@@ -657,7 +661,7 @@ export function RosterClient({ initialData }: RosterClientProps) {
         email: editingPlayerEmail,
         cellPhone: editingPlayerCellPhone,
         seedHandicap: editingPlayerSeedHandicap,
-        importedHandicapRounds: normalizedImportedRounds,
+        importedHandicapRounds: shouldSaveImportedRounds ? normalizedImportedRounds : undefined,
         seasonTeeChoices: Object.entries(editingPlayerSeasonTeeChoices).map(([seasonId, teeColor]) => ({
           seasonId,
           teeColor
@@ -686,6 +690,7 @@ export function RosterClient({ initialData }: RosterClientProps) {
     setEditingPlayerCellPhone('')
     setEditingPlayerSeedHandicap('')
     setEditingPlayerImportedRounds([])
+    setEditingPlayerImportedRoundsDirty(false)
     setEditingPlayerRoundsExpanded(false)
     setEditingPlayerSeasonTeeChoices({})
   }
@@ -706,6 +711,7 @@ export function RosterClient({ initialData }: RosterClientProps) {
       )
     )
     setEditingPlayerRoundsExpanded(player.importedHandicapRounds.length === 0)
+    setEditingPlayerImportedRoundsDirty(false)
     setEditingPlayerSeasonTeeChoices(
       Object.fromEntries(
         player.seasonTeeChoices.map((choice) => [choice.seasonId, choice.teeColor])
@@ -715,6 +721,7 @@ export function RosterClient({ initialData }: RosterClientProps) {
 
   function addEditingPlayerImportedRound() {
     setEditingPlayerRoundsExpanded(true)
+    setEditingPlayerImportedRoundsDirty(true)
     setEditingPlayerImportedRounds((current) => [
       ...current,
       createBlankImportedRound(data.courses, editingPlayerGender)
@@ -722,6 +729,7 @@ export function RosterClient({ initialData }: RosterClientProps) {
   }
 
   function removeEditingPlayerImportedRound(roundId: string) {
+    setEditingPlayerImportedRoundsDirty(true)
     setEditingPlayerImportedRounds((current) => current.filter((round) => round.id !== roundId))
   }
 
@@ -729,6 +737,7 @@ export function RosterClient({ initialData }: RosterClientProps) {
     roundId: string,
     updates: Partial<ImportedRoundEditor>
   ) {
+    setEditingPlayerImportedRoundsDirty(true)
     setEditingPlayerImportedRounds((current) =>
       current.map((round) => (round.id === roundId ? { ...round, ...updates } : round))
     )

@@ -176,8 +176,31 @@ function sortPlayers(players: RosterPageData['players']) {
   })
 }
 
-function getPlayerRosterTeeColor(player: RosterPageData['players'][number]) {
-  return player.defaultTeeColor ?? getDefaultTeeColorForGender(player.gender)
+function getRosterDisplaySeason(seasons: RosterPageData['seasons']) {
+  const today = new Date().toISOString().slice(0, 10)
+  const unarchivedSeasons = seasons.filter((season) => !season.archivedAt)
+
+  return (
+    unarchivedSeasons.find(
+      (season) => season.startDate <= today && today <= season.endDate
+    ) ??
+    unarchivedSeasons.at(-1) ??
+    seasons.at(-1) ??
+    null
+  )
+}
+
+function getPlayerRosterTeeColor(
+  player: RosterPageData['players'][number],
+  seasonId: string | null
+) {
+  return (
+    (seasonId
+      ? player.seasonTeeChoices.find((choice) => choice.seasonId === seasonId)?.teeColor
+      : null) ??
+    player.defaultTeeColor ??
+    getDefaultTeeColorForGender(player.gender)
+  )
 }
 
 function formatRosterRoundLabel(
@@ -236,6 +259,7 @@ export function RosterClient({ initialData }: RosterClientProps) {
   const [message, setMessage] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const rosterDisplaySeason = getRosterDisplaySeason(data.seasons)
 
   // Course editor state
   type CourseEditorTee = { _key: string; color: TeeColor; gender: Gender; nineHolePar: string; nineHoleRating: string; nineHoleSlope: string }
@@ -1567,7 +1591,8 @@ export function RosterClient({ initialData }: RosterClientProps) {
             Players ({data.players.length})
           </p>
           <p className="mt-1 text-xs text-text-secondary xl:mt-0">
-            Active players listed first.
+            Active players listed first
+            {rosterDisplaySeason ? ` · Tee column shows ${rosterDisplaySeason.name}` : ''}.
           </p>
         </div>
         {/* desktop table header */}
@@ -1650,7 +1675,9 @@ export function RosterClient({ initialData }: RosterClientProps) {
                 <span className="text-sm text-text-secondary">
                   {player.handicap.kind === 'HCP' ? player.handicap.value : player.handicap.kind}
                 </span>
-                <span className="text-sm capitalize text-text-secondary">{getPlayerRosterTeeColor(player)}</span>
+                <span className="text-sm capitalize text-text-secondary">
+                  {getPlayerRosterTeeColor(player, rosterDisplaySeason?.id ?? null)}
+                </span>
                 <span className="text-sm text-text-secondary">{player.recentHandicapRounds.length}</span>
                 <span>
                   {player.active ? (

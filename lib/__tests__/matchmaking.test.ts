@@ -64,7 +64,7 @@ describe('generatePairings', () => {
     })
   })
 
-  it('orders matches with two early-bird players before matches with one early-bird player', () => {
+  it('spreads early-bird players across more early groups', () => {
     const result = generatePairings(
       [
         { id: 'a', name: 'A', handicapIndex: 1, checkInOrder: 1, earlyBirdRequested: true },
@@ -79,20 +79,16 @@ describe('generatePairings', () => {
       []
     )
 
-    expect(result.groups[0]).toMatchObject({
-      type: 'match',
-      match: {
-        player1: { id: 'a' },
-        player2: { id: 'b' }
+    const earlyCounts = result.groups.map((group) => {
+      if (group.type === 'threesome') {
+        return 0
       }
+
+      return Number(Boolean(group.match.player1.earlyBirdRequested)) +
+        Number(Boolean(group.match.player2.earlyBirdRequested))
     })
-    expect(result.groups[1]).toMatchObject({
-      type: 'match',
-      match: {
-        player1: { id: 'c' },
-        player2: { id: 'd' }
-      }
-    })
+
+    expect(earlyCounts).toEqual([1, 1, 1, 0])
   })
 
   it('creates a threesome for an odd player count with the last arrival as pivot', () => {

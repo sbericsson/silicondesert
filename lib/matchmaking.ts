@@ -199,6 +199,56 @@ function earlyBirdCount(match: { player1: Player; player2: Player }) {
   return Number(Boolean(match.player1.earlyBirdRequested)) + Number(Boolean(match.player2.earlyBirdRequested))
 }
 
+function rebalanceEarlyBirdMatches(
+  matches: Array<{ player1: Player; player2: Player }>,
+  repeatCounts: Map<string, number>,
+  trailingPlayerId: string | null
+) {
+  const balancedMatches = [...matches]
+  const includesTrailingPlayer = (match: { player1: Player; player2: Player }) =>
+    Boolean(
+      trailingPlayerId &&
+        (match.player1.id === trailingPlayerId || match.player2.id === trailingPlayerId)
+    )
+
+  while (true) {
+    const earlyPairIndex = balancedMatches.findIndex(
+      (match) => earlyBirdCount(match) === 2 && !includesTrailingPlayer(match)
+    )
+    const standardPairIndex = balancedMatches.findIndex(
+      (match) => earlyBirdCount(match) === 0 && !includesTrailingPlayer(match)
+    )
+
+    if (earlyPairIndex === -1 || standardPairIndex === -1) {
+      return balancedMatches
+    }
+
+    const earlyPair = balancedMatches[earlyPairIndex]
+    const standardPair = balancedMatches[standardPairIndex]
+    const [earlyPlayer1, earlyPlayer2] = [earlyPair.player1, earlyPair.player2]
+    const [standardPlayer1, standardPlayer2] = [standardPair.player1, standardPair.player2]
+    const candidates = [
+      [
+        { player1: earlyPlayer1, player2: standardPlayer1 },
+        { player1: earlyPlayer2, player2: standardPlayer2 }
+      ],
+      [
+        { player1: earlyPlayer1, player2: standardPlayer2 },
+        { player1: earlyPlayer2, player2: standardPlayer1 }
+      ]
+    ]
+    const [bestFirstMatch, bestSecondMatch] = candidates.reduce((best, candidate) => {
+      const bestCost = totalMatchCost(best, repeatCounts)
+      const candidateCost = totalMatchCost(candidate, repeatCounts)
+
+      return candidateCost < bestCost ? candidate : best
+    })
+
+    balancedMatches[earlyPairIndex] = bestFirstMatch
+    balancedMatches[standardPairIndex] = bestSecondMatch
+  }
+}
+
 function earlyBirdCountForThreesome(threesome: NonNullable<PairingResult['threesome']>) {
   return (
     Number(Boolean(threesome.pivot.earlyBirdRequested)) +
@@ -301,6 +351,8 @@ export function generatePairings(
           return bestMatches ?? greedyMatches(pairingPool, repeatCounts)
         })()
       : greedyMatches(pairingPool, repeatCounts)
+
+  matches = rebalanceEarlyBirdMatches(matches, repeatCounts, trailingPlayer?.id ?? null)
 
   let threesome: PairingResult['threesome'] = null
 

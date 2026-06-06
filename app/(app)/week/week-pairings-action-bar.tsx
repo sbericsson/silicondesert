@@ -1,10 +1,13 @@
 'use client'
 
 import { useEffect, useId, useRef, useState } from 'react'
-import type { UnmatchedPlayer } from '@/app/(app)/week/pairings-section'
+import type { ReferenceScorecardPlayer, UnmatchedPlayer } from '@/app/(app)/week/pairings-section'
+
+const REFERENCE_SCORECARD_PLAYER_ID = '__reference_scorecard__'
 
 interface WeekPairingsActionBarProps {
   unmatchedPresentPlayers: UnmatchedPlayer[]
+  referenceScorecardPlayers: ReferenceScorecardPlayer[]
   locked: boolean
   allScoresComplete: boolean
   canCloseWeek: boolean
@@ -12,11 +15,13 @@ interface WeekPairingsActionBarProps {
   canCreateManualPairing: boolean
   manualPlayer1Id: string
   manualPlayer2Id: string
+  manualReferencePlayerId: string
   matchCount: number
   generateBlockReason: string | null
   isRefreshing: boolean
   onManualPlayer1Change: (value: string) => void
   onManualPlayer2Change: (value: string) => void
+  onManualReferencePlayerChange: (value: string) => void
   onGeneratePairings: () => Promise<void> | void
   onSetLockState: (locked: boolean) => void
   onCreateManualPairing: () => Promise<void> | void
@@ -27,6 +32,7 @@ interface WeekPairingsActionBarProps {
 
 export function WeekPairingsActionBar({
   unmatchedPresentPlayers,
+  referenceScorecardPlayers,
   locked,
   allScoresComplete,
   canCloseWeek,
@@ -34,11 +40,13 @@ export function WeekPairingsActionBar({
   canCreateManualPairing,
   manualPlayer1Id,
   manualPlayer2Id,
+  manualReferencePlayerId,
   matchCount,
   generateBlockReason,
   isRefreshing,
   onManualPlayer1Change,
   onManualPlayer2Change,
+  onManualReferencePlayerChange,
   onGeneratePairings,
   onSetLockState,
   onCreateManualPairing,
@@ -90,6 +98,8 @@ export function WeekPairingsActionBar({
     return `${player.name} - ${player.pairingHandicap.label} ${player.pairingHandicap.value}`
   }
 
+  const canUseReferenceScorecard = referenceScorecardPlayers.length > 0
+
   return (
     <div
       className="fixed bottom-[calc(var(--app-nav-h)+var(--app-tab-h))] left-0 right-0 z-20 border-t border-surface-border bg-surface-elevated/95 backdrop-blur xl:hidden"
@@ -110,7 +120,7 @@ export function WeekPairingsActionBar({
               className="rounded-md border border-surface-border bg-surface-sunken px-3 py-3 text-sm text-text-primary"
               value={manualPlayer1Id}
               onChange={(event) => onManualPlayer1Change(event.target.value)}
-              disabled={isRefreshing || unmatchedPresentPlayers.length < 2}
+              disabled={isRefreshing || unmatchedPresentPlayers.length < 1}
               aria-label="Player 1"
             >
               <option value="">Select player 1</option>
@@ -124,7 +134,7 @@ export function WeekPairingsActionBar({
               className="rounded-md border border-surface-border bg-surface-sunken px-3 py-3 text-sm text-text-primary"
               value={manualPlayer2Id}
               onChange={(event) => onManualPlayer2Change(event.target.value)}
-              disabled={isRefreshing || unmatchedPresentPlayers.length < 2}
+              disabled={isRefreshing || unmatchedPresentPlayers.length < 1}
               aria-label="Player 2"
             >
               <option value="">Select player 2</option>
@@ -135,7 +145,26 @@ export function WeekPairingsActionBar({
                     {getManualPlayerLabel(player)}
                   </option>
                 ))}
+              {canUseReferenceScorecard ? (
+                <option value={REFERENCE_SCORECARD_PLAYER_ID}>Reference scorecard</option>
+              ) : null}
             </select>
+            {manualPlayer2Id === REFERENCE_SCORECARD_PLAYER_ID ? (
+              <select
+                className="rounded-md border border-surface-border bg-surface-sunken px-3 py-3 text-sm text-text-primary"
+                value={manualReferencePlayerId}
+                onChange={(event) => onManualReferencePlayerChange(event.target.value)}
+                disabled={isRefreshing || !canUseReferenceScorecard}
+                aria-label="Reference player"
+              >
+                <option value="">Select reference player</option>
+                {referenceScorecardPlayers.map((player) => (
+                  <option key={player.playerId} value={player.playerId}>
+                    {player.name}
+                  </option>
+                ))}
+              </select>
+            ) : null}
             <div className="mt-1 flex gap-2">
               <button
                 type="button"

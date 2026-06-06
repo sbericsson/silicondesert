@@ -115,12 +115,14 @@ interface WeekClientProps {
 
 const holeOptions = Array.from({ length: 9 }, (_, index) => index + 1)
 const SIDE_GAME_ENTRY_FEE = 5
+const REFERENCE_SCORECARD_PLAYER_ID = '__reference_scorecard__'
 
 export function WeekClient({ initialData }: WeekClientProps) {
   const router = useRouter()
   const [data, setData] = useState(initialData)
   const [manualPlayer1Id, setManualPlayer1Id] = useState('')
   const [manualPlayer2Id, setManualPlayer2Id] = useState('')
+  const [manualReferencePlayerId, setManualReferencePlayerId] = useState('')
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [pendingAttendancePlayerIds, setPendingAttendancePlayerIds] = useState<string[]>([])
   const [message, setMessage] = useState<string | null>(null)
@@ -137,6 +139,7 @@ export function WeekClient({ initialData }: WeekClientProps) {
     if (!data.currentWeek) {
       setManualPlayer1Id('')
       setManualPlayer2Id('')
+      setManualReferencePlayerId('')
       return
     }
 
@@ -152,13 +155,21 @@ export function WeekClient({ initialData }: WeekClientProps) {
         ? current
         : unmatchedPresentPlayers[0]?.playerId ?? ''
     )
+    const latestLiveMatch = [...data.currentWeek.matches].reverse().find((match) => !match.player2ScorecardOnly)
+    const referencePlayerIds = latestLiveMatch ? [latestLiveMatch.player1Id, latestLiveMatch.player2Id] : []
     setManualPlayer2Id((current) =>
       current &&
-      current !== unmatchedPresentPlayers[0]?.playerId &&
-      unmatchedPresentPlayers.some((player) => player.playerId === current)
+      ((current === REFERENCE_SCORECARD_PLAYER_ID && referencePlayerIds.length > 0) ||
+        (current !== unmatchedPresentPlayers[0]?.playerId &&
+          unmatchedPresentPlayers.some((player) => player.playerId === current)))
         ? current
         : unmatchedPresentPlayers.find((player) => player.playerId !== unmatchedPresentPlayers[0]?.playerId)
-            ?.playerId ?? ''
+            ?.playerId ?? (referencePlayerIds.length > 0 ? REFERENCE_SCORECARD_PLAYER_ID : '')
+    )
+    setManualReferencePlayerId((current) =>
+      current && referencePlayerIds.includes(current)
+        ? current
+        : referencePlayerIds[0] ?? ''
     )
   }, [data])
 
@@ -411,7 +422,15 @@ export function WeekClient({ initialData }: WeekClientProps) {
   }
 
   async function createManualPairing() {
-    if (!data.currentWeek || !manualPlayer1Id || !manualPlayer2Id || manualPlayer1Id === manualPlayer2Id) {
+    const isReferenceScorecardMatch = manualPlayer2Id === REFERENCE_SCORECARD_PLAYER_ID
+
+    if (
+      !data.currentWeek ||
+      !manualPlayer1Id ||
+      !manualPlayer2Id ||
+      (!isReferenceScorecardMatch && manualPlayer1Id === manualPlayer2Id) ||
+      (isReferenceScorecardMatch && !manualReferencePlayerId)
+    ) {
       return
     }
 
@@ -423,7 +442,8 @@ export function WeekClient({ initialData }: WeekClientProps) {
         },
         body: JSON.stringify({
           player1Id: manualPlayer1Id,
-          player2Id: manualPlayer2Id
+          player2Id: manualPlayer2Id,
+          referencePlayerId: isReferenceScorecardMatch ? manualReferencePlayerId : null
         })
       })
 
@@ -679,6 +699,19 @@ export function WeekClient({ initialData }: WeekClientProps) {
   const unmatchedPresentPlayers = data.attendance.filter(
     (player) => player.present && !matchedPlayerIds.has(player.playerId)
   )
+  const latestLiveMatch = [...data.currentWeek.matches].reverse().find((match) => !match.player2ScorecardOnly)
+  const referenceScorecardPlayers = latestLiveMatch
+    ? [
+        {
+          playerId: latestLiveMatch.player1Id,
+          name: latestLiveMatch.player1Name
+        },
+        {
+          playerId: latestLiveMatch.player2Id,
+          name: latestLiveMatch.player2Name
+        }
+      ]
+    : []
   const canGeneratePairings =
     unmatchedPresentPlayers.length >= 2 &&
     !!data.currentWeek.courseId &&
@@ -688,10 +721,13 @@ export function WeekClient({ initialData }: WeekClientProps) {
     data.currentWeek.matches.length > 0 && data.currentWeek.matches.every((match) => match.scoreComplete)
   const canCreateManualPairing =
     !data.currentWeek.locked &&
-    unmatchedPresentPlayers.length >= 2 &&
+    unmatchedPresentPlayers.length >= 1 &&
     manualPlayer1Id.length > 0 &&
     manualPlayer2Id.length > 0 &&
-    manualPlayer1Id !== manualPlayer2Id
+    (manualPlayer2Id === REFERENCE_SCORECARD_PLAYER_ID
+      ? manualReferencePlayerId.length > 0 &&
+        referenceScorecardPlayers.some((player) => player.playerId === manualReferencePlayerId)
+      : manualPlayer1Id !== manualPlayer2Id)
   const canCloseWeek = data.currentWeek.locked && allScoresComplete && !data.currentWeek.completedAt
 
   const selectedCourse =
@@ -1019,6 +1055,7 @@ export function WeekClient({ initialData }: WeekClientProps) {
                 name: player.name,
                 pairingHandicap: player.pairingHandicap
               }))}
+              referenceScorecardPlayers={referenceScorecardPlayers}
               currentCourseTeeOptions={currentCourseTeeOptions}
               allScoresComplete={allScoresComplete}
               canCloseWeek={canCloseWeek}
@@ -1026,10 +1063,12 @@ export function WeekClient({ initialData }: WeekClientProps) {
               canCreateManualPairing={canCreateManualPairing}
               manualPlayer1Id={manualPlayer1Id}
               manualPlayer2Id={manualPlayer2Id}
+              manualReferencePlayerId={manualReferencePlayerId}
               copyMessage={copyMessage}
               isRefreshing={isRefreshing}
               onManualPlayer1Change={setManualPlayer1Id}
               onManualPlayer2Change={setManualPlayer2Id}
+              onManualReferencePlayerChange={setManualReferencePlayerId}
               onGeneratePairings={generatePairings}
               onSetLockState={setLockState}
               onCreateManualPairing={createManualPairing}
@@ -1096,6 +1135,7 @@ export function WeekClient({ initialData }: WeekClientProps) {
             name: player.name,
             pairingHandicap: player.pairingHandicap
           }))}
+          referenceScorecardPlayers={referenceScorecardPlayers}
           locked={data.currentWeek.locked}
           allScoresComplete={allScoresComplete}
           canCloseWeek={canCloseWeek}
@@ -1103,11 +1143,13 @@ export function WeekClient({ initialData }: WeekClientProps) {
           canCreateManualPairing={canCreateManualPairing}
           manualPlayer1Id={manualPlayer1Id}
           manualPlayer2Id={manualPlayer2Id}
+          manualReferencePlayerId={manualReferencePlayerId}
           matchCount={data.currentWeek.matchCount}
           generateBlockReason={generateBlockReason}
           isRefreshing={isRefreshing}
           onManualPlayer1Change={setManualPlayer1Id}
           onManualPlayer2Change={setManualPlayer2Id}
+          onManualReferencePlayerChange={setManualReferencePlayerId}
           onGeneratePairings={generatePairings}
           onSetLockState={setLockState}
           onCreateManualPairing={createManualPairing}

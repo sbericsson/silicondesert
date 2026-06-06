@@ -6,6 +6,8 @@ import { getCourseTee, getPlayerSeasonTeeColor } from '@/lib/course-tee'
 import { buildPairingFlags } from '@/lib/matchmaking'
 import { getPlayerHandicapIndexValue, getPlayingHandicap } from '@/lib/playing-handicap'
 
+const REFERENCE_SCORECARD_PLAYER_ID = '__reference_scorecard__'
+
 export async function POST(
   request: NextRequest,
   { params }: { params: { id: string } }
@@ -18,10 +20,19 @@ export async function POST(
   const body = await request.json().catch(() => null)
   const player1Id = typeof body?.player1Id === 'string' ? body.player1Id : null
   const player2Id = typeof body?.player2Id === 'string' ? body.player2Id : null
+  const referencePlayerId = typeof body?.referencePlayerId === 'string' ? body.referencePlayerId : null
+  const isReferenceScorecardMatch = player2Id === REFERENCE_SCORECARD_PLAYER_ID
 
-  if (!player1Id || !player2Id || player1Id === player2Id) {
+  if (!player1Id || !player2Id || (!isReferenceScorecardMatch && player1Id === player2Id)) {
     return NextResponse.json(
       { error: 'Select two different checked-in players for a manual match' },
+      { status: 400 }
+    )
+  }
+
+  if (isReferenceScorecardMatch && (!referencePlayerId || referencePlayerId === player1Id)) {
+    return NextResponse.json(
+      { error: 'Select a reference scorecard from the previous match' },
       { status: 400 }
     )
   }
@@ -44,7 +55,7 @@ export async function POST(
         where: {
           present: true,
           playerId: {
-            in: [player1Id, player2Id]
+            in: isReferenceScorecardMatch ? [player1Id] : [player1Id, player2Id]
           }
         },
         include: {
@@ -70,8 +81,10 @@ export async function POST(
           id: true,
           locked: true,
           player1Id: true,
-          player2Id: true
-        }
+          player2Id: true,
+          player2ScorecardOnly: true
+        },
+        orderBy: { createdAt: 'asc' }
       }
     }
   })
@@ -92,18 +105,38 @@ export async function POST(
     return NextResponse.json({ error: 'Week is locked' }, { status: 409 })
   }
 
-  if (week.attendance.length !== 2) {
+  if (week.attendance.length !== (isReferenceScorecardMatch ? 1 : 2)) {
     return NextResponse.json(
-      { error: 'Both manual pairing players must be checked in for this week' },
+      {
+        error: isReferenceScorecardMatch
+          ? 'Manual pairing player must be checked in for this week'
+          : 'Both manual pairing players must be checked in for this week'
+      },
       { status: 400 }
     )
   }
 
   const pairedPlayerIds = new Set(week.matches.flatMap((match) => [match.player1Id, match.player2Id]))
-  if (pairedPlayerIds.has(player1Id) || pairedPlayerIds.has(player2Id)) {
+  const livePlayer2Id = isReferenceScorecardMatch ? referencePlayerId : player2Id
+  if (pairedPlayerIds.has(player1Id) || (!isReferenceScorecardMatch && pairedPlayerIds.has(livePlayer2Id))) {
     return NextResponse.json(
       { error: 'One of those players is already assigned to a match. Remove that match first.' },
       { status: 409 }
+    )
+  }
+
+  const referenceSourceMatch = [...week.matches]
+    .reverse()
+    .find((match) => !match.player2ScorecardOnly)
+
+  if (
+    isReferenceScorecardMatch &&
+    (!referenceSourceMatch ||
+      (referenceSourceMatch.player1Id !== referencePlayerId && referenceSourceMatch.player2Id !== referencePlayerId))
+  ) {
+    return NextResponse.json(
+      { error: 'Reference scorecard must come from the previous live match' },
+      { status: 400 }
     )
   }
 
@@ -123,8 +156,27 @@ export async function POST(
       })
     : []
 
-  const playersById = new Map(week.attendance.map((entry) => [entry.playerId, entry.player]))
-  const pairingInput = [player1Id, player2Id].map((playerId, index) => {
+  const manualPlayerIds = isReferenceScorecardMatch ? [player1Id, referencePlayerId!] : [player1Id, player2Id]
+  const manualPlayers = isReferenceScorecardMatch
+    ? await prisma.player.findMany({
+        where: { id: { in: manualPlayerIds } },
+        include: {
+          handicapRecords: {
+            where: { countsForHandicap: true },
+            orderBy: { date: 'desc' },
+            take: 20
+          },
+          seasonTeeChoices: true
+        }
+      })
+    : week.attendance.map((entry) => entry.player)
+  const playersById = new Map(manualPlayers.map((player) => [player.id, player]))
+
+  if (manualPlayerIds.some((playerId) => !playersById.has(playerId))) {
+    return NextResponse.json({ error: 'Selected player could not be loaded' }, { status: 409 })
+  }
+
+  const pairingInput = manualPlayerIds.map((playerId, index) => {
     const player = playersById.get(playerId)!
     const handicapIndexValue = getPlayerHandicapIndexValue(player)
     const teeColor = getPlayerSeasonTeeColor(
@@ -161,7 +213,8 @@ export async function POST(
       data: {
         weekId: params.id,
         player1Id,
-        player2Id
+        player2Id: livePlayer2Id!,
+        player2ScorecardOnly: isReferenceScorecardMatch
       }
     })
 
@@ -171,7 +224,9 @@ export async function POST(
       action: 'pairings_manual_create',
       field: 'players',
       oldValue: null,
-      newValue: `${player1Id}:${player2Id}`
+      newValue: isReferenceScorecardMatch
+        ? `${player1Id}:reference:${livePlayer2Id}`
+        : `${player1Id}:${livePlayer2Id}`
     })
 
     return match

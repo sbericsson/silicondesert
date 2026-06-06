@@ -42,6 +42,13 @@ export type UnmatchedPlayer = {
   }
 }
 
+export type ReferenceScorecardPlayer = {
+  playerId: string
+  name: string
+}
+
+const REFERENCE_SCORECARD_PLAYER_ID = '__reference_scorecard__'
+
 interface PairingsSectionProps {
   weekId: string
   matches: PairingMatch[]
@@ -49,6 +56,7 @@ interface PairingsSectionProps {
   locked: boolean
   handicapMode: 'index' | 'course'
   unmatchedPresentPlayers: UnmatchedPlayer[]
+  referenceScorecardPlayers: ReferenceScorecardPlayer[]
   currentCourseTeeOptions: TeeColor[]
   allScoresComplete: boolean
   canCloseWeek: boolean
@@ -56,10 +64,12 @@ interface PairingsSectionProps {
   canCreateManualPairing: boolean
   manualPlayer1Id: string
   manualPlayer2Id: string
+  manualReferencePlayerId: string
   copyMessage: string | null
   isRefreshing: boolean
   onManualPlayer1Change: (value: string) => void
   onManualPlayer2Change: (value: string) => void
+  onManualReferencePlayerChange: (value: string) => void
   onGeneratePairings: () => void
   onSetLockState: (locked: boolean) => void
   onCreateManualPairing: () => void
@@ -82,6 +92,7 @@ export function PairingsSection({
   locked,
   handicapMode,
   unmatchedPresentPlayers,
+  referenceScorecardPlayers,
   currentCourseTeeOptions,
   allScoresComplete,
   canCloseWeek,
@@ -89,10 +100,12 @@ export function PairingsSection({
   canCreateManualPairing,
   manualPlayer1Id,
   manualPlayer2Id,
+  manualReferencePlayerId,
   copyMessage,
   isRefreshing,
   onManualPlayer1Change,
   onManualPlayer2Change,
+  onManualReferencePlayerChange,
   onGeneratePairings,
   onSetLockState,
   onCreateManualPairing,
@@ -106,6 +119,8 @@ export function PairingsSection({
   function getManualPlayerLabel(player: UnmatchedPlayer) {
     return `${player.name} - ${player.pairingHandicap.label} ${player.pairingHandicap.value}`
   }
+
+  const canUseReferenceScorecard = referenceScorecardPlayers.length > 0
 
   return (
     <section id="pairings" className="rounded-xl border border-surface-border bg-surface-elevated p-4">
@@ -344,14 +359,15 @@ export function PairingsSection({
             Manual Pairing
           </p>
           <p className="mt-2 text-sm text-text-secondary">
-            Use this when you want to hand-build a specific match. Only unmatched checked-in players are shown.
+            Use this when you want to hand-build a specific match. Player 2 can also use a reference
+            scorecard from the latest live match.
           </p>
           <div className="mt-4 grid gap-3 md:grid-cols-[1fr_1fr_auto]">
             <select
               className="rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
               value={manualPlayer1Id}
               onChange={(event) => onManualPlayer1Change(event.target.value)}
-              disabled={isRefreshing || unmatchedPresentPlayers.length < 2}
+              disabled={isRefreshing || unmatchedPresentPlayers.length < 1}
             >
               <option value="">Select player 1</option>
               {unmatchedPresentPlayers.map((player) => (
@@ -364,7 +380,7 @@ export function PairingsSection({
               className="rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
               value={manualPlayer2Id}
               onChange={(event) => onManualPlayer2Change(event.target.value)}
-              disabled={isRefreshing || unmatchedPresentPlayers.length < 2}
+              disabled={isRefreshing || unmatchedPresentPlayers.length < 1}
             >
               <option value="">Select player 2</option>
               {unmatchedPresentPlayers
@@ -374,6 +390,9 @@ export function PairingsSection({
                     {getManualPlayerLabel(player)}
                   </option>
                 ))}
+              {canUseReferenceScorecard ? (
+                <option value={REFERENCE_SCORECARD_PLAYER_ID}>Reference scorecard</option>
+              ) : null}
             </select>
             <button
               type="button"
@@ -384,6 +403,26 @@ export function PairingsSection({
               Create Match
             </button>
           </div>
+          {manualPlayer2Id === REFERENCE_SCORECARD_PLAYER_ID ? (
+            <label className="mt-3 block">
+              <span className="font-condensed text-[11px] font-semibold uppercase tracking-widest text-text-muted">
+                Reference Player
+              </span>
+              <select
+                className="mt-1 w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
+                value={manualReferencePlayerId}
+                onChange={(event) => onManualReferencePlayerChange(event.target.value)}
+                disabled={isRefreshing || !canUseReferenceScorecard}
+              >
+                <option value="">Select reference player</option>
+                {referenceScorecardPlayers.map((player) => (
+                  <option key={player.playerId} value={player.playerId}>
+                    {player.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+          ) : null}
         </div>
       ) : null}
     </section>

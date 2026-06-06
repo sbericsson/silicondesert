@@ -27,11 +27,21 @@ function formatMatchState(lead: number, player1Name: string, player2Name: string
     : `${formatCompactName(player2Name)} ${Math.abs(lead)} up`
 }
 
+function formatClinchedMatchState(lead: number, holesRemaining: number, player1Name: string, player2Name: string) {
+  const winnerName = lead > 0 ? formatCompactName(player1Name) : formatCompactName(player2Name)
+
+  return holesRemaining === 0
+    ? `${winnerName} ${Math.abs(lead)} up`
+    : `${winnerName} ${Math.abs(lead)}&${holesRemaining}`
+}
+
 function getHoleRows(data: PublicMatchHoleData) {
   let lead = 0
+  let matchClosed = false
 
-  return data.rows.map((row) => {
+  return data.rows.map((row, index) => {
     let holeResult = 'Pending'
+    let matchState = '-'
 
     if (row.player1Net !== null && row.player2Net !== null) {
       if (row.player1Net < row.player2Net) {
@@ -43,14 +53,24 @@ function getHoleRows(data: PublicMatchHoleData) {
       } else {
         holeResult = 'Halved'
       }
+
+      if (!matchClosed) {
+        const holesRemaining = data.rows.length - index - 1
+        const clinched = Math.abs(lead) > holesRemaining
+
+        matchState = clinched
+          ? formatClinchedMatchState(lead, holesRemaining, data.match.player1.name, data.match.player2.name)
+          : formatMatchState(lead, data.match.player1.name, data.match.player2.name)
+        matchClosed = clinched
+      } else {
+        matchState = ''
+      }
     }
 
     return {
       ...row,
       holeResult,
-      matchState: row.player1Net === null || row.player2Net === null
-        ? '-'
-        : formatMatchState(lead, data.match.player1.name, data.match.player2.name)
+      matchState
     }
   })
 }

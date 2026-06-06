@@ -28,7 +28,7 @@ const columns: Array<{
   { key: 'name', label: 'Player' },
   { key: 'totalPoints', label: 'Pts', align: 'right' },
   { key: 'attendancePoints', label: 'Att', align: 'right' },
-  { key: 'strokePoints', label: 'Stroke', align: 'right' },
+  { key: 'strokePoints', label: 'Str', align: 'right' },
   { key: 'matchPlayPoints', label: 'Match', align: 'right' },
   { key: 'ctpWins', label: 'CTP', align: 'right' },
   { key: 'lpWins', label: 'LP', align: 'right' }
@@ -79,25 +79,25 @@ export function PublicStandingsTable({
 
   return (
     <div className="overflow-x-auto rounded-2xl border border-surface-border bg-surface-elevated shadow-sm">
-      <table className="min-w-[820px] table-fixed border-collapse">
+      <table className="w-full min-w-[640px] table-fixed border-collapse">
         <colgroup>
-          <col className="w-16" />
+          <col className="w-10" />
           <col />
-          <col className="w-20" />
-          <col className="w-20" />
-          <col className="w-20" />
-          <col className="w-24" />
-          <col className="w-24" />
+          <col className="w-14" />
+          <col className="w-14" />
+          <col className="w-14" />
           <col className="w-16" />
           <col className="w-16" />
+          <col className="w-12" />
+          <col className="w-12" />
         </colgroup>
         <thead>
           <tr className="border-b border-surface-border bg-surface-sunken font-condensed text-[11px] font-bold uppercase tracking-widest text-text-muted">
-            <th className="px-4 py-3 text-left">#</th>
+            <th className="px-2 py-3 text-left">#</th>
             {columns.filter((column) => column.key === 'name').map((column) => (
               <th
                 key={column.key}
-                className={`px-4 py-3 ${column.align === 'right' ? 'text-right' : 'text-left'}`}
+                className={`px-2 py-3 ${column.align === 'right' ? 'text-right' : 'text-left'}`}
                 aria-sort={
                   sortKey === column.key
                     ? sortDirection === 'asc'
@@ -108,7 +108,7 @@ export function PublicStandingsTable({
               >
                 <button
                   type="button"
-                  className={`inline-flex min-h-11 items-center gap-1 ${
+                  className={`inline-flex min-h-9 items-center gap-1 ${
                     column.align === 'right' ? 'justify-end' : ''
                   } ${
                     sortKey === column.key ? 'text-text-primary' : ''
@@ -121,11 +121,11 @@ export function PublicStandingsTable({
                 </button>
               </th>
             ))}
-            <th className="px-4 py-3 text-right">HCP</th>
+            <th className="px-2 py-3 text-right">HCP</th>
             {columns.filter((column) => column.key !== 'name').map((column) => (
               <th
                 key={column.key}
-                className={`px-4 py-3 ${column.align === 'right' ? 'text-right' : 'text-left'}`}
+                className={`px-2 py-3 ${column.align === 'right' ? 'text-right' : 'text-left'}`}
                 aria-sort={
                   sortKey === column.key
                     ? sortDirection === 'asc'
@@ -136,7 +136,7 @@ export function PublicStandingsTable({
               >
                 <button
                   type="button"
-                  className={`inline-flex min-h-11 items-center gap-1 ${
+                  className={`inline-flex min-h-9 items-center gap-1 ${
                     column.align === 'right' ? 'justify-end' : ''
                   } ${
                     sortKey === column.key ? 'text-text-primary' : ''
@@ -154,21 +154,21 @@ export function PublicStandingsTable({
         <tbody>
           {sortedRows.map((row, index) => (
             <tr key={row.playerId} className={index % 2 === 0 ? 'bg-surface-base' : 'bg-surface-elevated'}>
-              <td className="px-4 py-3 text-sm font-medium text-text-secondary">{index + 1}</td>
+              <td className="px-2 py-3 text-sm font-medium text-text-secondary">{index + 1}</td>
               <td
-                className={`sticky left-0 z-10 px-4 py-3 text-sm font-medium text-text-primary ${
+                className={`sticky left-0 z-10 px-2 py-3 text-sm font-medium text-text-primary ${
                   index % 2 === 0 ? 'bg-surface-base' : 'bg-surface-elevated'
                 }`}
               >
                 {row.name}
               </td>
-              <td className="px-4 py-3 text-right text-sm tabular-nums text-text-secondary">{row.currentIndexDisplay}</td>
-              <td className="px-4 py-3 text-right text-sm font-semibold tabular-nums text-text-primary">{row.totalPoints}</td>
-              <td className="px-4 py-3 text-right text-sm tabular-nums text-text-primary">{row.attendancePoints}</td>
-              <td className="px-4 py-3 text-right text-sm tabular-nums text-text-primary">{row.strokePoints}</td>
-              <td className="px-4 py-3 text-right text-sm tabular-nums text-text-primary">{row.matchPlayPoints}</td>
-              <td className="px-4 py-3 text-right text-sm tabular-nums text-text-primary">{row.ctpWins}</td>
-              <td className="px-4 py-3 text-right text-sm tabular-nums text-text-primary">{row.lpWins}</td>
+              <td className="px-2 py-3 text-right text-sm tabular-nums text-text-secondary">{row.currentIndexDisplay}</td>
+              <td className="px-2 py-3 text-right text-sm font-semibold tabular-nums text-text-primary">{row.totalPoints}</td>
+              <td className="px-2 py-3 text-right text-sm tabular-nums text-text-primary">{row.attendancePoints}</td>
+              <td className="px-2 py-3 text-right text-sm tabular-nums text-text-primary">{row.strokePoints}</td>
+              <td className="px-2 py-3 text-right text-sm tabular-nums text-text-primary">{row.matchPlayPoints}</td>
+              <td className="px-2 py-3 text-right text-sm tabular-nums text-text-primary">{row.ctpWins}</td>
+              <td className="px-2 py-3 text-right text-sm tabular-nums text-text-primary">{row.lpWins}</td>
             </tr>
           ))}
         </tbody>

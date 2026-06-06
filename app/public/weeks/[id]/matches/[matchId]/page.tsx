@@ -12,12 +12,19 @@ function formatScore(value: number | null) {
   return value === null ? '-' : String(value)
 }
 
+function formatCompactName(name: string) {
+  const parts = name.trim().split(/\s+/)
+  return parts.at(-1) ?? name
+}
+
 function formatMatchState(lead: number, player1Name: string, player2Name: string) {
   if (lead === 0) {
     return 'AS'
   }
 
-  return lead > 0 ? `${player1Name} ${lead} up` : `${player2Name} ${Math.abs(lead)} up`
+  return lead > 0
+    ? `${formatCompactName(player1Name)} ${lead} up`
+    : `${formatCompactName(player2Name)} ${Math.abs(lead)} up`
 }
 
 function getHoleRows(data: PublicMatchHoleData) {
@@ -29,10 +36,10 @@ function getHoleRows(data: PublicMatchHoleData) {
     if (row.player1Net !== null && row.player2Net !== null) {
       if (row.player1Net < row.player2Net) {
         lead += 1
-        holeResult = data.match.player1.name
+        holeResult = formatCompactName(data.match.player1.name)
       } else if (row.player2Net < row.player1Net) {
         lead -= 1
-        holeResult = data.match.player2.name
+        holeResult = formatCompactName(data.match.player2.name)
       } else {
         holeResult = 'Halved'
       }
@@ -149,64 +156,77 @@ export default async function PublicMatchDetailPage({
 
       <section className="overflow-hidden rounded-2xl border border-surface-border bg-surface-elevated shadow-sm">
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[760px] border-collapse text-sm">
+          <table className="w-full min-w-[680px] table-fixed border-collapse text-sm">
+            <colgroup>
+              <col className="w-10" />
+              <col className="w-10" />
+              <col className="w-10" />
+              <col className="w-20" />
+              <col className="w-14" />
+              <col className="w-14" />
+              <col className="w-20" />
+              <col className="w-14" />
+              <col className="w-14" />
+              <col className="w-24" />
+              <col className="w-24" />
+            </colgroup>
             <thead>
               <tr className="border-b border-surface-border bg-surface-sunken text-left font-condensed text-[11px] font-bold uppercase tracking-widest text-text-muted">
-                <th className="px-3 py-3">Hole</th>
-                <th className="px-3 py-3 text-right">Par</th>
-                <th className="px-3 py-3 text-right">SI</th>
-                <th className="px-3 py-3 text-right">{data.match.player1.name}</th>
-                <th className="px-3 py-3 text-right">Pops</th>
-                <th className="px-3 py-3 text-right">Net</th>
-                <th className="px-3 py-3 text-right">{data.match.player2.name}</th>
-                <th className="px-3 py-3 text-right">Pops</th>
-                <th className="px-3 py-3 text-right">Net</th>
-                <th className="px-3 py-3">Hole</th>
-                <th className="px-3 py-3">Match</th>
+                <th className="px-2 py-3">Hole</th>
+                <th className="px-2 py-3 text-right">Par</th>
+                <th className="px-2 py-3 text-right">SI</th>
+                <th className="px-2 py-3 text-right">{formatCompactName(data.match.player1.name)}</th>
+                <th className="px-2 py-3 text-right">Pops</th>
+                <th className="px-2 py-3 text-right">Net</th>
+                <th className="px-2 py-3 text-right">{formatCompactName(data.match.player2.name)}</th>
+                <th className="px-2 py-3 text-right">Pops</th>
+                <th className="px-2 py-3 text-right">Net</th>
+                <th className="px-2 py-3">Hole</th>
+                <th className="px-2 py-3">Match</th>
               </tr>
             </thead>
             <tbody>
               {rows.map((row) => (
                 <tr key={row.holeNumber} className="border-b border-surface-border last:border-0">
-                  <td className="px-3 py-3 font-semibold text-text-primary">{row.holeNumber}</td>
-                  <td className="px-3 py-3 text-right tabular-nums text-text-secondary">{row.par}</td>
-                  <td className="px-3 py-3 text-right tabular-nums text-text-secondary">{row.strokeIndex}</td>
-                  <td className="px-3 py-3 text-right tabular-nums font-semibold text-text-primary">
+                  <td className="px-2 py-3 font-semibold text-text-primary">{row.holeNumber}</td>
+                  <td className="px-2 py-3 text-right tabular-nums text-text-secondary">{row.par}</td>
+                  <td className="px-2 py-3 text-right tabular-nums text-text-secondary">{row.strokeIndex}</td>
+                  <td className="px-2 py-3 text-right tabular-nums font-semibold text-text-primary">
                     {formatScore(row.player1Gross)}
                   </td>
-                  <td className="px-3 py-3 text-right tabular-nums text-accent-text">
+                  <td className="px-2 py-3 text-right tabular-nums text-accent-text">
                     {row.player1StrokesReceived || '-'}
                   </td>
-                  <td className="px-3 py-3 text-right tabular-nums text-text-secondary">
+                  <td className="px-2 py-3 text-right tabular-nums text-text-secondary">
                     {formatScore(row.player1Net)}
                   </td>
-                  <td className="px-3 py-3 text-right tabular-nums font-semibold text-text-primary">
+                  <td className="px-2 py-3 text-right tabular-nums font-semibold text-text-primary">
                     {formatScore(row.player2Gross)}
                   </td>
-                  <td className="px-3 py-3 text-right tabular-nums text-accent-text">
+                  <td className="px-2 py-3 text-right tabular-nums text-accent-text">
                     {row.player2StrokesReceived || '-'}
                   </td>
-                  <td className="px-3 py-3 text-right tabular-nums text-text-secondary">
+                  <td className="px-2 py-3 text-right tabular-nums text-text-secondary">
                     {formatScore(row.player2Net)}
                   </td>
-                  <td className="px-3 py-3 font-medium text-text-primary">{row.holeResult}</td>
-                  <td className="px-3 py-3 text-text-secondary">{row.matchState}</td>
+                  <td className="px-2 py-3 font-medium text-text-primary">{row.holeResult}</td>
+                  <td className="px-2 py-3 text-text-secondary">{row.matchState}</td>
                 </tr>
               ))}
             </tbody>
             <tfoot>
               <tr className="border-t border-surface-border bg-surface-sunken font-semibold">
-                <td className="px-3 py-3 text-text-primary">Total</td>
-                <td className="px-3 py-3" />
-                <td className="px-3 py-3" />
-                <td className="px-3 py-3 text-right tabular-nums text-text-primary">{totals.player1Gross}</td>
-                <td className="px-3 py-3" />
-                <td className="px-3 py-3 text-right tabular-nums text-text-primary">{totals.player1Net}</td>
-                <td className="px-3 py-3 text-right tabular-nums text-text-primary">{totals.player2Gross}</td>
-                <td className="px-3 py-3" />
-                <td className="px-3 py-3 text-right tabular-nums text-text-primary">{totals.player2Net}</td>
-                <td className="px-3 py-3" />
-                <td className="px-3 py-3" />
+                <td className="px-2 py-3 text-text-primary">Total</td>
+                <td className="px-2 py-3" />
+                <td className="px-2 py-3" />
+                <td className="px-2 py-3 text-right tabular-nums text-text-primary">{totals.player1Gross}</td>
+                <td className="px-2 py-3" />
+                <td className="px-2 py-3 text-right tabular-nums text-text-primary">{totals.player1Net}</td>
+                <td className="px-2 py-3 text-right tabular-nums text-text-primary">{totals.player2Gross}</td>
+                <td className="px-2 py-3" />
+                <td className="px-2 py-3 text-right tabular-nums text-text-primary">{totals.player2Net}</td>
+                <td className="px-2 py-3" />
+                <td className="px-2 py-3" />
               </tr>
             </tfoot>
           </table>

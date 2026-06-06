@@ -63,6 +63,7 @@ function getHoleRows(data: PublicMatchHoleData) {
           : formatMatchState(lead, data.match.player1.name, data.match.player2.name)
         matchClosed = clinched
       } else {
+        holeResult = ''
         matchState = ''
       }
     }

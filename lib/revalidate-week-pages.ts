@@ -7,4 +7,5 @@ export function revalidateWeekPages(weekId: string) {
   revalidatePath('/public/schedule')
   revalidatePath(`/public/weeks/${weekId}`)
   revalidatePath(`/public/weeks/${weekId}/print`)
+  revalidatePath('/public/weeks/[id]/matches/[matchId]', 'page')
 }

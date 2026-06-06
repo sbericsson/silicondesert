@@ -4,6 +4,7 @@ import { getHandicapModeLabel, getPlayerHandicapIndexValue, getPlayingHandicap }
 import { applyStoredMatchResult } from '@/lib/points'
 import { resolveStrokeWinnerId } from '@/lib/stroke-result'
 import { formatDate } from '@/lib/week'
+import { getMatchScorePageData } from '@/lib/match-score'
 
 function formatMatchPlaySummary(input: {
   matchPlayWinnerId: string | null
@@ -253,5 +254,48 @@ export async function getPublicWeekData(weekId: string) {
         })
       }
     })
+  }
+}
+
+export async function getPublicMatchHoleData(weekId: string, matchId: string) {
+  const weekData = await getPublicWeekData(weekId)
+
+  if (!weekData || !weekData.resultsVisible) {
+    return null
+  }
+
+  const matchSummary = weekData.matches.find((match) => match.id === matchId)
+  if (!matchSummary) {
+    return null
+  }
+
+  const scoreData = await getMatchScorePageData(weekId, matchId)
+  if (!scoreData) {
+    return null
+  }
+
+  return {
+    week: {
+      id: weekData.id,
+      weekNumber: weekData.weekNumber,
+      seasonName: weekData.seasonName,
+      dateLabel: weekData.dateLabel,
+      courseName: weekData.courseName,
+      handicapModeLabel: weekData.handicapModeLabel
+    },
+    match: {
+      id: matchSummary.id,
+      label: matchSummary.label,
+      isThreesome: matchSummary.isThreesome,
+      strokeSummary: matchSummary.strokeSummary,
+      matchPlaySummary: matchSummary.matchPlaySummary,
+      player1: scoreData.match.player1,
+      player2: scoreData.match.player2,
+      player1Points: matchSummary.player1Points,
+      player2Points: matchSummary.player2Points,
+      player1NetTotal: scoreData.match.player1NetTotal,
+      player2NetTotal: scoreData.match.player2NetTotal
+    },
+    rows: scoreData.rows
   }
 }

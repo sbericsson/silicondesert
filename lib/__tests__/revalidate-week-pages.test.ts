@@ -14,12 +14,13 @@ describe('revalidateWeekPages', () => {
 
     revalidateWeekPages('week-123')
 
-    expect(revalidatePathMock).toHaveBeenCalledTimes(6)
+    expect(revalidatePathMock).toHaveBeenCalledTimes(7)
     expect(revalidatePathMock).toHaveBeenNthCalledWith(1, '/history')
     expect(revalidatePathMock).toHaveBeenNthCalledWith(2, '/public/week')
     expect(revalidatePathMock).toHaveBeenNthCalledWith(3, '/public/standings')
     expect(revalidatePathMock).toHaveBeenNthCalledWith(4, '/public/schedule')
     expect(revalidatePathMock).toHaveBeenNthCalledWith(5, '/public/weeks/week-123')
     expect(revalidatePathMock).toHaveBeenNthCalledWith(6, '/public/weeks/week-123/print')
+    expect(revalidatePathMock).toHaveBeenNthCalledWith(7, '/public/weeks/[id]/matches/[matchId]', 'page')
   })
 })

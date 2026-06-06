@@ -54,6 +54,95 @@ export async function generateMetadata({
   }
 }
 
+function PublicMatchCard({
+  weekId,
+  match,
+  resultsVisible,
+  pairingsVisible
+}: {
+  weekId: string
+  match: NonNullable<Awaited<ReturnType<typeof getPublicWeekData>>>['matches'][number]
+  resultsVisible: boolean
+  pairingsVisible: boolean
+}) {
+  const cardClassName =
+    'block rounded-3xl border border-surface-border bg-surface-elevated p-5 shadow-sm transition hover:border-accent hover:bg-surface-base'
+  const content = (
+    <>
+      <div className="flex items-center justify-between gap-3">
+        <p className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
+          {match.label}
+        </p>
+        <div className="flex flex-wrap items-center justify-end gap-2">
+          {match.isThreesome ? (
+            <span className="rounded-full bg-surface-sunken px-2 py-1 font-condensed text-[11px] font-semibold uppercase tracking-widest text-text-secondary">
+              Threesome
+            </span>
+          ) : null}
+          {resultsVisible ? (
+            <span className="font-condensed text-[11px] font-semibold uppercase tracking-widest text-accent-text">
+              View Hole-By-Hole
+            </span>
+          ) : null}
+        </div>
+      </div>
+
+      <div className="mt-4 grid gap-3">
+        <div className="flex items-center justify-between gap-3 rounded-2xl border border-surface-border bg-surface-base px-4 py-3">
+          <div>
+            <p className="font-condensed text-[15px] font-semibold uppercase text-text-primary">{match.player1Name}</p>
+            <p className="mt-1 text-xs text-text-secondary">
+              Handicap {match.player1PlayingHandicap}
+            </p>
+          </div>
+          {resultsVisible ? (
+            <p className="text-[15px] font-bold text-text-primary">{match.player1Points} pts</p>
+          ) : null}
+        </div>
+        <p className="font-condensed text-center text-xs font-bold uppercase tracking-widest text-text-muted">
+          vs
+        </p>
+        <div className="flex items-center justify-between gap-3 rounded-2xl border border-surface-border bg-surface-base px-4 py-3">
+          <div>
+            <p className="font-condensed text-[15px] font-semibold uppercase text-text-primary">{match.player2Name}</p>
+            <p className="mt-1 text-xs text-text-secondary">
+              Handicap {match.player2PlayingHandicap}
+            </p>
+          </div>
+          {resultsVisible ? (
+            <p className="text-[15px] font-bold text-text-primary">{match.player2Points} pts</p>
+          ) : null}
+        </div>
+      </div>
+
+      {resultsVisible ? (
+        <div className="mt-4 rounded-2xl border border-surface-border bg-surface-base px-4 py-3 text-sm text-text-secondary">
+          <p>Stroke: {match.strokeSummary}</p>
+          <p className="mt-1">Match: {match.matchPlaySummary}</p>
+        </div>
+      ) : pairingsVisible ? (
+        <p className="mt-4 text-sm text-text-secondary">
+          Pairings are locked. Scores will appear here after all matches are submitted.
+        </p>
+      ) : (
+        <p className="mt-4 text-sm text-text-secondary">
+          Pairings are not public yet.
+        </p>
+      )}
+    </>
+  )
+
+  if (resultsVisible) {
+    return (
+      <Link href={`/public/weeks/${weekId}/matches/${match.id}`} className={cardClassName}>
+        {content}
+      </Link>
+    )
+  }
+
+  return <article className={cardClassName}>{content}</article>
+}
+
 export default async function PublicWeekDetailPage({
   params
 }: {
@@ -150,64 +239,13 @@ export default async function PublicWeekDetailPage({
 
       <section className="space-y-3">
         {data.matches.map((match) => (
-          <article
+          <PublicMatchCard
             key={match.id}
-            className="rounded-3xl border border-surface-border bg-surface-elevated p-5 shadow-sm"
-          >
-            <div className="flex items-center justify-between gap-3">
-              <p className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
-                {match.label}
-              </p>
-              {match.isThreesome ? (
-                <span className="rounded-full bg-surface-sunken px-2 py-1 font-condensed text-[11px] font-semibold uppercase tracking-widest text-text-secondary">
-                  Threesome
-                </span>
-              ) : null}
-            </div>
-
-            <div className="mt-4 grid gap-3">
-              <div className="flex items-center justify-between gap-3 rounded-2xl border border-surface-border bg-surface-base px-4 py-3">
-                <div>
-                  <p className="font-condensed text-[15px] font-semibold uppercase text-text-primary">{match.player1Name}</p>
-                  <p className="mt-1 text-xs text-text-secondary">
-                    Handicap {match.player1PlayingHandicap}
-                  </p>
-                </div>
-                {data.resultsVisible ? (
-                  <p className="text-[15px] font-bold text-text-primary">{match.player1Points} pts</p>
-                ) : null}
-              </div>
-              <p className="font-condensed text-center text-xs font-bold uppercase tracking-widest text-text-muted">
-                vs
-              </p>
-              <div className="flex items-center justify-between gap-3 rounded-2xl border border-surface-border bg-surface-base px-4 py-3">
-                <div>
-                  <p className="font-condensed text-[15px] font-semibold uppercase text-text-primary">{match.player2Name}</p>
-                  <p className="mt-1 text-xs text-text-secondary">
-                    Handicap {match.player2PlayingHandicap}
-                  </p>
-                </div>
-                {data.resultsVisible ? (
-                  <p className="text-[15px] font-bold text-text-primary">{match.player2Points} pts</p>
-                ) : null}
-              </div>
-            </div>
-
-            {data.resultsVisible ? (
-              <div className="mt-4 rounded-2xl border border-surface-border bg-surface-base px-4 py-3 text-sm text-text-secondary">
-                <p>Stroke: {match.strokeSummary}</p>
-                <p className="mt-1">Match: {match.matchPlaySummary}</p>
-              </div>
-            ) : data.pairingsVisible ? (
-              <p className="mt-4 text-sm text-text-secondary">
-                Pairings are locked. Scores will appear here after all matches are submitted.
-              </p>
-            ) : (
-              <p className="mt-4 text-sm text-text-secondary">
-                Pairings are not public yet.
-              </p>
-            )}
-          </article>
+            weekId={data.id}
+            match={match}
+            resultsVisible={data.resultsVisible}
+            pairingsVisible={data.pairingsVisible}
+          />
         ))}
       </section>
     </section>

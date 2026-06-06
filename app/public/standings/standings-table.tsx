@@ -28,7 +28,7 @@ const columns: Array<{
   { key: 'name', label: 'Player' },
   { key: 'totalPoints', label: 'Pts', align: 'right' },
   { key: 'attendancePoints', label: 'Att', align: 'right' },
-  { key: 'strokePoints', label: 'Str', align: 'right' },
+  { key: 'strokePoints', label: 'Stroke', align: 'right' },
   { key: 'matchPlayPoints', label: 'Match', align: 'right' },
   { key: 'ctpWins', label: 'CTP', align: 'right' },
   { key: 'lpWins', label: 'LP', align: 'right' }

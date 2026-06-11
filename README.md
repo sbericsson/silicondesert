@@ -81,7 +81,7 @@ In odd-player weeks, a scorecard-only reference opponent does not earn attendanc
 The pairing algorithm balances two competing goals: keep handicap gaps reasonable and avoid rematches within a season. The base cost function is:
 
 ```
-cost = handicapGap × 2 + repeatCount × 20
+cost = handicapGap × 2 + repeatCount × 30
 ```
 
 Pairings use the current week's handicap basis: rounded index or course handicap. Early-bird players are paired first with their best available opponent, then the remaining players are paired greedily from the sorted handicap list. Groups are ordered so early-bird groups float up and the designated trailing player stays in the last group when possible.

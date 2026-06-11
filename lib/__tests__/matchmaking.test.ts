@@ -1,6 +1,19 @@
 import { describe, expect, it } from 'vitest'
 import { buildPairingFlags, generatePairings } from '@/lib/matchmaking'
 
+function hasPair(
+  matches: Array<{ player1: { id: string }; player2: { id: string } }>,
+  player1Id: string,
+  player2Id: string
+) {
+  return matches.some(
+    (match) =>
+      new Set([match.player1.id, match.player2.id]).size === 2 &&
+      [match.player1.id, match.player2.id].includes(player1Id) &&
+      [match.player1.id, match.player2.id].includes(player2Id)
+  )
+}
+
 describe('generatePairings', () => {
   it('returns disjoint matches for an even player count', () => {
     const result = generatePairings(
@@ -278,6 +291,37 @@ describe('generatePairings', () => {
         pivot: { id: 'e' }
       }
     })
+  })
+
+  it('does not strand a repeat pairing when a lower total-cost arrangement exists', () => {
+    const result = generatePairings(
+      [
+        { id: 'gary', name: 'Gary Clinton', handicapIndex: 11, checkInOrder: 1 },
+        { id: 'mike', name: 'Mike Clay', handicapIndex: 9, checkInOrder: 2 },
+        { id: 'john', name: 'John Callahan', handicapIndex: 6, checkInOrder: 3 },
+        { id: 'natasha', name: 'Natasha Ericsson', handicapIndex: 18, checkInOrder: 4 },
+        { id: 'stein', name: 'Stein Ericsson', handicapIndex: 8, checkInOrder: 5 },
+        { id: 'frank', name: 'Frank Gillern', handicapIndex: 8, checkInOrder: 6 },
+        { id: 'stephen', name: 'Stephen Hart', handicapIndex: 7, checkInOrder: 7 },
+        { id: 'jack', name: 'Jack Higgins', handicapIndex: 10, checkInOrder: 8 },
+        { id: 'teri', name: 'Teri Hoeft', handicapIndex: 2, checkInOrder: 9 },
+        { id: 'will', name: 'Will Hooke', handicapIndex: 2, checkInOrder: 10 },
+        { id: 'ken', name: 'Ken Kimball', handicapIndex: 12, checkInOrder: 11 },
+        { id: 'jim', name: 'Jim Sopko', handicapIndex: 14, checkInOrder: 12 },
+        { id: 'tom', name: 'Tom Sleasman', handicapIndex: 4, checkInOrder: 13 },
+        { id: 'chris', name: 'Chris Wozniak', handicapIndex: 12, checkInOrder: 14 },
+        { id: 'peter', name: 'Peter Pestalozzi', handicapIndex: 1, checkInOrder: 15 },
+        { id: 'lisa', name: 'Lisa Aubuchon', handicapIndex: 12, checkInOrder: 16 }
+      ],
+      [{ player1Id: 'chris', player2Id: 'jim' }]
+    )
+
+    expect(hasPair(result.matches, 'chris', 'jim')).toBe(false)
+    expect(result.flags).not.toContainEqual(
+      expect.objectContaining({
+        type: 'repeat'
+      })
+    )
   })
 })
 

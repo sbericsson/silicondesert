@@ -63,35 +63,6 @@ function buildRepeatCounts(priorMatchesThisSeason: PriorMatch[]) {
   return counts
 }
 
-function greedyMatches(players: Player[], repeatCounts: Map<string, number>) {
-  const sorted = [...players].sort((a, b) => a.handicapIndex - b.handicapIndex)
-  const remaining = [...sorted]
-  const matches: Array<{ player1: Player; player2: Player }> = []
-
-  while (remaining.length > 1) {
-    const player = remaining.shift()
-    if (!player) {
-      break
-    }
-
-    let bestIndex = 0
-    let bestCost = Number.POSITIVE_INFINITY
-
-    remaining.forEach((candidate, index) => {
-      const cost = pairCost(player, candidate, repeatCounts)
-      if (cost < bestCost) {
-        bestCost = cost
-        bestIndex = index
-      }
-    })
-
-    const [opponent] = remaining.splice(bestIndex, 1)
-    matches.push({ player1: player, player2: opponent })
-  }
-
-  return matches
-}
-
 function comparePlayersByHandicapThenKey(playerA: Player, playerB: Player) {
   const handicapComparison = playerA.handicapIndex - playerB.handicapIndex
   if (handicapComparison !== 0) {
@@ -99,6 +70,80 @@ function comparePlayersByHandicapThenKey(playerA: Player, playerB: Player) {
   }
 
   return playerA.id.localeCompare(playerB.id)
+}
+
+function matchSignature(matches: Array<{ player1: Player; player2: Player }>) {
+  return matches
+    .map((match) => pairKey(match.player1.id, match.player2.id))
+    .sort()
+    .join('|')
+}
+
+function compareMatchSets(
+  left: Array<{ player1: Player; player2: Player }>,
+  right: Array<{ player1: Player; player2: Player }>
+) {
+  return matchSignature(left).localeCompare(matchSignature(right))
+}
+
+function optimalMatches(players: Player[], repeatCounts: Map<string, number>) {
+  const sorted = [...players].sort(comparePlayersByHandicapThenKey)
+  const playerById = new Map(sorted.map((player) => [player.id, player]))
+  type OptimizedResult = {
+    cost: number
+    matches: Array<{ player1: Player; player2: Player }>
+  }
+  const memo = new Map<
+    string,
+    OptimizedResult
+  >()
+
+  const solve = (remainingIds: string[]): OptimizedResult => {
+    if (remainingIds.length < 2) {
+      return { cost: 0, matches: [] }
+    }
+
+    const key = remainingIds.join('|')
+    const memoized = memo.get(key)
+    if (memoized) {
+      return memoized
+    }
+
+    const player = playerById.get(remainingIds[0])
+    if (!player) {
+      throw new Error('Unable to resolve player while optimizing pairings')
+    }
+
+    let best: OptimizedResult | null = null
+
+    for (let index = 1; index < remainingIds.length; index += 1) {
+      const opponent = playerById.get(remainingIds[index])
+      if (!opponent) {
+        throw new Error('Unable to resolve opponent while optimizing pairings')
+      }
+
+      const nextRemainingIds = remainingIds.filter(
+        (id) => id !== player.id && id !== opponent.id
+      )
+      const next = solve(nextRemainingIds)
+      const matches = [{ player1: player, player2: opponent }, ...next.matches]
+      const cost = pairCost(player, opponent, repeatCounts) + next.cost
+
+      if (
+        !best ||
+        cost < best.cost ||
+        (cost === best.cost && compareMatchSets(matches, best.matches) < 0)
+      ) {
+        best = { cost, matches }
+      }
+    }
+
+    const result = best ?? { cost: 0, matches: [] }
+    memo.set(key, result)
+    return result
+  }
+
+  return solve(sorted.map((player) => player.id)).matches
 }
 
 function bestOpponentIndex(
@@ -138,7 +183,7 @@ function earlyPriorityMatches(players: Player[], repeatCounts: Map<string, numbe
     matches.push({ player1: earlyPlayer, player2: opponent })
   }
 
-  return [...matches, ...greedyMatches(remaining, repeatCounts)]
+  return [...matches, ...optimalMatches(remaining, repeatCounts)]
 }
 
 function buildFlags(

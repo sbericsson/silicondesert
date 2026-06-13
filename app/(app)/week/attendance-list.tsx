@@ -19,7 +19,7 @@ export type AttendancePlayer = {
     label: 'IDX' | 'CH'
     value: number
   }
-  opponentInitials: string[]
+  opponentPairings: { initials: string; count: number }[]
 }
 
 interface AttendanceListProps {
@@ -63,11 +63,11 @@ export function AttendanceList({
         {attendance.map((player) => (
           <div
             key={player.playerId}
-            className="flex w-full items-center gap-3 px-4 py-3"
+            className="flex flex-col gap-2 px-4 py-3"
           >
             <button
               type="button"
-              className="flex min-w-0 flex-1 items-center gap-3 text-left disabled:cursor-not-allowed"
+              className="flex w-full items-center gap-3 text-left disabled:cursor-not-allowed"
               onClick={() => onToggleAttendance(player.playerId, !player.present)}
               disabled={
                 isRefreshing ||
@@ -86,9 +86,17 @@ export function AttendanceList({
                 }`}
               >
                 <span>{player.name}</span>
-                {player.opponentInitials.length > 0 ? (
+                {player.opponentPairings.length > 0 ? (
                   <span className="font-condensed text-[11px] font-semibold tracking-widest text-text-muted">
-                    {player.opponentInitials.join(' ')}
+                    {player.opponentPairings.map((opponent, index) => (
+                      <span key={`${opponent.initials}-${index}`}>
+                        {index > 0 ? ' ' : ''}
+                        {opponent.initials}
+                        {opponent.count > 1 ? (
+                          <span className="text-text-secondary">×{opponent.count}</span>
+                        ) : null}
+                      </span>
+                    ))}
                   </span>
                 ) : null}
               </span>
@@ -105,63 +113,64 @@ export function AttendanceList({
                 {player.teeColor.toUpperCase()}
               </span>
             </button>
-            <label className="flex items-center gap-1 rounded bg-surface-sunken px-2 py-1 text-[11px] font-semibold text-text-secondary">
-              <input
-                type="checkbox"
-                checked={player.earlyBirdRequested}
-                onChange={(event) =>
-                  onUpdatePrizePoolStatus(player.playerId, 'earlyBirdRequested', event.target.checked)
-                }
-                disabled={
-                  isRefreshing ||
-                  pendingAttendancePlayerIds.includes(player.playerId) ||
-                  !player.present
-                }
-              />
-              Early
-            </label>
-            <label className="flex items-center gap-1 rounded bg-surface-sunken px-2 py-1 text-[11px] font-semibold text-text-secondary">
-              <input
-                type="checkbox"
-                checked={player.ctpPoolPaid}
-                onChange={(event) =>
-                  onUpdatePrizePoolStatus(player.playerId, 'ctpPoolPaid', event.target.checked)
-                }
-                disabled={
-                  isRefreshing ||
-                  pendingAttendancePlayerIds.includes(player.playerId) ||
-                  !player.present
-                }
-              />
-              CTP
-            </label>
-            <label className="flex items-center gap-1 rounded bg-surface-sunken px-2 py-1 text-[11px] font-semibold text-text-secondary">
-              <input
-                type="checkbox"
-                checked={player.longestPuttPoolPaid}
-                onChange={(event) =>
-                  onUpdatePrizePoolStatus(
-                    player.playerId,
-                    'longestPuttPoolPaid',
-                    event.target.checked
-                  )
-                }
-                disabled={
-                  isRefreshing ||
-                  pendingAttendancePlayerIds.includes(player.playerId) ||
-                  !player.present
-                }
-              />
-              LPM
-            </label>
-            {player.present && matchedPlayerIds.has(player.playerId) ? (
-              <span className="rounded bg-surface-sunken px-2 py-1 text-[11px] font-semibold text-text-secondary">
-                Paired
-              </span>
-            ) : player.present && locked ? (
-              <span className="rounded bg-surface-sunken px-2 py-1 text-[11px] font-semibold text-text-secondary">
-                Attendance only
-              </span>
+            {player.present ? (
+              <div className="flex flex-wrap items-center gap-2 pl-7">
+                <label className="flex items-center gap-1 rounded bg-surface-sunken px-2 py-1 text-[11px] font-semibold text-text-secondary">
+                  <input
+                    type="checkbox"
+                    checked={player.earlyBirdRequested}
+                    onChange={(event) =>
+                      onUpdatePrizePoolStatus(player.playerId, 'earlyBirdRequested', event.target.checked)
+                    }
+                    disabled={
+                      isRefreshing ||
+                      pendingAttendancePlayerIds.includes(player.playerId)
+                    }
+                  />
+                  Early
+                </label>
+                <label className="flex items-center gap-1 rounded bg-surface-sunken px-2 py-1 text-[11px] font-semibold text-text-secondary">
+                  <input
+                    type="checkbox"
+                    checked={player.ctpPoolPaid}
+                    onChange={(event) =>
+                      onUpdatePrizePoolStatus(player.playerId, 'ctpPoolPaid', event.target.checked)
+                    }
+                    disabled={
+                      isRefreshing ||
+                      pendingAttendancePlayerIds.includes(player.playerId)
+                    }
+                  />
+                  CTP
+                </label>
+                <label className="flex items-center gap-1 rounded bg-surface-sunken px-2 py-1 text-[11px] font-semibold text-text-secondary">
+                  <input
+                    type="checkbox"
+                    checked={player.longestPuttPoolPaid}
+                    onChange={(event) =>
+                      onUpdatePrizePoolStatus(
+                        player.playerId,
+                        'longestPuttPoolPaid',
+                        event.target.checked
+                      )
+                    }
+                    disabled={
+                      isRefreshing ||
+                      pendingAttendancePlayerIds.includes(player.playerId)
+                    }
+                  />
+                  LPM
+                </label>
+                {matchedPlayerIds.has(player.playerId) ? (
+                  <span className="rounded bg-surface-sunken px-2 py-1 text-[11px] font-semibold text-text-secondary">
+                    Paired
+                  </span>
+                ) : locked ? (
+                  <span className="rounded bg-surface-sunken px-2 py-1 text-[11px] font-semibold text-text-secondary">
+                    Attendance only
+                  </span>
+                ) : null}
+              </div>
             ) : null}
           </div>
         ))}

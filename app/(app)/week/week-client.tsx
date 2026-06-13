@@ -90,7 +90,7 @@ type WeekPageData = {
       label: 'IDX' | 'CH'
       value: number
     }
-    opponentInitials: string[]
+    opponentPairings: { initials: string; count: number }[]
   }>
   courses: Array<{
     id: string

@@ -306,23 +306,23 @@ export async function getCurrentWeekPageData() {
         orderBy: { createdAt: 'asc' }
       })
     : []
-  const opponentNamesByPlayerId = new Map<string, Set<string>>()
+  const opponentCountsByPlayerId = new Map<string, Map<string, number>>()
   const allOpponentNames = new Set<string>()
+
+  const addOpponent = (playerId: string, opponentName: string) => {
+    const counts = opponentCountsByPlayerId.get(playerId) ?? new Map<string, number>()
+    counts.set(opponentName, (counts.get(opponentName) ?? 0) + 1)
+    opponentCountsByPlayerId.set(playerId, counts)
+    allOpponentNames.add(opponentName)
+  }
 
   for (const match of priorMatches) {
     if (match.player2ScorecardOnly) {
       continue
     }
 
-    const player1Opponents = opponentNamesByPlayerId.get(match.player1Id) ?? new Set<string>()
-    player1Opponents.add(match.player2.name)
-    opponentNamesByPlayerId.set(match.player1Id, player1Opponents)
-    allOpponentNames.add(match.player2.name)
-
-    const player2Opponents = opponentNamesByPlayerId.get(match.player2Id) ?? new Set<string>()
-    player2Opponents.add(match.player1.name)
-    opponentNamesByPlayerId.set(match.player2Id, player2Opponents)
-    allOpponentNames.add(match.player1.name)
+    addOpponent(match.player1Id, match.player2.name)
+    addOpponent(match.player2Id, match.player1.name)
   }
 
   // Disambiguate against every player name and every prior opponent name so the
@@ -372,7 +372,10 @@ export async function getCurrentWeekPageData() {
         label: currentWeek?.handicapMode === 'course' ? 'CH' as const : 'IDX' as const,
         value: getPlayingHandicap(currentWeek?.handicapMode, handicapIndexValue, courseTee)
       },
-      opponentInitials: Array.from(opponentNamesByPlayerId.get(player.id) ?? []).map(resolveInitials)
+      opponentPairings: Array.from(opponentCountsByPlayerId.get(player.id) ?? []).map(([name, count]) => ({
+        initials: resolveInitials(name),
+        count
+      }))
     }
   }).sort((a, b) => comparePlayerNamesByLastName(a.name, b.name))
 

@@ -14,7 +14,7 @@ export function MobileNav() {
   const pathname = usePathname()
 
   return (
-    <nav className="xl:hidden fixed bottom-0 left-0 right-0 border-t border-surface-border bg-surface-sunken/95 backdrop-blur">
+    <nav className="xl:hidden fixed bottom-0 left-0 right-0 z-40 border-t border-surface-border bg-surface-sunken/95 backdrop-blur">
       <div className="mx-auto grid max-w-md grid-cols-4">
         {navItems.map((item) => {
           const active = pathname === item.href || pathname.startsWith(item.href + '/')

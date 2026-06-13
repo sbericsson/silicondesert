@@ -11,6 +11,7 @@ import {
 } from '@/lib/course-tee'
 import { roundToWholeHandicap } from '@/lib/handicap'
 import { buildPairingFlags } from '@/lib/matchmaking'
+import { getPositioningBasis, POSITIONING_BASIS_LABEL } from '@/lib/positioning'
 import { getHandicapModeLabel, getPlayerHandicapIndexValue, getPlayingHandicap } from '@/lib/playing-handicap'
 
 function phoenixStartOfDay(isoDate: string) {
@@ -132,7 +133,13 @@ export async function getCurrentWeekRecord() {
   return prisma.week.findFirst({
     where: getActiveWeekWhere(),
     include: {
-      season: true,
+      season: {
+        include: {
+          weeks: {
+            select: { weekNumber: true }
+          }
+        }
+      },
       ctpWinner: {
         select: {
           name: true
@@ -379,12 +386,23 @@ export async function getCurrentWeekPageData() {
     }
   }).sort((a, b) => comparePlayerNamesByLastName(a.name, b.name))
 
+  const positioningBasis = currentWeek
+    ? getPositioningBasis({
+        seasonType: currentWeek.season.type,
+        weekNumber: currentWeek.weekNumber,
+        seasonWeekNumbers: currentWeek.season.weeks.map((seasonWeek) => seasonWeek.weekNumber)
+      })
+    : null
+
   return {
     currentWeek: currentWeek
       ? {
           id: currentWeek.id,
           weekNumber: currentWeek.weekNumber,
           seasonName: currentWeek.season.name,
+          positioningRound: positioningBasis
+            ? { basis: positioningBasis, label: POSITIONING_BASIS_LABEL[positioningBasis] }
+            : null,
           dateLabel: formatDate(currentWeek.date),
           startedAt: currentWeek.startedAt?.toISOString() ?? null,
           completedAt: currentWeek.completedAt?.toISOString() ?? null,

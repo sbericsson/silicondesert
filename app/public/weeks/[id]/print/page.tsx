@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { getPublicWeekData } from '@/lib/public-week'
-import { getPublicStandingsData } from '@/lib/public-standings'
+import { getSeasonStandingsForPrint } from '@/lib/public-standings'
 import { PrintButton } from './print-button'
 
 export const revalidate = 60
@@ -37,7 +37,7 @@ export default async function PrintWeekPage({
     notFound()
   }
 
-  const standingsData = await getPublicStandingsData(data.seasonId)
+  const standingsData = await getSeasonStandingsForPrint(data.seasonId)
 
   return (
     <div className="print-page space-y-6">
@@ -147,7 +147,7 @@ export default async function PrintWeekPage({
       {standingsData.standings.length > 0 ? (
         <section>
           <h2 className="font-condensed mb-2 text-sm font-bold uppercase tracking-widest text-text-muted print:text-black">
-            {standingsData.selectedLabel ?? 'Season'} Standings
+            {standingsData.seasonLabel ?? 'Season'} Standings
           </h2>
           <table className="w-full table-fixed border-collapse text-sm">
             <colgroup>

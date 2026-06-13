@@ -350,6 +350,60 @@ function orderPairingGroups(
   ]
 }
 
+// Positioning round: pairs are decided by standings rank, not by the optimizer.
+// `rankedPlayers` must already be sorted best→worst (rank 1 first). #1 plays #2, #3
+// plays #4, and so on. With an odd count the three lowest-ranked players form the
+// threesome. Prior matches only feed the informational repeat/gap flags here.
+export function generatePositioningPairings(
+  rankedPlayers: Player[],
+  priorMatchesThisSeason: PriorMatch[]
+): PairingResult {
+  if (rankedPlayers.length < 2) {
+    throw new Error('Need at least 2 players')
+  }
+
+  const repeatCounts = buildRepeatCounts(priorMatchesThisSeason)
+  const players = [...rankedPlayers]
+
+  let threesome: PairingResult['threesome'] = null
+  let pairPool = players
+
+  if (players.length % 2 === 1) {
+    const [anchorA, anchorB, scorecard] = players.slice(players.length - 3)
+    pairPool = players.slice(0, players.length - 3)
+    threesome = {
+      pivot: anchorA,
+      matchA: { player1: anchorA, player2: anchorB },
+      matchBRef: { player: scorecard, referencePlayer: anchorB }
+    }
+  }
+
+  const matches: Array<{ player1: Player; player2: Player }> = []
+  for (let index = 0; index + 1 < pairPool.length; index += 2) {
+    matches.push({ player1: pairPool[index], player2: pairPool[index + 1] })
+  }
+
+  const groups: PairingResult['groups'] = matches.map((match) => ({ type: 'match' as const, match }))
+  if (threesome) {
+    groups.push({ type: 'threesome' as const, threesome })
+  }
+
+  const allFlagMatches = threesome
+    ? [
+        ...matches,
+        threesome.matchA,
+        { player1: threesome.matchBRef.player, player2: threesome.matchBRef.referencePlayer }
+      ]
+    : matches
+
+  return {
+    matches,
+    threesome,
+    groups,
+    flags: buildFlags(allFlagMatches, repeatCounts)
+  }
+}
+
 export function generatePairings(
   players: Player[],
   priorMatchesThisSeason: PriorMatch[],

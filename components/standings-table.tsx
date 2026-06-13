@@ -27,19 +27,11 @@ type NumericKey =
   | 'ctpWins'
   | 'lpWins'
 
-type SortKey = 'name' | 'hcp' | NumericKey
-
 type NumericColumn = {
   key: NumericKey
   label: string
   width: string
   emphasize?: boolean
-}
-
-function parseHcp(display: string) {
-  const value = Number.parseFloat(display)
-  // Non-numeric labels (EST, PRO, NEW) sort to the bottom on ascending.
-  return Number.isNaN(value) ? Number.POSITIVE_INFINITY : value
 }
 
 export function StandingsTable({
@@ -51,36 +43,30 @@ export function StandingsTable({
 }) {
   const pointColumns: NumericColumn[] = multiSeason
     ? [
-        { key: 'springPoints', label: 'Spring', width: 'w-16' },
-        { key: 'summerPoints', label: 'Summer', width: 'w-16' },
-        { key: 'overallPoints', label: 'Overall', width: 'w-16', emphasize: true }
+        { key: 'springPoints', label: 'Spring', width: 'w-[72px]' },
+        { key: 'summerPoints', label: 'Summer', width: 'w-[72px]' },
+        { key: 'overallPoints', label: 'Overall', width: 'w-[76px]', emphasize: true }
       ]
-    : [{ key: 'overallPoints', label: 'Pts', width: 'w-16', emphasize: true }]
+    : [{ key: 'overallPoints', label: 'Pts', width: 'w-[72px]', emphasize: true }]
 
   const numericColumns: NumericColumn[] = [
     ...pointColumns,
-    { key: 'attendancePoints', label: 'Att', width: 'w-14' },
-    { key: 'strokePoints', label: 'Stroke', width: 'w-16' },
-    { key: 'matchPlayPoints', label: 'Match', width: 'w-16' },
-    { key: 'ctpWins', label: 'CTP', width: 'w-12' },
-    { key: 'lpWins', label: 'LP', width: 'w-12' }
+    { key: 'attendancePoints', label: 'Att', width: 'w-[56px]' },
+    { key: 'strokePoints', label: 'Stroke', width: 'w-[68px]' },
+    { key: 'matchPlayPoints', label: 'Match', width: 'w-[68px]' },
+    { key: 'ctpWins', label: 'CTP', width: 'w-[52px]' },
+    { key: 'lpWins', label: 'LP', width: 'w-[48px]' }
   ]
 
-  const [sortKey, setSortKey] = useState<SortKey>('overallPoints')
+  const [sortKey, setSortKey] = useState<NumericKey>('overallPoints')
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc')
 
   const sortedRows = useMemo(() => {
     const next = [...rows]
 
     next.sort((left, right) => {
-      if (sortKey === 'name') {
-        return sortDirection === 'asc'
-          ? comparePlayerNamesByLastName(left.name, right.name)
-          : comparePlayerNamesByLastName(right.name, left.name)
-      }
-
-      const leftValue = sortKey === 'hcp' ? parseHcp(left.currentIndexDisplay) : left[sortKey]
-      const rightValue = sortKey === 'hcp' ? parseHcp(right.currentIndexDisplay) : right[sortKey]
+      const leftValue = left[sortKey]
+      const rightValue = right[sortKey]
 
       if (rightValue !== leftValue) {
         return sortDirection === 'asc' ? leftValue - rightValue : rightValue - leftValue
@@ -92,87 +78,93 @@ export function StandingsTable({
     return next
   }, [rows, sortDirection, sortKey])
 
-  function updateSort(nextKey: SortKey) {
+  function updateSort(nextKey: NumericKey) {
     if (nextKey === sortKey) {
       setSortDirection((current) => (current === 'asc' ? 'desc' : 'asc'))
       return
     }
 
     setSortKey(nextKey)
-    setSortDirection(nextKey === 'name' ? 'asc' : 'desc')
+    setSortDirection('desc')
   }
 
-  const ariaSortFor = (key: SortKey) =>
+  const ariaSortFor = (key: NumericKey) =>
     sortKey === key ? (sortDirection === 'asc' ? 'ascending' : 'descending') : 'none'
 
-  const sortButton = (key: SortKey, label: string, align: 'left' | 'right') => (
-    <button
-      type="button"
-      className={`inline-flex min-h-9 items-center gap-1 ${align === 'right' ? 'justify-end' : ''} ${
-        sortKey === key ? 'text-text-primary' : ''
-      }`}
-      onClick={() => updateSort(key)}
-      aria-label={`Sort by ${label}`}
-    >
-      <span>{label}</span>
-      {sortKey === key ? <span aria-hidden="true">{sortDirection === 'asc' ? '↑' : '↓'}</span> : null}
-    </button>
-  )
-
-  const minWidth = multiSeason ? 'min-w-[760px]' : 'min-w-[620px]'
+  // Sticky identity column (rank + name + HCP) stays pinned during horizontal scroll.
+  // table-fixed makes the colgroup widths authoritative (the sticky column can't be
+  // squeezed), and border-separate is required for position:sticky to work on iOS Safari.
+  const minWidth = multiSeason ? 'min-w-[700px]' : 'min-w-[560px]'
 
   return (
     <div className="overflow-x-auto rounded-2xl border border-surface-border bg-surface-elevated shadow-sm">
-      <table className={`w-full ${minWidth} table-fixed border-collapse`}>
+      <table className={`w-full ${minWidth} table-fixed border-separate border-spacing-0`}>
         <colgroup>
-          <col className="w-10" />
-          <col className="w-44" />
-          <col className="w-14" />
+          <col className="w-[188px]" />
           {numericColumns.map((column) => (
             <col key={column.key} className={column.width} />
           ))}
           <col />
         </colgroup>
         <thead>
-          <tr className="border-b border-surface-border bg-surface-sunken font-condensed text-[11px] font-bold uppercase tracking-widest text-text-muted">
-            <th className="px-2 py-3 text-left">#</th>
-            <th className="px-2 py-3 text-left" aria-sort={ariaSortFor('name')}>
-              {sortButton('name', 'Player', 'left')}
-            </th>
-            <th className="px-2 py-3 text-right" aria-sort={ariaSortFor('hcp')}>
-              {sortButton('hcp', 'HCP', 'right')}
+          <tr className="font-condensed text-[11px] font-bold uppercase tracking-widest text-text-muted">
+            <th className="sticky left-0 z-20 border-b border-r border-surface-border bg-surface-sunken px-3 py-3 text-left">
+              <div className="flex items-baseline justify-between gap-4">
+                <span>Player</span>
+                <span className="text-text-muted/80">HCP</span>
+              </div>
             </th>
             {numericColumns.map((column) => (
-              <th key={column.key} className="px-2 py-3 text-right" aria-sort={ariaSortFor(column.key)}>
-                {sortButton(column.key, column.label, 'right')}
+              <th
+                key={column.key}
+                className="whitespace-nowrap border-b border-surface-border bg-surface-sunken px-3 py-3 text-right"
+                aria-sort={ariaSortFor(column.key)}
+              >
+                <button
+                  type="button"
+                  className={`inline-flex min-h-9 items-center justify-end gap-1 ${
+                    sortKey === column.key ? 'text-text-primary' : ''
+                  }`}
+                  onClick={() => updateSort(column.key)}
+                  aria-label={`Sort by ${column.label}`}
+                >
+                  <span>{column.label}</span>
+                  {sortKey === column.key ? (
+                    <span aria-hidden="true">{sortDirection === 'asc' ? '↑' : '↓'}</span>
+                  ) : null}
+                </button>
               </th>
             ))}
-            <th className="px-2 py-3" aria-hidden="true" />
+            <th className="border-b border-surface-border bg-surface-sunken" aria-hidden="true" />
           </tr>
         </thead>
         <tbody>
           {sortedRows.map((row, index) => {
             const zebra = index % 2 === 0 ? 'bg-surface-base' : 'bg-surface-elevated'
             return (
-              <tr key={row.playerId} className={zebra}>
-                <td className="px-2 py-3 text-sm font-medium text-text-secondary">{index + 1}</td>
-                <td className={`sticky left-0 z-10 px-2 py-3 text-sm font-medium text-text-primary ${zebra}`}>
-                  {row.name}
-                </td>
-                <td className="px-2 py-3 text-right text-sm tabular-nums text-text-secondary">
-                  {row.currentIndexDisplay}
+              <tr key={row.playerId}>
+                <td className={`sticky left-0 z-10 border-r border-surface-border px-3 py-3 ${zebra}`}>
+                  <div className="flex items-baseline justify-between gap-4">
+                    <span className="flex min-w-0 items-baseline gap-2">
+                      <span className="w-4 shrink-0 text-sm tabular-nums text-text-secondary">{index + 1}</span>
+                      <span className="truncate text-sm font-medium text-text-primary">{row.name}</span>
+                    </span>
+                    <span className="shrink-0 text-xs tabular-nums text-text-secondary">
+                      {row.currentIndexDisplay}
+                    </span>
+                  </div>
                 </td>
                 {numericColumns.map((column) => (
                   <td
                     key={column.key}
-                    className={`px-2 py-3 text-right text-sm tabular-nums ${
+                    className={`px-3 py-3 text-right text-sm tabular-nums ${
                       column.emphasize ? 'font-semibold text-text-primary' : 'text-text-primary'
-                    }`}
+                    } ${zebra}`}
                   >
                     {row[column.key]}
                   </td>
                 ))}
-                <td className="px-2 py-3" aria-hidden="true" />
+                <td className={`${zebra}`} aria-hidden="true" />
               </tr>
             )
           })}

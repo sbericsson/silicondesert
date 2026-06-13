@@ -43,14 +43,14 @@ export async function getStandingsPageData() {
   }
 
   const { spring, summer } = resolveSeasonPair(seasons)
-  const multiSeason = Boolean(spring && summer)
+  const multiSeasonCandidate = Boolean(spring && summer)
 
   const selectedSingle =
     (currentWeek?.seasonId ? seasons.find((season) => season.id === currentWeek.seasonId) : null) ??
     seasons.at(-1) ??
     null
 
-  const seasonIds = multiSeason ? [spring!.id, summer!.id] : selectedSingle ? [selectedSingle.id] : []
+  const seasonIds = multiSeasonCandidate ? [spring!.id, summer!.id] : selectedSingle ? [selectedSingle.id] : []
 
   if (seasonIds.length === 0) {
     return EMPTY
@@ -86,6 +86,9 @@ export async function getStandingsPageData() {
     name: player.name,
     currentIndexDisplay: getPlayerHandicapInlineLabel(player)
   }))
+
+  const multiSeason =
+    multiSeasonCandidate && weeks.some((w) => w.seasonId === summer!.id && w.completedAt != null)
 
   const overallTotals = accumulatePoints(weeks, playerInputs)
   const springTotals = multiSeason

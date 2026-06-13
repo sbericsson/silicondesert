@@ -1,8 +1,8 @@
 import { prisma } from '@/lib/db'
 import { getPlayerHandicapInlineLabel } from '@/lib/player-handicap-display'
 import { comparePlayerNamesByLastName } from '@/lib/player-sort'
-import { resolveSeasonPair } from '@/lib/seasons'
-import { accumulatePoints, type StandingTotals } from '@/lib/standings-engine'
+import { applyStoredMatchResult, getUnpairedPresentPlayerIds } from '@/lib/points'
+import { resolveStrokeWinnerId } from '@/lib/stroke-result'
 
 function formatTimestamp(date: Date) {
   return new Intl.DateTimeFormat('en-US', {
@@ -15,179 +15,207 @@ function formatTimestamp(date: Date) {
   }).format(date)
 }
 
-type PublicStandingRow = {
-  playerId: string
-  name: string
-  currentIndexDisplay: string
-  springPoints: number
-  summerPoints: number
-  overallPoints: number
-  attendancePoints: number
-  strokePoints: number
-  matchPlayPoints: number
-  ctpWins: number
-  lpWins: number
-}
-
-const weekInclude = {
-  attendance: {
-    select: { playerId: true, present: true }
-  },
-  handicapRecords: {
-    select: { playerId: true, grossScore: true }
-  },
-  matches: true
-} as const
-
-const playerInclude = {
-  handicapRecords: {
-    where: { countsForHandicap: true },
-    orderBy: { date: 'desc' as const },
-    take: 20
-  }
-} as const
-
-function hasAnyPoints(row: {
-  attendancePoints: number
-  strokePoints: number
-  matchPlayPoints: number
-  ctpWins: number
-  lpWins: number
-  totalPoints?: number
-  overallPoints?: number
-}) {
-  return (
-    (row.totalPoints ?? row.overallPoints ?? 0) > 0 ||
-    row.attendancePoints > 0 ||
-    row.strokePoints > 0 ||
-    row.matchPlayPoints > 0 ||
-    row.ctpWins > 0 ||
-    row.lpWins > 0
-  )
-}
-
-// Public players' standings: Spring / Summer / Overall columns once both seasons exist,
-// otherwise a single-season table. Scoped to the current (non-archived) season pair.
-export async function getPublicStandingsData() {
+export async function getPublicStandingsData(selectedView?: string) {
   if (!process.env.DATABASE_URL) {
     return {
-      multiSeason: false,
-      seasonLabel: null,
-      standings: [] as PublicStandingRow[],
+      tabs: [],
+      selectedView: null,
+      selectedLabel: null,
+      standings: [],
       lastUpdatedLabel: formatTimestamp(new Date())
     }
   }
 
   const seasons = await prisma.season.findMany({
-    where: { archivedAt: null },
-    orderBy: [{ startDate: 'asc' }]
+    include: {
+      weeks: {
+        include: {
+          attendance: {
+            select: {
+              playerId: true,
+              present: true
+            }
+          },
+          handicapRecords: {
+            select: {
+              playerId: true,
+              grossScore: true
+            }
+          },
+          matches: true
+        },
+        orderBy: { date: 'asc' }
+      }
+    },
+    orderBy: { startDate: 'asc' }
   })
 
-  const { spring, summer } = resolveSeasonPair(seasons)
-  const multiSeason = Boolean(spring && summer)
-  const selectedSingle = seasons.at(-1) ?? null
-  const seasonIds = multiSeason ? [spring!.id, summer!.id] : selectedSingle ? [selectedSingle.id] : []
+  const seasonsWithResults = seasons.filter((season) =>
+    season.weeks.some((week) => week.matches.some((match) => match.matchPlayLeadBy !== null))
+  )
 
-  if (seasonIds.length === 0) {
+  const tabs = seasonsWithResults.map((season) => ({
+    id: season.id,
+    label: season.name
+  }))
+
+  if (seasonsWithResults.length > 1) {
+    tabs.push({
+      id: 'overall',
+      label: 'Overall'
+    })
+  }
+
+  const selectedResolved =
+    tabs.find((tab) => tab.id === selectedView)?.id ??
+    seasonsWithResults.at(-1)?.id ??
+    tabs[0]?.id ??
+    null
+
+  if (!selectedResolved) {
     return {
-      multiSeason: false,
-      seasonLabel: null,
-      standings: [] as PublicStandingRow[],
+      tabs,
+      selectedView: null,
+      selectedLabel: null,
+      standings: [],
       lastUpdatedLabel: formatTimestamp(new Date())
     }
   }
 
-  const [weeks, players] = await Promise.all([
-    prisma.week.findMany({
-      where: { seasonId: { in: seasonIds } },
-      include: weekInclude,
-      orderBy: { date: 'asc' }
-    }),
-    prisma.player.findMany({ include: playerInclude, orderBy: { name: 'asc' } })
-  ])
+  const weeks =
+    selectedResolved === 'overall'
+      ? seasonsWithResults.flatMap((season) => season.weeks)
+      : seasonsWithResults.find((season) => season.id === selectedResolved)?.weeks ?? []
 
-  const playerInputs = players.map((player) => ({
-    id: player.id,
-    name: player.name,
-    currentIndexDisplay: getPlayerHandicapInlineLabel(player)
-  }))
-  const activeById = new Map(players.map((player) => [player.id, player.active]))
+  const players = await prisma.player.findMany({
+    include: {
+      handicapRecords: {
+        where: { countsForHandicap: true },
+        orderBy: { date: 'desc' },
+        take: 20
+      }
+    },
+    orderBy: { name: 'asc' }
+  })
 
-  const overallTotals = accumulatePoints(weeks, playerInputs)
-  const springTotals = multiSeason
-    ? accumulatePoints(weeks.filter((week) => week.seasonId === spring!.id), playerInputs)
-    : null
-  const summerTotals = multiSeason
-    ? accumulatePoints(weeks.filter((week) => week.seasonId === summer!.id), playerInputs)
-    : null
-
-  const standings = playerInputs
-    .map((player) => {
-      const overall = overallTotals.get(player.id)!
-      return {
+  const totals = new Map(
+    players.map((player) => [
+      player.id,
+      {
         playerId: player.id,
         name: player.name,
-        currentIndexDisplay: player.currentIndexDisplay,
-        springPoints: springTotals?.get(player.id)?.totalPoints ?? 0,
-        summerPoints: summerTotals?.get(player.id)?.totalPoints ?? 0,
-        overallPoints: overall.totalPoints,
-        attendancePoints: overall.attendancePoints,
-        strokePoints: overall.strokePoints,
-        matchPlayPoints: overall.matchPlayPoints,
-        ctpWins: overall.ctpWins,
-        lpWins: overall.lpWins
+        active: player.active,
+        currentIndexDisplay: getPlayerHandicapInlineLabel(player),
+        totalPoints: 0,
+        attendancePoints: 0,
+        strokePoints: 0,
+        matchPlayPoints: 0,
+        ctpWins: 0,
+        lpWins: 0
       }
-    })
-    .filter((row) => activeById.get(row.playerId) || hasAnyPoints(row))
-    .sort((a, b) => {
-      if (b.overallPoints !== a.overallPoints) {
-        return b.overallPoints - a.overallPoints
-      }
-      return comparePlayerNamesByLastName(a.name, b.name)
-    })
-
-  return {
-    multiSeason,
-    seasonLabel: multiSeason ? `${spring!.name} + ${summer!.name}` : selectedSingle?.name ?? null,
-    standings,
-    lastUpdatedLabel: formatTimestamp(new Date())
-  }
-}
-
-// Single-season standings for the printable week results page.
-export async function getSeasonStandingsForPrint(seasonId: string) {
-  if (!process.env.DATABASE_URL) {
-    return { seasonLabel: null, standings: [] as StandingTotals[] }
-  }
-
-  const [season, weeks, players] = await Promise.all([
-    prisma.season.findUnique({ where: { id: seasonId }, select: { name: true } }),
-    prisma.week.findMany({
-      where: { seasonId },
-      include: weekInclude,
-      orderBy: { date: 'asc' }
-    }),
-    prisma.player.findMany({ include: playerInclude, orderBy: { name: 'asc' } })
-  ])
-
-  const activeById = new Map(players.map((player) => [player.id, player.active]))
-  const totals = accumulatePoints(
-    weeks,
-    players.map((player) => ({
-      id: player.id,
-      name: player.name,
-      currentIndexDisplay: getPlayerHandicapInlineLabel(player)
-    }))
+    ])
   )
 
+  for (const week of weeks) {
+    const attendanceMap = new Map(week.attendance.map((entry) => [entry.playerId, entry.present]))
+    const adjustedScoreByPlayerId = new Map(
+      week.handicapRecords.map((record) => [record.playerId, record.grossScore])
+    )
+
+    for (const match of week.matches) {
+      if (match.matchPlayLeadBy === null) {
+        continue
+      }
+
+      const strokeWinnerId = resolveStrokeWinnerId({
+        player1Id: match.player1Id,
+        player2Id: match.player2Id,
+        player1Gross: adjustedScoreByPlayerId.get(match.player1Id) ?? null,
+        player2Gross: adjustedScoreByPlayerId.get(match.player2Id) ?? null,
+        player1PlayingHandicap: match.player1PlayingHandicap,
+        player2PlayingHandicap: match.player2PlayingHandicap,
+        player2ScorecardOnly: match.player2ScorecardOnly,
+        storedStrokeWinnerId: match.strokeWinnerId
+      })
+
+      const points = applyStoredMatchResult({
+        player1Id: match.player1Id,
+        player2Id: match.player2Id,
+        strokeWinnerId,
+        matchPlayWinnerId: match.matchPlayWinnerId,
+        matchPlayLeadBy: match.matchPlayLeadBy,
+        player2ScorecardOnly: match.player2ScorecardOnly,
+        player1Present: attendanceMap.get(match.player1Id) ?? false,
+        player2Present: attendanceMap.get(match.player2Id) ?? false
+      })
+
+      const player1 = totals.get(match.player1Id)
+      const player2 = totals.get(match.player2Id)
+
+      if (player1) {
+        player1.totalPoints += points.player1.totalPoints
+        player1.attendancePoints += points.player1.attendancePoints
+        player1.strokePoints += points.player1.strokePoints
+        player1.matchPlayPoints += points.player1.matchPlayPoints
+      }
+
+      if (player2) {
+        player2.totalPoints += points.player2.totalPoints
+        player2.attendancePoints += points.player2.attendancePoints
+        player2.strokePoints += points.player2.strokePoints
+        player2.matchPlayPoints += points.player2.matchPlayPoints
+      }
+    }
+
+    for (const playerId of getUnpairedPresentPlayerIds(week.attendance, week.matches)) {
+      const player = totals.get(playerId)
+      if (player) {
+        player.totalPoints += 1
+        player.attendancePoints += 1
+      }
+    }
+
+    if (week.ctpWinnerId && totals.has(week.ctpWinnerId)) {
+      const player = totals.get(week.ctpWinnerId)
+      if (player) {
+        player.totalPoints += 1
+        player.ctpWins += 1
+      }
+    }
+
+    if (week.longestPuttWinnerId && totals.has(week.longestPuttWinnerId)) {
+      const player = totals.get(week.longestPuttWinnerId)
+      if (player) {
+        player.totalPoints += 1
+        player.lpWins += 1
+      }
+    }
+  }
+
   const standings = [...totals.values()]
-    .filter((row) => activeById.get(row.playerId) || hasAnyPoints(row))
+    .filter(
+      (row) =>
+        row.active ||
+        row.totalPoints > 0 ||
+        row.attendancePoints > 0 ||
+        row.strokePoints > 0 ||
+        row.matchPlayPoints > 0 ||
+        row.ctpWins > 0 ||
+        row.lpWins > 0
+    )
     .sort((a, b) => {
       if (b.totalPoints !== a.totalPoints) {
         return b.totalPoints - a.totalPoints
       }
+
       return comparePlayerNamesByLastName(a.name, b.name)
     })
 
-  return { seasonLabel: season?.name ?? null, standings }
+  return {
+    tabs,
+    selectedView: selectedResolved,
+    selectedLabel: tabs.find((tab) => tab.id === selectedResolved)?.label ?? null,
+    standings,
+    lastUpdatedLabel: formatTimestamp(new Date())
+  }
 }

@@ -18,7 +18,6 @@ type WeekPageData = {
     id: string
     weekNumber: number
     seasonName: string
-    positioningRound: { basis: 'spring' | 'summer' | 'overall'; label: string } | null
     dateLabel: string
     startedAt: string | null
     completedAt: string | null
@@ -91,7 +90,7 @@ type WeekPageData = {
       label: 'IDX' | 'CH'
       value: number
     }
-    opponentPairings: { initials: string; count: number }[]
+    opponentInitials: string[]
   }>
   courses: Array<{
     id: string
@@ -751,10 +750,7 @@ export function WeekClient({ initialData }: WeekClientProps) {
     (player) => player.present && player.name === DEFAULT_TRAILING_PLAYER_NAME
   )
 
-  const setupIncomplete =
-    !data.currentWeek.courseId ||
-    data.currentWeek.ctpHoleNumber == null ||
-    data.currentWeek.longestPuttHoleNumber == null
+  const setupIncomplete = !data.currentWeek.courseId || data.currentWeek.ctpHoleNumber == null
 
   let generateBlockReason: string | null = null
   if (!data.currentWeek.locked && !canGeneratePairings) {
@@ -1044,19 +1040,6 @@ export function WeekClient({ initialData }: WeekClientProps) {
               </select>
             </label>
           </section>
-        ) : null}
-
-        {data.currentWeek.positioningRound ? (
-          <div className="rounded-xl border border-info-text/20 bg-info-dim px-4 py-3">
-            <p className="font-condensed text-[11px] font-semibold uppercase tracking-widest text-info-text">
-              Positioning round
-            </p>
-            <p className="mt-1 text-sm text-info-text">
-              Pairings are set by {data.currentWeek.positioningRound.label} standings — the
-              highest-ranked checked-in players are matched against each other (1 vs 2, 3 vs 4, …)
-              instead of by the optimizer.
-            </p>
-          </div>
         ) : null}
 
         <div className="flex flex-col gap-4 xl:flex-row">

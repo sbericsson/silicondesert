@@ -11,7 +11,6 @@ import {
 } from '@/lib/course-tee'
 import { roundToWholeHandicap } from '@/lib/handicap'
 import { buildPairingFlags } from '@/lib/matchmaking'
-import { getPositioningBasis, POSITIONING_BASIS_LABEL } from '@/lib/positioning'
 import { getHandicapModeLabel, getPlayerHandicapIndexValue, getPlayingHandicap } from '@/lib/playing-handicap'
 
 function phoenixStartOfDay(isoDate: string) {
@@ -133,13 +132,7 @@ export async function getCurrentWeekRecord() {
   return prisma.week.findFirst({
     where: getActiveWeekWhere(),
     include: {
-      season: {
-        include: {
-          weeks: {
-            select: { weekNumber: true }
-          }
-        }
-      },
+      season: true,
       ctpWinner: {
         select: {
           name: true
@@ -313,23 +306,23 @@ export async function getCurrentWeekPageData() {
         orderBy: { createdAt: 'asc' }
       })
     : []
-  const opponentCountsByPlayerId = new Map<string, Map<string, number>>()
+  const opponentNamesByPlayerId = new Map<string, Set<string>>()
   const allOpponentNames = new Set<string>()
-
-  const addOpponent = (playerId: string, opponentName: string) => {
-    const counts = opponentCountsByPlayerId.get(playerId) ?? new Map<string, number>()
-    counts.set(opponentName, (counts.get(opponentName) ?? 0) + 1)
-    opponentCountsByPlayerId.set(playerId, counts)
-    allOpponentNames.add(opponentName)
-  }
 
   for (const match of priorMatches) {
     if (match.player2ScorecardOnly) {
       continue
     }
 
-    addOpponent(match.player1Id, match.player2.name)
-    addOpponent(match.player2Id, match.player1.name)
+    const player1Opponents = opponentNamesByPlayerId.get(match.player1Id) ?? new Set<string>()
+    player1Opponents.add(match.player2.name)
+    opponentNamesByPlayerId.set(match.player1Id, player1Opponents)
+    allOpponentNames.add(match.player2.name)
+
+    const player2Opponents = opponentNamesByPlayerId.get(match.player2Id) ?? new Set<string>()
+    player2Opponents.add(match.player1.name)
+    opponentNamesByPlayerId.set(match.player2Id, player2Opponents)
+    allOpponentNames.add(match.player1.name)
   }
 
   // Disambiguate against every player name and every prior opponent name so the
@@ -379,20 +372,9 @@ export async function getCurrentWeekPageData() {
         label: currentWeek?.handicapMode === 'course' ? 'CH' as const : 'IDX' as const,
         value: getPlayingHandicap(currentWeek?.handicapMode, handicapIndexValue, courseTee)
       },
-      opponentPairings: Array.from(opponentCountsByPlayerId.get(player.id) ?? []).map(([name, count]) => ({
-        initials: resolveInitials(name),
-        count
-      }))
+      opponentInitials: Array.from(opponentNamesByPlayerId.get(player.id) ?? []).map(resolveInitials)
     }
   }).sort((a, b) => comparePlayerNamesByLastName(a.name, b.name))
-
-  const positioningBasis = currentWeek
-    ? getPositioningBasis({
-        seasonType: currentWeek.season.type,
-        weekNumber: currentWeek.weekNumber,
-        seasonWeekNumbers: currentWeek.season.weeks.map((seasonWeek) => seasonWeek.weekNumber)
-      })
-    : null
 
   return {
     currentWeek: currentWeek
@@ -400,9 +382,6 @@ export async function getCurrentWeekPageData() {
           id: currentWeek.id,
           weekNumber: currentWeek.weekNumber,
           seasonName: currentWeek.season.name,
-          positioningRound: positioningBasis
-            ? { basis: positioningBasis, label: POSITIONING_BASIS_LABEL[positioningBasis] }
-            : null,
           dateLabel: formatDate(currentWeek.date),
           startedAt: currentWeek.startedAt?.toISOString() ?? null,
           completedAt: currentWeek.completedAt?.toISOString() ?? null,

@@ -136,7 +136,7 @@ export function StandingsTable({
         <thead>
           <tr className="border-b border-surface-border bg-surface-sunken font-condensed text-[11px] font-bold uppercase tracking-widest text-text-muted">
             <th className="px-2 py-3 text-left">#</th>
-            <th className="px-2 py-3 text-left" aria-sort={ariaSortFor('name')}>
+            <th className="border-r border-surface-border px-2 py-3 text-left" aria-sort={ariaSortFor('name')}>
               {sortButton('name', 'Player', 'left')}
             </th>
             <th className="px-2 py-3 text-right" aria-sort={ariaSortFor('hcp')}>
@@ -156,7 +156,7 @@ export function StandingsTable({
             return (
               <tr key={row.playerId} className={zebra}>
                 <td className="px-2 py-3 text-sm font-medium text-text-secondary">{index + 1}</td>
-                <td className={`sticky left-0 z-10 px-2 py-3 text-sm font-medium text-text-primary ${zebra}`}>
+                <td className={`sticky left-0 z-10 border-r border-surface-border px-2 py-3 text-sm font-medium text-text-primary ${zebra}`}>
                   {row.name}
                 </td>
                 <td className="px-2 py-3 text-right text-sm tabular-nums text-text-secondary">

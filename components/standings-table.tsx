@@ -27,7 +27,7 @@ type NumericKey =
   | 'ctpWins'
   | 'lpWins'
 
-type SortKey = 'name' | 'hcp' | NumericKey
+type SortKey = NumericKey
 
 type NumericColumn = {
   key: NumericKey
@@ -73,14 +73,8 @@ export function StandingsTable({
     const next = [...rows]
 
     next.sort((left, right) => {
-      if (sortKey === 'name') {
-        return sortDirection === 'asc'
-          ? comparePlayerNamesByLastName(left.name, right.name)
-          : comparePlayerNamesByLastName(right.name, left.name)
-      }
-
-      const leftValue = sortKey === 'hcp' ? parseHcp(left.currentIndexDisplay) : left[sortKey]
-      const rightValue = sortKey === 'hcp' ? parseHcp(right.currentIndexDisplay) : right[sortKey]
+      const leftValue = left[sortKey]
+      const rightValue = right[sortKey]
 
       if (rightValue !== leftValue) {
         return sortDirection === 'asc' ? leftValue - rightValue : rightValue - leftValue
@@ -99,7 +93,7 @@ export function StandingsTable({
     }
 
     setSortKey(nextKey)
-    setSortDirection(nextKey === 'name' ? 'asc' : 'desc')
+    setSortDirection('desc')
   }
 
   const ariaSortFor = (key: SortKey) =>
@@ -136,12 +130,8 @@ export function StandingsTable({
         <thead>
           <tr className="border-b border-surface-border bg-surface-sunken font-condensed text-[11px] font-bold uppercase tracking-widest text-text-muted">
             <th className="px-2 py-3 text-left">#</th>
-            <th className="border-r border-surface-border px-2 py-3 text-left" aria-sort={ariaSortFor('name')}>
-              {sortButton('name', 'Player', 'left')}
-            </th>
-            <th className="px-2 py-3 text-right" aria-sort={ariaSortFor('hcp')}>
-              {sortButton('hcp', 'HCP', 'right')}
-            </th>
+            <th className="border-r border-surface-border pl-2 pr-4 py-3 text-left">Player</th>
+            <th className="pl-3 pr-2 py-3 text-right">HCP</th>
             {numericColumns.map((column) => (
               <th key={column.key} className="px-2 py-3 text-right" aria-sort={ariaSortFor(column.key)}>
                 {sortButton(column.key, column.label, 'right')}
@@ -156,7 +146,7 @@ export function StandingsTable({
             return (
               <tr key={row.playerId} className={zebra}>
                 <td className="px-2 py-3 text-sm font-medium text-text-secondary">{index + 1}</td>
-                <td className={`sticky left-0 z-10 border-r border-surface-border px-2 py-3 text-sm font-medium text-text-primary ${zebra}`}>
+                <td className={`sticky left-0 z-10 border-r border-surface-border pl-2 pr-4 py-3 text-sm font-medium text-text-primary ${zebra}`}>
                   {row.name}
                 </td>
                 <td className="px-2 py-3 text-right text-sm tabular-nums text-text-secondary">

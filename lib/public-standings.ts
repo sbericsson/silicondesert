@@ -151,7 +151,11 @@ export async function getPublicStandingsData() {
 
   return {
     multiSeason,
-    seasonLabel: multiSeason ? `${spring!.name} + ${summer!.name}` : selectedSingle?.name ?? null,
+    seasonLabel: multiSeason
+      ? `${spring!.name} + ${summer!.name}`
+      : multiSeasonCandidate
+        ? (spring?.name ?? null)
+        : selectedSingle?.name ?? null,
     standings,
     lastUpdatedLabel: formatTimestamp(new Date())
   }

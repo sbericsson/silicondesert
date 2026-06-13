@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest'
-import { buildPairingFlags, generatePairings } from '@/lib/matchmaking'
+import { buildPairingFlags, generatePairings, generatePositioningPairings } from '@/lib/matchmaking'
+
+const rankedPlayer = (id: string) => ({ id, name: id, handicapIndex: 10, checkInOrder: 0 })
 
 function hasPair(
   matches: Array<{ player1: { id: string }; player2: { id: string } }>,
@@ -365,5 +367,45 @@ describe('buildPairingFlags', () => {
       type: 'gap',
       detail: 'Gap: 7.5'
     })
+  })
+})
+
+describe('generatePositioningPairings', () => {
+  it('pairs players adjacently in rank order for an even count', () => {
+    const result = generatePositioningPairings(
+      ['1', '2', '3', '4'].map(rankedPlayer),
+      []
+    )
+
+    expect(result.threesome).toBeNull()
+    expect(result.matches.map((match) => [match.player1.id, match.player2.id])).toEqual([
+      ['1', '2'],
+      ['3', '4']
+    ])
+    expect(result.groups).toHaveLength(2)
+  })
+
+  it('forms the threesome from the three lowest-ranked players for an odd count', () => {
+    const result = generatePositioningPairings(
+      ['1', '2', '3', '4', '5'].map(rankedPlayer),
+      []
+    )
+
+    expect(result.matches.map((match) => [match.player1.id, match.player2.id])).toEqual([['1', '2']])
+    expect(result.threesome).not.toBeNull()
+    expect(result.threesome?.matchA.player1.id).toBe('3')
+    expect(result.threesome?.matchA.player2.id).toBe('4')
+    expect(result.threesome?.matchBRef.player.id).toBe('5')
+    expect(result.threesome?.matchBRef.referencePlayer.id).toBe('4')
+    expect(result.groups).toHaveLength(2)
+  })
+
+  it('treats exactly three players as a single threesome', () => {
+    const result = generatePositioningPairings(['1', '2', '3'].map(rankedPlayer), [])
+
+    expect(result.matches).toHaveLength(0)
+    expect(result.threesome?.matchA.player1.id).toBe('1')
+    expect(result.threesome?.matchA.player2.id).toBe('2')
+    expect(result.threesome?.matchBRef.player.id).toBe('3')
   })
 })

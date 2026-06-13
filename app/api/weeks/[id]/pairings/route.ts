@@ -3,8 +3,9 @@ import { prisma } from '@/lib/db'
 import { getApiSession, unauthorizedResponse } from '@/lib/api-auth'
 import { writeAuditLog } from '@/lib/audit'
 import { getCourseTee, getPlayerSeasonTeeColor } from '@/lib/course-tee'
-import { generatePairings } from '@/lib/matchmaking'
+import { generatePairings, generatePositioningPairings, type PairingResult } from '@/lib/matchmaking'
 import { getPlayerHandicapIndexValue, getPlayingHandicap } from '@/lib/playing-handicap'
+import { getPositioningBasis, getPositioningRanks } from '@/lib/positioning'
 import { getWeeklyTrailingPlayerId } from '@/lib/week-commissioner'
 
 export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
@@ -53,12 +54,13 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
       },
       season: {
         select: {
+          type: true,
           archivedAt: true,
           weeks: {
             where: {
               id: { not: params.id }
             },
-            select: { id: true }
+            select: { id: true, weekNumber: true }
           }
         }
       }
@@ -96,46 +98,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
   const alreadyPairedPlayerIds = new Set(
     week.matches.flatMap((match) => [match.player1Id, match.player2Id])
   )
-  const trailingPlayerId = getWeeklyTrailingPlayerId(week.attendance, week.commissionerPlayerId)
   const requestedPlayerIdSet = requestedPlayerIds ? new Set(requestedPlayerIds) : null
-  const trailingPlayerCurrentGroupMatches =
-    trailingPlayerId && week.matches.length > 0
-      ? week.matches.filter(
-          (match) => match.player1Id === trailingPlayerId || match.player2Id === trailingPlayerId
-        )
-      : []
-  const trailingPlayerCurrentGroupPlayerIds = new Set(
-    trailingPlayerCurrentGroupMatches.flatMap((match) => [match.player1Id, match.player2Id])
-  )
-  const shouldRebuildTrailingPlayerGroup =
-    Boolean(trailingPlayerId) &&
-    trailingPlayerCurrentGroupMatches.length > 0 &&
-    week.attendance.some(
-      (entry) =>
-        !alreadyPairedPlayerIds.has(entry.playerId) &&
-        entry.playerId !== trailingPlayerId &&
-        (!requestedPlayerIdSet || requestedPlayerIdSet.has(entry.playerId))
-    )
-
-  const availableAttendance = week.attendance.filter(
-    (entry) =>
-      ((!alreadyPairedPlayerIds.has(entry.playerId) &&
-        (!requestedPlayerIdSet || requestedPlayerIdSet.has(entry.playerId))) ||
-        (shouldRebuildTrailingPlayerGroup &&
-          trailingPlayerCurrentGroupPlayerIds.has(entry.playerId)))
-  )
-
-  if (availableAttendance.length < 2) {
-    return NextResponse.json(
-      {
-        error:
-          week.matches.length > 0
-            ? 'Need at least 2 unmatched checked-in players to generate more pairings'
-            : 'Need at least 2 checked-in players'
-      },
-      { status: 400 }
-    )
-  }
 
   const priorWeekIds = week.season.weeks.map((seasonWeek) => seasonWeek.id)
   const priorMatches = priorWeekIds.length
@@ -150,7 +113,12 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
       })
     : []
 
-  const pairingInput = availableAttendance.map((entry, index) => {
+  // Builds a matchmaking Player from a checked-in attendance entry. `order` becomes the
+  // checkInOrder (standard) or the standings position (positioning).
+  const toPairingPlayer = (
+    entry: (typeof week.attendance)[number],
+    order: number
+  ) => {
     const handicapIndexValue = getPlayerHandicapIndexValue(entry.player)
     const teeColor = getPlayerSeasonTeeColor(
       entry.player.seasonTeeChoices,
@@ -170,23 +138,113 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
       id: entry.player.id,
       name: entry.player.name,
       handicapIndex: getPlayingHandicap(week.handicapMode, handicapIndexValue, tee),
-      checkInOrder: index + 1,
+      checkInOrder: order,
       earlyBirdRequested: entry.earlyBirdRequested
     }
+  }
+
+  const positioningBasis = getPositioningBasis({
+    seasonType: week.season.type,
+    weekNumber: week.weekNumber,
+    seasonWeekNumbers: [...week.season.weeks.map((seasonWeek) => seasonWeek.weekNumber), week.weekNumber]
   })
 
-  const generated = generatePairings(pairingInput, priorMatches, {
-    trailingPlayerId
-  })
+  let generated: PairingResult
+  let matchIdsToDelete: string[] = []
+
+  if (positioningBasis) {
+    const availableAttendance = week.attendance.filter(
+      (entry) =>
+        !alreadyPairedPlayerIds.has(entry.playerId) &&
+        (!requestedPlayerIdSet || requestedPlayerIdSet.has(entry.playerId))
+    )
+
+    if (availableAttendance.length < 2) {
+      return NextResponse.json(
+        {
+          error:
+            week.matches.length > 0
+              ? 'Need at least 2 unmatched checked-in players to generate more pairings'
+              : 'Need at least 2 checked-in players'
+        },
+        { status: 400 }
+      )
+    }
+
+    const ranks = await getPositioningRanks(positioningBasis, { id: week.id, seasonId: week.seasonId })
+    const rankedAttendance = [...availableAttendance].sort((a, b) => {
+      const rankA = ranks.get(a.playerId) ?? Number.POSITIVE_INFINITY
+      const rankB = ranks.get(b.playerId) ?? Number.POSITIVE_INFINITY
+      if (rankA !== rankB) {
+        return rankA - rankB
+      }
+      return a.player.name.localeCompare(b.player.name)
+    })
+
+    generated = generatePositioningPairings(
+      rankedAttendance.map((entry, index) => toPairingPlayer(entry, index + 1)),
+      priorMatches
+    )
+  } else {
+    const trailingPlayerId = getWeeklyTrailingPlayerId(week.attendance, week.commissionerPlayerId)
+    const trailingPlayerCurrentGroupMatches =
+      trailingPlayerId && week.matches.length > 0
+        ? week.matches.filter(
+            (match) => match.player1Id === trailingPlayerId || match.player2Id === trailingPlayerId
+          )
+        : []
+    const trailingPlayerCurrentGroupPlayerIds = new Set(
+      trailingPlayerCurrentGroupMatches.flatMap((match) => [match.player1Id, match.player2Id])
+    )
+    const shouldRebuildTrailingPlayerGroup =
+      Boolean(trailingPlayerId) &&
+      trailingPlayerCurrentGroupMatches.length > 0 &&
+      week.attendance.some(
+        (entry) =>
+          !alreadyPairedPlayerIds.has(entry.playerId) &&
+          entry.playerId !== trailingPlayerId &&
+          (!requestedPlayerIdSet || requestedPlayerIdSet.has(entry.playerId))
+      )
+
+    const availableAttendance = week.attendance.filter(
+      (entry) =>
+        ((!alreadyPairedPlayerIds.has(entry.playerId) &&
+          (!requestedPlayerIdSet || requestedPlayerIdSet.has(entry.playerId))) ||
+          (shouldRebuildTrailingPlayerGroup &&
+            trailingPlayerCurrentGroupPlayerIds.has(entry.playerId)))
+    )
+
+    if (availableAttendance.length < 2) {
+      return NextResponse.json(
+        {
+          error:
+            week.matches.length > 0
+              ? 'Need at least 2 unmatched checked-in players to generate more pairings'
+              : 'Need at least 2 checked-in players'
+        },
+        { status: 400 }
+      )
+    }
+
+    const pairingInput = availableAttendance.map((entry, index) => toPairingPlayer(entry, index + 1))
+
+    generated = generatePairings(pairingInput, priorMatches, {
+      trailingPlayerId
+    })
+
+    matchIdsToDelete = shouldRebuildTrailingPlayerGroup
+      ? trailingPlayerCurrentGroupMatches.map((match) => match.id)
+      : []
+  }
 
   const result = await prisma.$transaction(async (tx) => {
     const createdMatches = []
 
-    if (shouldRebuildTrailingPlayerGroup && trailingPlayerCurrentGroupMatches.length > 0) {
+    if (matchIdsToDelete.length > 0) {
       await tx.match.deleteMany({
         where: {
           id: {
-            in: trailingPlayerCurrentGroupMatches.map((match) => match.id)
+            in: matchIdsToDelete
           }
         }
       })
@@ -232,9 +290,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
       action: 'pairings_generate',
       field: 'matchCount',
       oldValue: String(week.matches.length),
-      newValue: String(
-        week.matches.length - trailingPlayerCurrentGroupMatches.length + createdMatches.length
-      )
+      newValue: String(week.matches.length - matchIdsToDelete.length + createdMatches.length)
     })
 
     return createdMatches

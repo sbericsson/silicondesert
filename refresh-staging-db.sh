@@ -65,8 +65,15 @@ echo "► Dumping production database..."
 pg_dump "$PROD_DATABASE_URL" -Fc -f "$DUMP_FILE"
 echo "  Done."
 
+echo "► Clearing staging schema..."
+psql "$STAGING_DATABASE_URL" -v ON_ERROR_STOP=1 <<'SQL'
+DROP SCHEMA IF EXISTS public CASCADE;
+CREATE SCHEMA public;
+SQL
+echo "  Done."
+
 echo "► Restoring into staging database..."
-pg_restore -d "$STAGING_DATABASE_URL" --clean --if-exists "$DUMP_FILE"
+pg_restore -d "$STAGING_DATABASE_URL" --no-owner --no-acl "$DUMP_FILE"
 echo "  Done."
 
 echo "► Verifying staging contents..."

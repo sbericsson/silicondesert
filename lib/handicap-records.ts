@@ -1,4 +1,11 @@
+import type { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/db'
+
+export const HANDICAP_RECORDS_INCLUDE = {
+  where: { countsForHandicap: true },
+  orderBy: { date: 'desc' as const },
+  take: 20
+} satisfies Prisma.Player$handicapRecordsArgs
 
 const WHS_LOOKUP: Record<number, number> = {
   1: 1,
@@ -32,7 +39,7 @@ interface HandicapRecordTx {
 
 export async function recomputeUsedInIndex(tx: HandicapRecordTx, playerId: string) {
   const records = await tx.handicapRecord.findMany({
-    where: { playerId, countsForHandicap: true },
+    where: { playerId, ...HANDICAP_RECORDS_INCLUDE.where },
     orderBy: [{ date: 'asc' }, { createdAt: 'asc' }]
   })
 
@@ -51,19 +58,26 @@ export async function recomputeUsedInIndex(tx: HandicapRecordTx, playerId: strin
       .map((record) => record.id)
   )
 
-  await tx.handicapRecord.updateMany({
-    where: { playerId },
-    data: { usedInIndex: false }
-  })
+  const selectedIdList = [...selectedIds]
 
-  if (selectedIds.size > 0) {
-    await tx.handicapRecord.updateMany({
+  await Promise.all([
+    tx.handicapRecord.updateMany({
       where: {
+        playerId,
         id: {
-          in: [...selectedIds]
+          in: selectedIdList
         }
       },
       data: { usedInIndex: true }
+    }),
+    tx.handicapRecord.updateMany({
+      where: {
+        playerId,
+        id: {
+          notIn: selectedIdList
+        }
+      },
+      data: { usedInIndex: false }
     })
-  }
+  ])
 }

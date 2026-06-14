@@ -13,6 +13,32 @@ interface SeasonTeeChoiceLike {
   teeColor: TeeColor
 }
 
+type CourseDefaultTeeFallbackSource = Pick<
+  CourseTeeLike,
+  'nineHolePar' | 'nineHoleRating' | 'nineHoleSlope'
+>
+
+export const COURSE_DEFAULT_TEE_FALLBACK: CourseTeeLike = {
+  color: 'white',
+  gender: 'man',
+  nineHolePar: 35,
+  nineHoleRating: 34.0,
+  nineHoleSlope: 113
+}
+
+export function getCourseDefaultTeeFallback(
+  course?: CourseDefaultTeeFallbackSource | null
+): CourseTeeLike {
+  return course
+    ? {
+        ...COURSE_DEFAULT_TEE_FALLBACK,
+        nineHolePar: course.nineHolePar,
+        nineHoleRating: course.nineHoleRating,
+        nineHoleSlope: course.nineHoleSlope
+      }
+    : COURSE_DEFAULT_TEE_FALLBACK
+}
+
 export function getDefaultTeeColorForGender(gender: Gender): TeeColor {
   return gender === 'woman' ? 'yellow' : 'blue'
 }

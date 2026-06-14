@@ -33,3 +33,13 @@ export function formatPhoenixLongDate(date: Date) {
     day: 'numeric'
   }).format(date)
 }
+
+export function formatPhoenixTimestamp(date: Date): string {
+  return date.toLocaleString('en-US', {
+    timeZone: PHOENIX_TIME_ZONE,
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit'
+  })
+}

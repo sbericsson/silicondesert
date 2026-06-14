@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/db'
-import { getCourseTee, getPlayerMatchTeeColor } from '@/lib/course-tee'
+import { getCourseDefaultTeeFallback, getCourseTee, getPlayerMatchTeeColor } from '@/lib/course-tee'
+import { HANDICAP_RECORDS_INCLUDE } from '@/lib/handicap-records'
 import { getHandicapModeLabel, getPlayerHandicapIndexValue, getPlayingHandicap } from '@/lib/playing-handicap'
 import { applyStoredMatchResult } from '@/lib/points'
 import { resolveStrokeWinnerId } from '@/lib/stroke-result'
@@ -84,21 +85,13 @@ export async function getPublicWeekData(weekId: string) {
         include: {
           player1: {
             include: {
-              handicapRecords: {
-                where: { countsForHandicap: true },
-                orderBy: { date: 'desc' },
-                take: 20
-              },
+              handicapRecords: HANDICAP_RECORDS_INCLUDE,
               seasonTeeChoices: true
             }
           },
           player2: {
             include: {
-              handicapRecords: {
-                where: { countsForHandicap: true },
-                orderBy: { date: 'desc' },
-                take: 20
-              },
+              handicapRecords: HANDICAP_RECORDS_INCLUDE,
               seasonTeeChoices: true
             }
           }
@@ -170,22 +163,10 @@ export async function getPublicWeekData(weekId: string) {
         match.player2TeeOverrideColor
       )
       const player1Tee = week.course
-        ? getCourseTee(week.course.tees, player1TeeColor, match.player1.gender, {
-            color: 'white',
-            gender: 'man',
-            nineHolePar: week.course.nineHolePar,
-            nineHoleRating: week.course.nineHoleRating,
-            nineHoleSlope: week.course.nineHoleSlope
-          })
+        ? getCourseTee(week.course.tees, player1TeeColor, match.player1.gender, getCourseDefaultTeeFallback(week.course))
         : null
       const player2Tee = week.course
-        ? getCourseTee(week.course.tees, player2TeeColor, match.player2.gender, {
-            color: 'white',
-            gender: 'man',
-            nineHolePar: week.course.nineHolePar,
-            nineHoleRating: week.course.nineHoleRating,
-            nineHoleSlope: week.course.nineHoleSlope
-          })
+        ? getCourseTee(week.course.tees, player2TeeColor, match.player2.gender, getCourseDefaultTeeFallback(week.course))
         : null
       const player1PlayingHandicap =
         match.player1PlayingHandicap ??

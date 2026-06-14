@@ -1,19 +1,10 @@
 import Link from 'next/link'
 import { prisma } from '@/lib/db'
 import { getPhoenixDateParts } from '@/lib/phoenix-time'
-import { getCurrentWeekRecord, pickActiveSeason } from '@/lib/week'
+import { formatDate, getCurrentWeekRecord, pickActiveSeason } from '@/lib/week'
 
 export const revalidate = 60
 export const dynamic = 'force-dynamic'
-
-function formatDate(date: Date) {
-  return new Intl.DateTimeFormat('en-US', {
-    timeZone: 'America/Phoenix',
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric'
-  }).format(date)
-}
 
 function getStatusStyles(status: string) {
   if (status === 'Completed') {

@@ -2,8 +2,7 @@
 
 import { useEffect, useId, useRef, useState } from 'react'
 import type { ReferenceScorecardPlayer, UnmatchedPlayer } from '@/app/(app)/week/pairings-section'
-
-const REFERENCE_SCORECARD_PLAYER_ID = '__reference_scorecard__'
+import { REFERENCE_SCORECARD_PLAYER_ID } from '@/lib/matchmaking'
 
 interface WeekPairingsActionBarProps {
   unmatchedPresentPlayers: UnmatchedPlayer[]

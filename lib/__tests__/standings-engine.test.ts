@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { accumulatePoints } from '@/lib/standings-engine'
+import { accumulatePoints, mergeSeasonTotals } from '@/lib/standings-engine'
 
 const players = [
   { id: 'p1', name: 'Alice Adams', currentIndexDisplay: '10' },
@@ -130,5 +130,35 @@ describe('accumulatePoints', () => {
 
     expect(totals.get('p1')).toMatchObject({ totalPoints: 2, ctpWins: 2, lpWins: 0 })
     expect(totals.get('p2')).toMatchObject({ totalPoints: 1, ctpWins: 0, lpWins: 1 })
+  })
+})
+
+describe('mergeSeasonTotals', () => {
+  it('adds point buckets from two season total maps', () => {
+    const spring = accumulatePoints(
+      [
+        week({
+          attendance: [{ playerId: 'p1', present: true }],
+          ctpWinnerId: 'p1'
+        })
+      ],
+      players
+    )
+    const summer = accumulatePoints(
+      [
+        week({
+          attendance: [{ playerId: 'p1', present: true }],
+          longestPuttWinnerId: 'p1'
+        })
+      ],
+      players
+    )
+
+    expect(mergeSeasonTotals(spring, summer).get('p1')).toMatchObject({
+      totalPoints: 4,
+      attendancePoints: 2,
+      ctpWins: 1,
+      lpWins: 1
+    })
   })
 })

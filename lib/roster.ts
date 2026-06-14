@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/db'
+import { HANDICAP_RECORDS_INCLUDE } from '@/lib/handicap-records'
 import { getPlayerHandicapDisplay } from '@/lib/player-handicap-display'
 import { getPlayerSortKey } from '@/lib/player-sort'
 
@@ -18,7 +19,7 @@ export async function getRosterPageData() {
     prisma.player.findMany({
       include: {
         handicapRecords: {
-          where: { countsForHandicap: true },
+          where: HANDICAP_RECORDS_INCLUDE.where,
           orderBy: [{ date: 'desc' }, { createdAt: 'desc' }]
         },
         seasonTeeChoices: true

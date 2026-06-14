@@ -73,6 +73,7 @@ model Player {
   weeksCtp        Week[]           @relation("CtpWinner")
   weeksLp         Week[]           @relation("LpWinner")
   weeksCommissioner Week[]         @relation("WeekCommissioner")
+  commissionerTrailingDefaults Commissioner[]    @relation("CommissionerTrailingPlayer")
   holeScores      HoleScore[]
   auditLogs       AuditLog[]
   createdAt       DateTime         @default(now())
@@ -240,5 +241,7 @@ model Commissioner {
   username           String   @unique
   passwordHash       String
   publicRosterEnabled Boolean @default(false)
+  defaultTrailingPlayerId String?
+  defaultTrailingPlayer   Player?  @relation("CommissionerTrailingPlayer", fields: [defaultTrailingPlayerId], references: [id], onDelete: SetNull)
   createdAt          DateTime @default(now())
 }

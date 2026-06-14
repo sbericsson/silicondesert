@@ -2,18 +2,9 @@ import { prisma } from '@/lib/db'
 import { getPlayerHandicapInlineLabel } from '@/lib/player-handicap-display'
 import { comparePlayerNamesByLastName } from '@/lib/player-sort'
 import { resolveSeasonPair } from '@/lib/seasons'
-import { accumulatePoints, type StandingTotals } from '@/lib/standings-engine'
-
-function formatTimestamp(date: Date) {
-  return new Intl.DateTimeFormat('en-US', {
-    timeZone: 'America/Phoenix',
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-    hour: 'numeric',
-    minute: '2-digit'
-  }).format(date)
-}
+import { accumulatePoints, mergeSeasonTotals, type StandingTotals } from '@/lib/standings-engine'
+import { formatPhoenixTimestamp } from '@/lib/phoenix-time'
+import { HANDICAP_RECORDS_INCLUDE } from '@/lib/handicap-records'
 
 type PublicStandingRow = {
   playerId: string
@@ -40,11 +31,7 @@ const weekInclude = {
 } as const
 
 const playerInclude = {
-  handicapRecords: {
-    where: { countsForHandicap: true },
-    orderBy: { date: 'desc' as const },
-    take: 20
-  }
+  handicapRecords: HANDICAP_RECORDS_INCLUDE
 } as const
 
 function hasAnyPoints(row: {
@@ -74,7 +61,7 @@ export async function getPublicStandingsData() {
       multiSeason: false,
       seasonLabel: null,
       standings: [] as PublicStandingRow[],
-      lastUpdatedLabel: formatTimestamp(new Date())
+      lastUpdatedLabel: formatPhoenixTimestamp(new Date())
     }
   }
 
@@ -93,7 +80,7 @@ export async function getPublicStandingsData() {
       multiSeason: false,
       seasonLabel: null,
       standings: [] as PublicStandingRow[],
-      lastUpdatedLabel: formatTimestamp(new Date())
+      lastUpdatedLabel: formatPhoenixTimestamp(new Date())
     }
   }
 
@@ -116,13 +103,15 @@ export async function getPublicStandingsData() {
   const multiSeason =
     multiSeasonCandidate && weeks.some((w) => w.seasonId === summer!.id && w.completedAt != null)
 
-  const overallTotals = accumulatePoints(weeks, playerInputs)
   const springTotals = multiSeason
     ? accumulatePoints(weeks.filter((week) => week.seasonId === spring!.id), playerInputs)
     : null
   const summerTotals = multiSeason
     ? accumulatePoints(weeks.filter((week) => week.seasonId === summer!.id), playerInputs)
     : null
+  const overallTotals = multiSeason
+    ? mergeSeasonTotals(springTotals!, summerTotals!)
+    : accumulatePoints(weeks, playerInputs)
 
   const standings = playerInputs
     .map((player) => {
@@ -157,7 +146,7 @@ export async function getPublicStandingsData() {
         ? (spring?.name ?? null)
         : selectedSingle?.name ?? null,
     standings,
-    lastUpdatedLabel: formatTimestamp(new Date())
+    lastUpdatedLabel: formatPhoenixTimestamp(new Date())
   }
 }
 

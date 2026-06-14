@@ -3,8 +3,8 @@
 import type { TeeColor } from '@prisma/client'
 import { startTransition, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { REFERENCE_SCORECARD_PLAYER_ID } from '@/lib/matchmaking'
 import { buildPublicUrl } from '@/lib/public-url'
-import { DEFAULT_TRAILING_PLAYER_NAME } from '@/lib/week-commissioner'
 import { AttendanceList } from '@/app/(app)/week/attendance-list'
 import { PairingsSection } from '@/app/(app)/week/pairings-section'
 import { WeekPairingsActionBar } from '@/app/(app)/week/week-pairings-action-bar'
@@ -31,6 +31,8 @@ type WeekPageData = {
     longestPuttHoleNumber: number | null
     commissionerPlayerId: string | null
     commissionerPlayerName: string | null
+    defaultTrailingPlayerId: string | null
+    defaultTrailingPlayerName: string | null
     ctpWinnerId: string | null
     ctpWinnerName: string | null
     longestPuttWinnerId: string | null
@@ -116,7 +118,6 @@ interface WeekClientProps {
 
 const holeOptions = Array.from({ length: 9 }, (_, index) => index + 1)
 const SIDE_GAME_ENTRY_FEE = 5
-const REFERENCE_SCORECARD_PLAYER_ID = '__reference_scorecard__'
 
 export function WeekClient({ initialData }: WeekClientProps) {
   const router = useRouter()
@@ -747,9 +748,15 @@ export function WeekClient({ initialData }: WeekClientProps) {
   )
   const ctpPot = eligibleCtpPlayers.length * SIDE_GAME_ENTRY_FEE
   const longestPuttPot = eligibleLongestPuttPlayers.length * SIDE_GAME_ENTRY_FEE
-  const isDefaultTrailingPlayerCheckedIn = data.attendance.some(
-    (player) => player.present && player.name === DEFAULT_TRAILING_PLAYER_NAME
-  )
+  const isDefaultTrailingPlayerCheckedIn = data.currentWeek.defaultTrailingPlayerId
+    ? data.attendance.some(
+        (player) =>
+          player.present && player.playerId === data.currentWeek!.defaultTrailingPlayerId
+      )
+    : false
+  const defaultTrailingPlayerAbsenceLabel = data.currentWeek.defaultTrailingPlayerName
+    ? `${data.currentWeek.defaultTrailingPlayerName} is not checked in`
+    : 'No default trailing player is configured'
 
   const setupIncomplete =
     !data.currentWeek.courseId ||
@@ -833,8 +840,8 @@ export function WeekClient({ initialData }: WeekClientProps) {
             ))}
           </select>
           <p className="mt-2 text-xs text-text-secondary">
-            Peter Pestalozzi is not checked in, so the selected weekly commissioner will be used
-            for the last group when pairings generate.
+            {defaultTrailingPlayerAbsenceLabel}, so the selected weekly commissioner will be
+            used for the last group when pairings generate.
           </p>
         </label>
       ) : null}

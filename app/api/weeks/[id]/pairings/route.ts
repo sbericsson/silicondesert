@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { getApiSession, unauthorizedResponse } from '@/lib/api-auth'
 import { writeAuditLog } from '@/lib/audit'
-import { getCourseTee, getPlayerSeasonTeeColor } from '@/lib/course-tee'
+import { getCourseDefaultTeeFallback, getCourseTee, getPlayerSeasonTeeColor } from '@/lib/course-tee'
+import { HANDICAP_RECORDS_INCLUDE } from '@/lib/handicap-records'
 import { generatePairings, generatePositioningPairings, type PairingResult } from '@/lib/matchmaking'
 import { getPlayerHandicapIndexValue, getPlayingHandicap } from '@/lib/playing-handicap'
 import { getPositioningBasis, getPositioningRanks } from '@/lib/positioning'
@@ -19,53 +20,56 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
     ? body.playerIds.filter((playerId: unknown): playerId is string => typeof playerId === 'string')
     : null
 
-  const week = await prisma.week.findUnique({
-    where: { id: params.id },
-    include: {
-      attendance: {
-        where: { present: true },
-        include: {
-          player: {
-            include: {
-              handicapRecords: {
-                where: { countsForHandicap: true },
-                orderBy: { date: 'desc' },
-                take: 20
-              },
-              seasonTeeChoices: true
+  const [week, commissioner] = await Promise.all([
+    prisma.week.findUnique({
+      where: { id: params.id },
+      include: {
+        attendance: {
+          where: { present: true },
+          include: {
+            player: {
+              include: {
+                handicapRecords: HANDICAP_RECORDS_INCLUDE,
+                seasonTeeChoices: true
+              }
             }
+          },
+          orderBy: { checkedInAt: 'asc' }
+        },
+        course: {
+          include: {
+            tees: true
           }
         },
-        orderBy: { checkedInAt: 'asc' }
-      },
-      course: {
-        include: {
-          tees: true
-        }
-      },
-      matches: {
-        select: {
-          id: true,
-          locked: true,
-          player1Id: true,
-          player2Id: true,
-          player2ScorecardOnly: true
-        }
-      },
-      season: {
-        select: {
-          type: true,
-          archivedAt: true,
-          weeks: {
-            where: {
-              id: { not: params.id }
-            },
-            select: { id: true, weekNumber: true }
+        matches: {
+          select: {
+            id: true,
+            locked: true,
+            player1Id: true,
+            player2Id: true,
+            player2ScorecardOnly: true
+          }
+        },
+        season: {
+          select: {
+            type: true,
+            archivedAt: true,
+            weeks: {
+              where: {
+                id: { not: params.id }
+              },
+              select: { id: true, weekNumber: true }
+            }
           }
         }
       }
-    }
-  })
+    }),
+    prisma.commissioner.findFirst({
+      select: {
+        defaultTrailingPlayerId: true
+      }
+    })
+  ])
 
   if (!week) {
     return NextResponse.json({ error: 'Week not found' }, { status: 404 })
@@ -126,13 +130,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
       entry.player.gender,
       entry.player.defaultTeeColor
     )
-    const tee = getCourseTee(week.course!.tees, teeColor, entry.player.gender, {
-      color: 'white',
-      gender: 'man',
-      nineHolePar: week.course!.nineHolePar,
-      nineHoleRating: week.course!.nineHoleRating,
-      nineHoleSlope: week.course!.nineHoleSlope
-    })
+    const tee = getCourseTee(week.course!.tees, teeColor, entry.player.gender, getCourseDefaultTeeFallback(week.course!))
 
     return {
       id: entry.player.id,
@@ -186,7 +184,11 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
       priorMatches
     )
   } else {
-    const trailingPlayerId = getWeeklyTrailingPlayerId(week.attendance, week.commissionerPlayerId)
+    const trailingPlayerId = getWeeklyTrailingPlayerId(
+      week.attendance,
+      week.commissionerPlayerId,
+      commissioner?.defaultTrailingPlayerId ?? null
+    )
     const trailingPlayerCurrentGroupMatches =
       trailingPlayerId && week.matches.length > 0
         ? week.matches.filter(
@@ -237,9 +239,21 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
       : []
   }
 
-  const result = await prisma.$transaction(async (tx) => {
-    const createdMatches = []
+  const buildLiveMatchData = (match: { player1: { id: string }; player2: { id: string } }) => ({
+    weekId: params.id,
+    player1Id: match.player1.id,
+    player2Id: match.player2.id
+  })
+  const buildReferenceMatchData = (
+    match: NonNullable<PairingResult['threesome']>['matchBRef']
+  ) => ({
+    weekId: params.id,
+    player1Id: match.player.id,
+    player2Id: match.referencePlayer.id,
+    player2ScorecardOnly: true
+  })
 
+  const result = await prisma.$transaction(async (tx) => {
     if (matchIdsToDelete.length > 0) {
       await tx.match.deleteMany({
         where: {
@@ -250,40 +264,24 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
       })
     }
 
-    for (const group of generated.groups) {
-      if (group.type === 'match') {
-        createdMatches.push(
-          await tx.match.create({
-            data: {
-              weekId: params.id,
-              player1Id: group.match.player1.id,
-              player2Id: group.match.player2.id
-            }
-          })
-        )
-      } else {
-        createdMatches.push(
-          await tx.match.create({
-            data: {
-              weekId: params.id,
-              player1Id: group.threesome.matchA.player1.id,
-              player2Id: group.threesome.matchA.player2.id
-            }
-          })
-        )
-
-        createdMatches.push(
-          await tx.match.create({
-            data: {
-              weekId: params.id,
-              player1Id: group.threesome.matchBRef.player.id,
-              player2Id: group.threesome.matchBRef.referencePlayer.id,
-              player2ScorecardOnly: true
-            }
-          })
-        )
-      }
-    }
+    const createdMatches = await Promise.all(
+      generated.groups.flatMap((group) =>
+        group.type === 'match'
+          ? [
+              tx.match.create({
+                data: buildLiveMatchData(group.match)
+              })
+            ]
+          : [
+              tx.match.create({
+                data: buildLiveMatchData(group.threesome.matchA)
+              }),
+              tx.match.create({
+                data: buildReferenceMatchData(group.threesome.matchBRef)
+              })
+            ]
+      )
+    )
 
     await writeAuditLog(tx, {
       weekId: params.id,

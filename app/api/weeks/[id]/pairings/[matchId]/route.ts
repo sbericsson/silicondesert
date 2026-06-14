@@ -3,7 +3,8 @@ import type { TeeColor } from '@prisma/client'
 import { prisma } from '@/lib/db'
 import { getApiSession, unauthorizedResponse } from '@/lib/api-auth'
 import { writeAuditLog } from '@/lib/audit'
-import { getCourseTee, getPlayerMatchTeeColor } from '@/lib/course-tee'
+import { getCourseDefaultTeeFallback, getCourseTee, getPlayerMatchTeeColor } from '@/lib/course-tee'
+import { HANDICAP_RECORDS_INCLUDE } from '@/lib/handicap-records'
 import { submitMatchScores } from '@/lib/match-score'
 import { getPlayerHandicapIndexValue, getPlayingHandicap } from '@/lib/playing-handicap'
 import { revalidateWeekPages } from '@/lib/revalidate-week-pages'
@@ -71,21 +72,13 @@ export async function PATCH(
       },
       player1: {
         include: {
-          handicapRecords: {
-            where: { countsForHandicap: true },
-            orderBy: { date: 'desc' },
-            take: 20
-          },
+          handicapRecords: HANDICAP_RECORDS_INCLUDE,
           seasonTeeChoices: true
         }
       },
       player2: {
         include: {
-          handicapRecords: {
-            where: { countsForHandicap: true },
-            orderBy: { date: 'desc' },
-            take: 20
-          },
+          handicapRecords: HANDICAP_RECORDS_INCLUDE,
           seasonTeeChoices: true
         }
       }
@@ -125,20 +118,8 @@ export async function PATCH(
     match.player2.defaultTeeColor,
     nextPlayer2TeeOverrideColor
   )
-  const player1Tee = getCourseTee(match.week.course.tees, player1TeeColor, match.player1.gender, {
-    color: 'white',
-    gender: 'man',
-    nineHolePar: match.week.course.nineHolePar,
-    nineHoleRating: match.week.course.nineHoleRating,
-    nineHoleSlope: match.week.course.nineHoleSlope
-  })
-  const player2Tee = getCourseTee(match.week.course.tees, player2TeeColor, match.player2.gender, {
-    color: 'white',
-    gender: 'man',
-    nineHolePar: match.week.course.nineHolePar,
-    nineHoleRating: match.week.course.nineHoleRating,
-    nineHoleSlope: match.week.course.nineHoleSlope
-  })
+  const player1Tee = getCourseTee(match.week.course.tees, player1TeeColor, match.player1.gender, getCourseDefaultTeeFallback(match.week.course))
+  const player2Tee = getCourseTee(match.week.course.tees, player2TeeColor, match.player2.gender, getCourseDefaultTeeFallback(match.week.course))
   const shouldSnapshotHandicaps = match.week.locked || match.locked
   const player1PlayingHandicap = getPlayingHandicap(match.week.handicapMode, player1HandicapIndex, player1Tee)
   const player2PlayingHandicap = getPlayingHandicap(match.week.handicapMode, player2HandicapIndex, player2Tee)

@@ -52,6 +52,11 @@ vi.mock('@/lib/db', () => ({
 }))
 
 vi.mock('@/lib/handicap-records', () => ({
+  HANDICAP_RECORDS_INCLUDE: {
+    where: { countsForHandicap: true },
+    orderBy: { date: 'desc' },
+    take: 20
+  },
   recomputeUsedInIndex: recomputeUsedInIndexMock
 }))
 
@@ -92,6 +97,7 @@ describe('submitMatchScores', () => {
       callback({
         holeScore: {
           findUnique: holeScoreFindUniqueMock,
+          findMany: holeScoreFindManyMock,
           upsert: holeScoreUpsertMock
         },
         match: {

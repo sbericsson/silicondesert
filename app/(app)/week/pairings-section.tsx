@@ -2,6 +2,7 @@
 
 import type { TeeColor } from '@prisma/client'
 import Link from 'next/link'
+import { REFERENCE_SCORECARD_PLAYER_ID } from '@/lib/matchmaking'
 
 export type PairingMatch = {
   id: string
@@ -46,8 +47,6 @@ export type ReferenceScorecardPlayer = {
   playerId: string
   name: string
 }
-
-const REFERENCE_SCORECARD_PLAYER_ID = '__reference_scorecard__'
 
 interface PairingsSectionProps {
   weekId: string

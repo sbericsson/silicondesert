@@ -2,37 +2,50 @@ import { describe, expect, it } from 'vitest'
 import { getWeeklyTrailingPlayerId } from '@/lib/week-commissioner'
 
 describe('getWeeklyTrailingPlayerId', () => {
-  it('prefers Peter when he is checked in', () => {
+  it('prefers the configured default trailing player when checked in', () => {
     expect(
       getWeeklyTrailingPlayerId(
         [
-          { playerId: 'jack', player: { name: 'Jack Higgins' } },
-          { playerId: 'peter', player: { name: 'Peter Pestalozzi' } },
-          { playerId: 'kelly', player: { name: 'Kelly Fogg' } }
+          { playerId: 'jack' },
+          { playerId: 'trailing' },
+          { playerId: 'kelly' }
         ],
-        'kelly'
+        'kelly',
+        'trailing'
       )
-    ).toBe('peter')
+    ).toBe('trailing')
   })
 
-  it('uses the selected weekly commissioner when Peter is absent', () => {
+  it('uses the selected weekly commissioner when the default trailing player is absent', () => {
     expect(
       getWeeklyTrailingPlayerId(
         [
-          { playerId: 'jack', player: { name: 'Jack Higgins' } },
-          { playerId: 'kelly', player: { name: 'Kelly Fogg' } }
+          { playerId: 'jack' },
+          { playerId: 'kelly' }
         ],
-        'kelly'
+        'kelly',
+        'trailing'
       )
     ).toBe('kelly')
   })
 
-  it('returns null when neither Peter nor the selected commissioner is checked in', () => {
+  it('returns null when neither the default nor selected commissioner is checked in', () => {
     expect(
       getWeeklyTrailingPlayerId(
-        [{ playerId: 'jack', player: { name: 'Jack Higgins' } }],
-        'kelly'
+        [{ playerId: 'jack' }],
+        'kelly',
+        'trailing'
       )
     ).toBeNull()
+  })
+
+  it('uses the selected weekly commissioner when no default trailing player is configured', () => {
+    expect(
+      getWeeklyTrailingPlayerId(
+        [{ playerId: 'kelly' }],
+        'kelly',
+        null
+      )
+    ).toBe('kelly')
   })
 })

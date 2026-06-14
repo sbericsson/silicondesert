@@ -4,13 +4,15 @@ import { getPhoenixDateParts } from '@/lib/phoenix-time'
 import { getPlayerHandicapDisplay } from '@/lib/player-handicap-display'
 import { comparePlayerNamesByLastName } from '@/lib/player-sort'
 import {
+  getCourseDefaultTeeFallback,
   getCourseTee,
   getDefaultTeeColorForGender,
   getPlayerMatchTeeColor,
   getPlayerSeasonTeeColor
 } from '@/lib/course-tee'
 import { roundToWholeHandicap } from '@/lib/handicap'
-import { buildPairingFlags } from '@/lib/matchmaking'
+import { HANDICAP_RECORDS_INCLUDE } from '@/lib/handicap-records'
+import { buildPairingFlags, buildRepeatCounts } from '@/lib/matchmaking'
 import { getPositioningBasis, POSITIONING_BASIS_LABEL } from '@/lib/positioning'
 import { getHandicapModeLabel, getPlayerHandicapIndexValue, getPlayingHandicap } from '@/lib/playing-handicap'
 
@@ -69,7 +71,7 @@ export function isWeekOverdue(date: Date, isoDate: string) {
   return date < phoenixStartOfDay(isoDate)
 }
 
-function getActiveWeekWhere() {
+export function getActiveWeekWhere() {
   return {
     season: {
       is: {
@@ -167,11 +169,7 @@ export async function getCurrentWeekRecord() {
         include: {
           player: {
             include: {
-              handicapRecords: {
-                where: { countsForHandicap: true },
-                orderBy: { date: 'desc' },
-                take: 20
-              },
+              handicapRecords: HANDICAP_RECORDS_INCLUDE,
               seasonTeeChoices: true
             }
           }
@@ -182,21 +180,13 @@ export async function getCurrentWeekRecord() {
         include: {
           player1: {
             include: {
-              handicapRecords: {
-                where: { countsForHandicap: true },
-                orderBy: { date: 'desc' },
-                take: 20
-              },
+              handicapRecords: HANDICAP_RECORDS_INCLUDE,
               seasonTeeChoices: true
             }
           },
           player2: {
             include: {
-              handicapRecords: {
-                where: { countsForHandicap: true },
-                orderBy: { date: 'desc' },
-                take: 20
-              },
+              handicapRecords: HANDICAP_RECORDS_INCLUDE,
               seasonTeeChoices: true
             }
           },
@@ -258,17 +248,13 @@ export async function getCurrentWeekPageData() {
 
   const { isoDate } = getPhoenixDateParts()
 
-  const [currentWeek, upcomingWeek, players, courses] = await Promise.all([
+  const [currentWeek, upcomingWeek, players, courses, commissioner] = await Promise.all([
     getCurrentWeekRecord(),
     getNextScheduledWeekRecord(),
     prisma.player.findMany({
       where: { active: true },
       include: {
-        handicapRecords: {
-          where: { countsForHandicap: true },
-          orderBy: { date: 'desc' },
-          take: 20
-        },
+        handicapRecords: HANDICAP_RECORDS_INCLUDE,
         seasonTeeChoices: true
       },
       orderBy: { name: 'asc' }
@@ -283,6 +269,16 @@ export async function getCurrentWeekPageData() {
         }
       },
       orderBy: { name: 'asc' }
+    }),
+    prisma.commissioner.findFirst({
+      select: {
+        defaultTrailingPlayerId: true,
+        defaultTrailingPlayer: {
+          select: {
+            name: true
+          }
+        }
+      }
     })
   ])
 
@@ -356,13 +352,7 @@ export async function getCurrentWeekPageData() {
       : getDefaultTeeColorForGender(player.gender)
     const handicapIndexValue = getPlayerHandicapIndexValue(player)
     const courseTee = currentWeek?.course
-      ? getCourseTee(currentWeek.course.tees, teeColor, player.gender, {
-          color: 'white',
-          gender: 'man',
-          nineHolePar: currentWeek.course.nineHolePar,
-          nineHoleRating: currentWeek.course.nineHoleRating,
-          nineHoleSlope: currentWeek.course.nineHoleSlope
-        })
+      ? getCourseTee(currentWeek.course.tees, teeColor, player.gender, getCourseDefaultTeeFallback(currentWeek.course))
       : null
 
     return {
@@ -393,6 +383,8 @@ export async function getCurrentWeekPageData() {
         seasonWeekNumbers: currentWeek.season.weeks.map((seasonWeek) => seasonWeek.weekNumber)
       })
     : null
+  const filteredPriorMatches = priorMatches.filter((match) => !match.player2ScorecardOnly)
+  const repeatCounts = buildRepeatCounts(filteredPriorMatches)
 
   return {
     currentWeek: currentWeek
@@ -416,6 +408,8 @@ export async function getCurrentWeekPageData() {
           longestPuttHoleNumber: currentWeek.longestPuttHoleNumber,
           commissionerPlayerId: currentWeek.commissionerPlayerId,
           commissionerPlayerName: currentWeek.commissionerPlayer?.name ?? null,
+          defaultTrailingPlayerId: commissioner?.defaultTrailingPlayerId ?? null,
+          defaultTrailingPlayerName: commissioner?.defaultTrailingPlayer?.name ?? null,
           ctpWinnerId: currentWeek.ctpWinnerId,
           ctpWinnerName: currentWeek.ctpWinner?.name ?? null,
           longestPuttWinnerId: currentWeek.longestPuttWinnerId,
@@ -450,22 +444,10 @@ export async function getCurrentWeekPageData() {
               match.player2TeeOverrideColor
             )
             const player1Tee = currentWeek.course
-              ? getCourseTee(currentWeek.course.tees, player1ResolvedTeeColor, match.player1.gender, {
-                  color: 'white',
-                  gender: 'man',
-                  nineHolePar: currentWeek.course.nineHolePar,
-                  nineHoleRating: currentWeek.course.nineHoleRating,
-                  nineHoleSlope: currentWeek.course.nineHoleSlope
-                })
+              ? getCourseTee(currentWeek.course.tees, player1ResolvedTeeColor, match.player1.gender, getCourseDefaultTeeFallback(currentWeek.course))
               : null
             const player2Tee = currentWeek.course
-              ? getCourseTee(currentWeek.course.tees, player2ResolvedTeeColor, match.player2.gender, {
-                  color: 'white',
-                  gender: 'man',
-                  nineHolePar: currentWeek.course.nineHolePar,
-                  nineHoleRating: currentWeek.course.nineHoleRating,
-                  nineHoleSlope: currentWeek.course.nineHoleSlope
-                })
+              ? getCourseTee(currentWeek.course.tees, player2ResolvedTeeColor, match.player2.gender, getCourseDefaultTeeFallback(currentWeek.course))
               : null
             const player1EffectiveIndex =
               match.player1HandicapIndex ?? getPlayerHandicapIndexValue(match.player1)
@@ -502,7 +484,8 @@ export async function getCurrentWeekPageData() {
                   }
                 }
               ],
-              priorMatches.filter((m) => !m.player2ScorecardOnly)
+              filteredPriorMatches,
+              repeatCounts
             )
 
             return {

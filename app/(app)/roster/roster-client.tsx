@@ -1,7 +1,7 @@
 'use client'
 
 import type { FormEvent } from 'react'
-import { startTransition, useEffect, useState } from 'react'
+import { startTransition, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import type { Gender, TeeColor } from '@prisma/client'
 import { formatUsPhoneInput, formatUsPhoneNumber } from '@/lib/phone'
@@ -102,6 +102,249 @@ type RosterPageData = {
 
 interface RosterClientProps {
   initialData: RosterPageData
+}
+
+type NewPlayerState = {
+  name: string
+  gender: Gender
+  email: string
+  cellPhone: string
+  seedHandicap: string
+  defaultTeeColor: TeeColor
+}
+
+const DEFAULT_NEW_PLAYER: NewPlayerState = {
+  name: '',
+  gender: 'man',
+  email: '',
+  cellPhone: '',
+  seedHandicap: '',
+  defaultTeeColor: 'blue'
+}
+
+type EditingPlayerState = {
+  id: string
+  name: string
+  gender: Gender
+  defaultTeeColor: TeeColor
+  email: string
+  cellPhone: string
+  seedHandicap: string
+  importedRounds: ImportedRoundEditor[]
+  importedRoundsDirty: boolean
+  roundsExpanded: boolean
+  seasonTeeChoices: Record<string, TeeColor>
+}
+
+type SeasonFormValues = {
+  name: string
+  type: 'spring' | 'summer'
+  startDate: string
+  weekDates: string[]
+  datePickerValue: string
+  weekCount: string
+}
+
+const DEFAULT_SEASON_FORM: SeasonFormValues = {
+  name: '',
+  type: 'spring',
+  startDate: '',
+  weekDates: [],
+  datePickerValue: '',
+  weekCount: '8'
+}
+
+function useSeasonEditor(initial: SeasonFormValues = DEFAULT_SEASON_FORM) {
+  const [values, setValues] = useState<SeasonFormValues>(initial)
+
+  function setField<Key extends keyof SeasonFormValues>(field: Key, value: SeasonFormValues[Key]) {
+    setValues((current) => ({ ...current, [field]: value }))
+  }
+
+  function setWeekDates(value: string[] | ((current: string[]) => string[])) {
+    setValues((current) => ({
+      ...current,
+      weekDates: typeof value === 'function' ? value(current.weekDates) : value
+    }))
+  }
+
+  function addDate(date: string) {
+    if (!date) {
+      return
+    }
+
+    setValues((current) => ({
+      ...current,
+      weekDates: [...new Set([...current.weekDates, date])].sort(),
+      datePickerValue: ''
+    }))
+  }
+
+  function removeDate(date: string) {
+    setWeekDates((current) => current.filter((item) => item !== date))
+  }
+
+  function reset(nextValues = initial) {
+    setValues(nextValues)
+  }
+
+  return { values, setValues, setField, setWeekDates, addDate, removeDate, reset }
+}
+
+type SeasonEditorFormProps = {
+  title: string
+  description?: string
+  placeholder: string
+  values: SeasonFormValues
+  onFieldChange: <Key extends keyof SeasonFormValues>(
+    field: Key,
+    value: SeasonFormValues[Key]
+  ) => void
+  onSubmit: (event: FormEvent<HTMLFormElement>) => void
+  onClose?: () => void
+  onAddDate: (date: string) => void
+  onRemoveDate: (date: string) => void
+  onGenerateDates: () => void
+  datesHeading: string
+  scheduleDisabled?: boolean
+  scheduleDisabledMessage?: string
+  submitLabel: string
+  isSubmitting: boolean
+}
+
+function SeasonEditorForm({
+  title,
+  description,
+  placeholder,
+  values,
+  onFieldChange,
+  onSubmit,
+  onClose,
+  onAddDate,
+  onRemoveDate,
+  onGenerateDates,
+  datesHeading,
+  scheduleDisabled = false,
+  scheduleDisabledMessage,
+  submitLabel,
+  isSubmitting
+}: SeasonEditorFormProps) {
+  return (
+    <form
+      className="rounded-xl border border-surface-border bg-surface-elevated p-4"
+      onSubmit={onSubmit}
+    >
+      <div className={onClose ? 'flex items-center justify-between gap-3' : undefined}>
+        <div>
+          <p className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
+            {title}
+          </p>
+          {description ? (
+            <p className="mt-1 text-sm text-text-secondary">{description}</p>
+          ) : null}
+        </div>
+        {onClose ? (
+          <button type="button" className="text-sm text-text-secondary" onClick={onClose}>
+            Close
+          </button>
+        ) : null}
+      </div>
+      <div className="mt-4 space-y-3">
+        <input
+          className="w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
+          placeholder={placeholder}
+          value={values.name}
+          onChange={(event) => onFieldChange('name', event.target.value)}
+        />
+        <select
+          className="w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
+          value={values.type}
+          onChange={(event) => onFieldChange('type', event.target.value as 'spring' | 'summer')}
+        >
+          <option value="spring">Spring</option>
+          <option value="summer">Summer</option>
+        </select>
+        <div>
+          <p className="mb-1.5 font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
+            Start Date
+          </p>
+          <input
+            className="w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary disabled:text-text-disabled"
+            type="date"
+            value={values.startDate}
+            onChange={(event) => onFieldChange('startDate', event.target.value)}
+            disabled={scheduleDisabled}
+          />
+        </div>
+        <div className="grid gap-3 md:grid-cols-[1fr_120px]">
+          <input
+            className="w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary disabled:text-text-disabled"
+            type="date"
+            value={values.datePickerValue}
+            onChange={(event) => onFieldChange('datePickerValue', event.target.value)}
+            disabled={scheduleDisabled}
+          />
+          <button
+            type="button"
+            className="rounded-lg border border-surface-border bg-surface-sunken px-4 py-3 text-sm font-semibold text-text-primary disabled:cursor-not-allowed disabled:text-text-disabled"
+            onClick={() => onAddDate(values.datePickerValue)}
+            disabled={scheduleDisabled}
+          >
+            Add Date
+          </button>
+        </div>
+        <div className="grid gap-3 md:grid-cols-[120px_1fr]">
+          <input
+            className="w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary disabled:text-text-disabled"
+            inputMode="numeric"
+            value={values.weekCount}
+            onChange={(event) => onFieldChange('weekCount', event.target.value)}
+            disabled={scheduleDisabled}
+          />
+          <button
+            type="button"
+            className="rounded-lg border border-surface-border bg-surface-sunken px-4 py-3 text-sm font-semibold text-text-primary disabled:cursor-not-allowed disabled:text-text-disabled"
+            onClick={onGenerateDates}
+            disabled={scheduleDisabled}
+          >
+            Generate Weekly Dates
+          </button>
+        </div>
+        <div className="rounded-lg border border-surface-border bg-surface-sunken p-3">
+          <p className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
+            {datesHeading}
+          </p>
+          {scheduleDisabledMessage ? (
+            <p className="mt-2 text-xs text-text-secondary">{scheduleDisabledMessage}</p>
+          ) : null}
+          <div className="mt-3 flex flex-wrap gap-2">
+            {values.weekDates.length > 0 ? (
+              values.weekDates.map((date) => (
+                <button
+                  key={date}
+                  type="button"
+                  className="rounded bg-accent-dim px-2 py-1 text-xs font-semibold text-accent-text disabled:cursor-not-allowed disabled:opacity-60"
+                  onClick={() => onRemoveDate(date)}
+                  disabled={scheduleDisabled}
+                >
+                  {date} x
+                </button>
+              ))
+            ) : (
+              <p className="text-sm text-text-secondary">No dates selected yet.</p>
+            )}
+          </div>
+        </div>
+        <button
+          type="submit"
+          className="font-condensed w-full rounded-lg bg-accent px-4 py-3 text-sm font-bold uppercase tracking-wide text-white disabled:cursor-not-allowed disabled:bg-surface-sunken disabled:text-text-disabled"
+          disabled={isSubmitting}
+        >
+          {submitLabel}
+        </button>
+      </div>
+    </form>
+  )
 }
 
 function createEditorRoundId() {
@@ -222,45 +465,140 @@ function formatRosterRoundLabel(
 
 export function RosterClient({ initialData }: RosterClientProps) {
   const router = useRouter()
-  const [data, setData] = useState(initialData)
-  const [playerName, setPlayerName] = useState('')
-  const [playerGender, setPlayerGender] = useState<Gender>('man')
-  const [playerEmail, setPlayerEmail] = useState('')
-  const [playerCellPhone, setPlayerCellPhone] = useState('')
-  const [playerSeedHandicap, setPlayerSeedHandicap] = useState('')
-  const [playerDefaultTeeColor, setPlayerDefaultTeeColor] = useState<TeeColor>('blue')
-  const [editingPlayerId, setEditingPlayerId] = useState<string | null>(null)
-  const [editingPlayerName, setEditingPlayerName] = useState('')
-  const [editingPlayerGender, setEditingPlayerGender] = useState<Gender>('man')
-  const [editingPlayerDefaultTeeColor, setEditingPlayerDefaultTeeColor] = useState<TeeColor>('blue')
-  const [editingPlayerEmail, setEditingPlayerEmail] = useState('')
-  const [editingPlayerCellPhone, setEditingPlayerCellPhone] = useState('')
-  const [editingPlayerSeedHandicap, setEditingPlayerSeedHandicap] = useState('')
-  const [editingPlayerImportedRounds, setEditingPlayerImportedRounds] = useState<
-    ImportedRoundEditor[]
-  >([])
-  const [editingPlayerImportedRoundsDirty, setEditingPlayerImportedRoundsDirty] = useState(false)
-  const [editingPlayerRoundsExpanded, setEditingPlayerRoundsExpanded] = useState(false)
-  const [editingPlayerSeasonTeeChoices, setEditingPlayerSeasonTeeChoices] = useState<
-    Record<string, TeeColor>
-  >({})
-  const [seasonName, setSeasonName] = useState('')
-  const [seasonType, setSeasonType] = useState<'spring' | 'summer'>('spring')
-  const [seasonStartDate, setSeasonStartDate] = useState('')
-  const [seasonWeekDates, setSeasonWeekDates] = useState<string[]>([])
-  const [seasonDatePickerValue, setSeasonDatePickerValue] = useState('')
-  const [seasonWeekCount, setSeasonWeekCount] = useState('8')
+  const [dataState, setDataState] = useState<{
+    source: RosterPageData
+    value: RosterPageData
+  }>(() => ({
+    source: initialData,
+    value: initialData
+  }))
+  const data = dataState.source === initialData ? dataState.value : initialData
+  const [newPlayer, setNewPlayer] = useState<NewPlayerState>(DEFAULT_NEW_PLAYER)
+  const [editingPlayer, setEditingPlayer] = useState<EditingPlayerState | null>(null)
+  const createSeason = useSeasonEditor()
+  const editSeason = useSeasonEditor()
   const [editingSeasonId, setEditingSeasonId] = useState<string | null>(null)
-  const [editingSeasonName, setEditingSeasonName] = useState('')
-  const [editingSeasonType, setEditingSeasonType] = useState<'spring' | 'summer'>('spring')
-  const [editingSeasonStartDate, setEditingSeasonStartDate] = useState('')
-  const [editingSeasonWeekDates, setEditingSeasonWeekDates] = useState<string[]>([])
-  const [editingSeasonDatePickerValue, setEditingSeasonDatePickerValue] = useState('')
-  const [editingSeasonWeekCount, setEditingSeasonWeekCount] = useState('8')
   const [message, setMessage] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const rosterDisplaySeason = getRosterDisplaySeason(data.seasons)
+  const playerName = newPlayer.name
+  const playerGender = newPlayer.gender
+  const playerEmail = newPlayer.email
+  const playerCellPhone = newPlayer.cellPhone
+  const playerSeedHandicap = newPlayer.seedHandicap
+  const playerDefaultTeeColor = newPlayer.defaultTeeColor
+  const editingPlayerId = editingPlayer?.id ?? null
+  const editingPlayerName = editingPlayer?.name ?? ''
+  const editingPlayerGender = editingPlayer?.gender ?? 'man'
+  const editingPlayerDefaultTeeColor = editingPlayer?.defaultTeeColor ?? 'blue'
+  const editingPlayerEmail = editingPlayer?.email ?? ''
+  const editingPlayerCellPhone = editingPlayer?.cellPhone ?? ''
+  const editingPlayerSeedHandicap = editingPlayer?.seedHandicap ?? ''
+  const editingPlayerImportedRounds = editingPlayer?.importedRounds ?? []
+  const editingPlayerImportedRoundsDirty = editingPlayer?.importedRoundsDirty ?? false
+  const editingPlayerRoundsExpanded = editingPlayer?.roundsExpanded ?? false
+  const editingPlayerSeasonTeeChoices = editingPlayer?.seasonTeeChoices ?? {}
+  const seasonName = createSeason.values.name
+  const seasonType = createSeason.values.type
+  const seasonStartDate = createSeason.values.startDate
+  const seasonWeekDates = createSeason.values.weekDates
+  const editingSeasonName = editSeason.values.name
+  const editingSeasonType = editSeason.values.type
+  const editingSeasonStartDate = editSeason.values.startDate
+  const editingSeasonWeekDates = editSeason.values.weekDates
+
+  function setData(updater: (current: RosterPageData) => RosterPageData) {
+    setDataState((current) => {
+      const currentValue = current.source === initialData ? current.value : initialData
+
+      return {
+        source: initialData,
+        value: updater(currentValue)
+      }
+    })
+  }
+
+  function setPlayerName(name: string) {
+    setNewPlayer((current) => ({ ...current, name }))
+  }
+
+  function setPlayerGender(gender: Gender) {
+    setNewPlayer((current) => ({ ...current, gender }))
+  }
+
+  function setPlayerEmail(email: string) {
+    setNewPlayer((current) => ({ ...current, email }))
+  }
+
+  function setPlayerCellPhone(cellPhone: string) {
+    setNewPlayer((current) => ({ ...current, cellPhone }))
+  }
+
+  function setPlayerSeedHandicap(seedHandicap: string) {
+    setNewPlayer((current) => ({ ...current, seedHandicap }))
+  }
+
+  function setPlayerDefaultTeeColor(defaultTeeColor: TeeColor) {
+    setNewPlayer((current) => ({ ...current, defaultTeeColor }))
+  }
+
+  function updateEditingPlayer(updater: (current: EditingPlayerState) => EditingPlayerState) {
+    setEditingPlayer((current) => (current ? updater(current) : current))
+  }
+
+  function setEditingPlayerName(name: string) {
+    updateEditingPlayer((current) => ({ ...current, name }))
+  }
+
+  function setEditingPlayerGender(gender: Gender) {
+    updateEditingPlayer((current) => ({ ...current, gender }))
+  }
+
+  function setEditingPlayerDefaultTeeColor(defaultTeeColor: TeeColor) {
+    updateEditingPlayer((current) => ({ ...current, defaultTeeColor }))
+  }
+
+  function setEditingPlayerEmail(email: string) {
+    updateEditingPlayer((current) => ({ ...current, email }))
+  }
+
+  function setEditingPlayerCellPhone(cellPhone: string) {
+    updateEditingPlayer((current) => ({ ...current, cellPhone }))
+  }
+
+  function setEditingPlayerSeedHandicap(seedHandicap: string) {
+    updateEditingPlayer((current) => ({ ...current, seedHandicap }))
+  }
+
+  function setEditingPlayerImportedRounds(
+    value: ImportedRoundEditor[] | ((current: ImportedRoundEditor[]) => ImportedRoundEditor[])
+  ) {
+    updateEditingPlayer((current) => ({
+      ...current,
+      importedRounds: typeof value === 'function' ? value(current.importedRounds) : value
+    }))
+  }
+
+  function setEditingPlayerImportedRoundsDirty(importedRoundsDirty: boolean) {
+    updateEditingPlayer((current) => ({ ...current, importedRoundsDirty }))
+  }
+
+  function setEditingPlayerRoundsExpanded(value: boolean | ((current: boolean) => boolean)) {
+    updateEditingPlayer((current) => ({
+      ...current,
+      roundsExpanded: typeof value === 'function' ? value(current.roundsExpanded) : value
+    }))
+  }
+
+  function setEditingPlayerSeasonTeeChoices(
+    value: Record<string, TeeColor> | ((current: Record<string, TeeColor>) => Record<string, TeeColor>)
+  ) {
+    updateEditingPlayer((current) => ({
+      ...current,
+      seasonTeeChoices: typeof value === 'function' ? value(current.seasonTeeChoices) : value
+    }))
+  }
 
   // Course editor state
   type CourseEditorTee = { _key: string; color: TeeColor; gender: Gender; nineHolePar: string; nineHoleRating: string; nineHoleSlope: string }
@@ -276,15 +614,35 @@ export function RosterClient({ initialData }: RosterClientProps) {
   )
   const [confirmDeleteCourse, setConfirmDeleteCourse] = useState(false)
 
-  useEffect(() => {
-    setData(initialData)
-  }, [initialData])
+  async function getResponseError(response: Response, fallback: string) {
+    const payload = (await response.json().catch(() => null)) as { error?: unknown } | null
+    return typeof payload?.error === 'string' ? payload.error : fallback
+  }
 
-  async function refreshPage(successMessage: string) {
-    setMessage(successMessage)
-    startTransition(() => {
-      router.refresh()
-    })
+  async function requireOk(response: Response, fallback: string) {
+    if (!response.ok) {
+      throw new Error(await getResponseError(response, fallback))
+    }
+  }
+
+  async function runAction(action: () => Promise<void>, successMessage = '') {
+    setIsSubmitting(true)
+    setError(null)
+    setMessage(null)
+
+    try {
+      await action()
+      if (successMessage) {
+        setMessage(successMessage)
+      }
+      startTransition(() => {
+        router.refresh()
+      })
+    } catch (caughtError) {
+      setError(caughtError instanceof Error ? caughtError.message : 'Request failed')
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   function openCourseEditor(course?: RosterPageData['courses'][0]) {
@@ -354,10 +712,12 @@ export function RosterClient({ initialData }: RosterClientProps) {
   }
 
   async function saveCourse() {
-    if (!editingCourseId) return
-    setIsSubmitting(true)
-    setError(null)
-    setMessage(null)
+    if (!editingCourseId) {
+      return
+    }
+
+    const courseId = editingCourseId
+    const isNewCourse = courseId === 'new'
 
     const payload = {
       name: courseName,
@@ -368,132 +728,95 @@ export function RosterClient({ initialData }: RosterClientProps) {
       holes: courseHoles.map((h) => ({ holeNumber: h.holeNumber, par: Number(h.par) || 4, strokeIndex: Number(h.strokeIndex) || h.holeNumber, womenStrokeIndex: Number(h.womenStrokeIndex) || Number(h.strokeIndex) || h.holeNumber }))
     }
 
-    const url = editingCourseId === 'new' ? '/api/courses' : `/api/courses/${editingCourseId}`
-    const method = editingCourseId === 'new' ? 'POST' : 'PUT'
+    const url = isNewCourse ? '/api/courses' : `/api/courses/${courseId}`
+    const method = isNewCourse ? 'POST' : 'PUT'
 
-    const response = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
-    if (!response.ok) {
-      const payload2 = await response.json().catch(() => null)
-      setError(payload2?.error ?? 'Failed to save course')
-      setIsSubmitting(false)
-      return
-    }
-
-    setIsSubmitting(false)
-    setEditingCourseId(null)
-    await refreshPage(editingCourseId === 'new' ? 'Course created.' : 'Course updated.')
+    await runAction(async () => {
+      const response = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      })
+      await requireOk(response, 'Failed to save course')
+      setEditingCourseId(null)
+    }, isNewCourse ? 'Course created.' : 'Course updated.')
   }
 
   async function deleteCourse() {
-    if (!editingCourseId || editingCourseId === 'new') return
-    setIsSubmitting(true)
-    setError(null)
-    setMessage(null)
-
-    const response = await fetch(`/api/courses/${editingCourseId}`, { method: 'DELETE' })
-    if (!response.ok) {
-      const payload = await response.json().catch(() => null)
-      setError(payload?.error ?? 'Failed to delete course')
-      setIsSubmitting(false)
+    if (!editingCourseId || editingCourseId === 'new') {
       return
     }
 
-    setIsSubmitting(false)
-    setEditingCourseId(null)
-    setConfirmDeleteCourse(false)
-    await refreshPage('Course deleted.')
+    const courseId = editingCourseId
+
+    await runAction(async () => {
+      const response = await fetch(`/api/courses/${courseId}`, { method: 'DELETE' })
+      await requireOk(response, 'Failed to delete course')
+      setEditingCourseId(null)
+      setConfirmDeleteCourse(false)
+    }, 'Course deleted.')
   }
 
   async function handlePublicRosterToggle(publicRosterEnabled: boolean) {
-    setIsSubmitting(true)
-    setError(null)
-    setMessage(null)
-
-    const response = await fetch('/api/commissioner/settings', {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ publicRosterEnabled })
-    })
-
-    if (!response.ok) {
-      const payload = await response.json().catch(() => null)
-      setError(payload?.error ?? 'Unable to update commissioner settings')
-      setIsSubmitting(false)
-      return
-    }
-
-    setIsSubmitting(false)
-    await refreshPage(publicRosterEnabled ? 'Public roster enabled.' : 'Public roster hidden.')
+    await runAction(async () => {
+      const response = await fetch('/api/commissioner/settings', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ publicRosterEnabled })
+      })
+      await requireOk(response, 'Unable to update commissioner settings')
+      setData((current) => ({
+        ...current,
+        settings: {
+          ...current.settings,
+          publicRosterEnabled
+        }
+      }))
+    }, publicRosterEnabled ? 'Public roster enabled.' : 'Public roster hidden.')
   }
 
   async function handleCreatePlayer(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    setIsSubmitting(true)
-    setError(null)
-    setMessage(null)
 
-    const response = await fetch('/api/players', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        name: playerName,
-        gender: playerGender,
-        defaultTeeColor: playerDefaultTeeColor,
-        email: playerEmail,
-        cellPhone: playerCellPhone,
-        seedHandicap: playerSeedHandicap
+    await runAction(async () => {
+      const response = await fetch('/api/players', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          name: playerName,
+          gender: playerGender,
+          defaultTeeColor: playerDefaultTeeColor,
+          email: playerEmail,
+          cellPhone: playerCellPhone,
+          seedHandicap: playerSeedHandicap
+        })
       })
-    })
-
-    if (!response.ok) {
-      const payload = await response.json().catch(() => null)
-      setError(payload?.error ?? 'Unable to create player')
-      setIsSubmitting(false)
-      return
-    }
-
-    setPlayerName('')
-    setPlayerGender('man')
-    setPlayerDefaultTeeColor('blue')
-    setPlayerEmail('')
-    setPlayerCellPhone('')
-    setPlayerSeedHandicap('')
-    setIsSubmitting(false)
-    await refreshPage('Player created.')
+      await requireOk(response, 'Unable to create player')
+      setNewPlayer(DEFAULT_NEW_PLAYER)
+    }, 'Player created.')
   }
 
   async function handleTogglePlayer(playerId: string, active: boolean) {
-    setIsSubmitting(true)
-    setError(null)
-    setMessage(null)
-
-    const response = await fetch(`/api/players/${playerId}`, {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ active })
-    })
-
-    if (!response.ok) {
-      const payload = await response.json().catch(() => null)
-      setError(payload?.error ?? 'Unable to update player')
-      setIsSubmitting(false)
-      return
-    }
-
-    setData((current) => ({
-      ...current,
-      players: sortPlayers(
-        current.players.map((player) => (player.id === playerId ? { ...player, active } : player))
-      )
-    }))
-    setIsSubmitting(false)
-    await refreshPage(active ? 'Player activated.' : 'Player deactivated.')
+    await runAction(async () => {
+      const response = await fetch(`/api/players/${playerId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ active })
+      })
+      await requireOk(response, 'Unable to update player')
+      setData((current) => ({
+        ...current,
+        players: sortPlayers(
+          current.players.map((player) => (player.id === playerId ? { ...player, active } : player))
+        )
+      }))
+    }, active ? 'Player activated.' : 'Player deactivated.')
   }
 
   async function handleDeletePlayer(player: RosterPageData['players'][number]) {
@@ -505,40 +828,21 @@ export function RosterClient({ initialData }: RosterClientProps) {
       return
     }
 
-    setIsSubmitting(true)
-    setError(null)
-    setMessage(null)
+    await runAction(async () => {
+      const response = await fetch(`/api/players/${player.id}`, {
+        method: 'DELETE'
+      })
+      await requireOk(response, 'Unable to delete player')
 
-    const response = await fetch(`/api/players/${player.id}`, {
-      method: 'DELETE'
-    })
+      if (editingPlayerId === player.id) {
+        closeEditingPlayer()
+      }
 
-    if (!response.ok) {
-      const payload = await response.json().catch(() => null)
-      setError(payload?.error ?? 'Unable to delete player')
-      setIsSubmitting(false)
-      return
-    }
-
-    if (editingPlayerId === player.id) {
-      setEditingPlayerId(null)
-      setEditingPlayerName('')
-      setEditingPlayerGender('man')
-      setEditingPlayerEmail('')
-      setEditingPlayerCellPhone('')
-      setEditingPlayerSeedHandicap('')
-      setEditingPlayerImportedRounds([])
-      setEditingPlayerImportedRoundsDirty(false)
-      setEditingPlayerRoundsExpanded(false)
-      setEditingPlayerSeasonTeeChoices({})
-    }
-
-    setData((current) => ({
-      ...current,
-      players: current.players.filter((currentPlayer) => currentPlayer.id !== player.id)
-    }))
-    setIsSubmitting(false)
-    await refreshPage('Player deleted.')
+      setData((current) => ({
+        ...current,
+        players: current.players.filter((currentPlayer) => currentPlayer.id !== player.id)
+      }))
+    }, 'Player deleted.')
   }
 
   async function handleSavePlayer(event: FormEvent<HTMLFormElement>) {
@@ -546,6 +850,8 @@ export function RosterClient({ initialData }: RosterClientProps) {
     if (!editingPlayerId) {
       return
     }
+
+    const playerId = editingPlayerId
 
     setError(null)
     setMessage(null)
@@ -645,78 +951,55 @@ export function RosterClient({ initialData }: RosterClientProps) {
       return
     }
 
-    setIsSubmitting(true)
-    setError(null)
-    setMessage(null)
-
-    const response = await fetch(`/api/players/${editingPlayerId}`, {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        name: editingPlayerName,
-        gender: editingPlayerGender,
-        defaultTeeColor: editingPlayerDefaultTeeColor,
-        email: editingPlayerEmail,
-        cellPhone: editingPlayerCellPhone,
-        seedHandicap: editingPlayerSeedHandicap,
-        importedHandicapRounds: shouldSaveImportedRounds ? normalizedImportedRounds : undefined,
-        seasonTeeChoices: Object.entries(editingPlayerSeasonTeeChoices).map(([seasonId, teeColor]) => ({
-          seasonId,
-          teeColor
-        }))
+    await runAction(async () => {
+      const response = await fetch(`/api/players/${playerId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          name: editingPlayerName,
+          gender: editingPlayerGender,
+          defaultTeeColor: editingPlayerDefaultTeeColor,
+          email: editingPlayerEmail,
+          cellPhone: editingPlayerCellPhone,
+          seedHandicap: editingPlayerSeedHandicap,
+          importedHandicapRounds: shouldSaveImportedRounds ? normalizedImportedRounds : undefined,
+          seasonTeeChoices: Object.entries(editingPlayerSeasonTeeChoices).map(
+            ([seasonId, teeColor]) => ({
+              seasonId,
+              teeColor
+            })
+          )
+        })
       })
-    })
-
-    if (!response.ok) {
-      const payload = await response.json().catch(() => null)
-      setError(payload?.error ?? 'Unable to save player')
-      setIsSubmitting(false)
-      return
-    }
-
-    closeEditingPlayer()
-    setIsSubmitting(false)
-    await refreshPage('Player updated.')
+      await requireOk(response, 'Unable to save player')
+      closeEditingPlayer()
+    }, 'Player updated.')
   }
 
   function closeEditingPlayer() {
-    setEditingPlayerId(null)
-    setEditingPlayerName('')
-    setEditingPlayerGender('man')
-    setEditingPlayerDefaultTeeColor('blue')
-    setEditingPlayerEmail('')
-    setEditingPlayerCellPhone('')
-    setEditingPlayerSeedHandicap('')
-    setEditingPlayerImportedRounds([])
-    setEditingPlayerImportedRoundsDirty(false)
-    setEditingPlayerRoundsExpanded(false)
-    setEditingPlayerSeasonTeeChoices({})
+    setEditingPlayer(null)
   }
 
   function beginEditingPlayer(player: RosterPageData['players'][number]) {
-    setEditingPlayerId(player.id)
-    setEditingPlayerName(player.name)
-    setEditingPlayerGender(player.gender)
-    setEditingPlayerDefaultTeeColor(
-      player.defaultTeeColor ?? getDefaultTeeColorForGender(player.gender)
-    )
-    setEditingPlayerEmail(player.email ?? '')
-    setEditingPlayerCellPhone(formatUsPhoneNumber(player.cellPhone) ?? '')
-    setEditingPlayerSeedHandicap(player.seedHandicap?.toString() ?? '')
-    setEditingPlayerImportedRounds(
-      player.importedHandicapRounds.map((round) =>
+    setEditingPlayer({
+      id: player.id,
+      name: player.name,
+      gender: player.gender,
+      defaultTeeColor: player.defaultTeeColor ?? getDefaultTeeColorForGender(player.gender),
+      email: player.email ?? '',
+      cellPhone: formatUsPhoneNumber(player.cellPhone) ?? '',
+      seedHandicap: player.seedHandicap?.toString() ?? '',
+      importedRounds: player.importedHandicapRounds.map((round) =>
         importedRoundToEditorRound(round, data.courses, player.gender)
-      )
-    )
-    setEditingPlayerRoundsExpanded(player.importedHandicapRounds.length === 0)
-    setEditingPlayerImportedRoundsDirty(false)
-    setEditingPlayerSeasonTeeChoices(
-      Object.fromEntries(
+      ),
+      importedRoundsDirty: false,
+      roundsExpanded: player.importedHandicapRounds.length === 0,
+      seasonTeeChoices: Object.fromEntries(
         player.seasonTeeChoices.map((choice) => [choice.seasonId, choice.teeColor])
       )
-    )
+    })
   }
 
   function addEditingPlayerImportedRound() {
@@ -772,14 +1055,6 @@ export function RosterClient({ initialData }: RosterClientProps) {
     })
   }
 
-  function handlePlayerCellPhoneChange(value: string) {
-    setPlayerCellPhone(formatUsPhoneInput(value))
-  }
-
-  function handleEditingPlayerCellPhoneChange(value: string) {
-    setEditingPlayerCellPhone(formatUsPhoneInput(value))
-  }
-
   function buildWeeklyDates(startDate: string, weekCountValue: string) {
     const weeks = Number(weekCountValue)
     if (!startDate) {
@@ -800,96 +1075,52 @@ export function RosterClient({ initialData }: RosterClientProps) {
     })
   }
 
-  function addSeasonDate(date: string) {
-    if (!date) {
-      return
-    }
-
-    setSeasonWeekDates((current) => [...new Set([...current, date])].sort())
-    setSeasonDatePickerValue('')
-  }
-
-  function removeSeasonDate(date: string) {
-    setSeasonWeekDates((current) => current.filter((item) => item !== date))
-  }
-
-  function generateWeeklyDates() {
-    const dates = buildWeeklyDates(seasonStartDate, seasonWeekCount)
+  function generateSeasonDates(editor: ReturnType<typeof useSeasonEditor>) {
+    const dates = buildWeeklyDates(editor.values.startDate, editor.values.weekCount)
     if (!dates) {
       return
     }
 
-    setSeasonWeekDates(dates)
+    editor.setWeekDates(dates)
     setError(null)
   }
 
   function beginEditingSeason(season: RosterPageData['seasons'][number]) {
     setEditingSeasonId(season.id)
-    setEditingSeasonName(season.name)
-    setEditingSeasonType(season.type)
-    setEditingSeasonStartDate(season.startDate)
-    setEditingSeasonWeekDates(season.weekDates)
-    setEditingSeasonDatePickerValue('')
-    setEditingSeasonWeekCount(String(season.weekCount))
+    editSeason.reset({
+      name: season.name,
+      type: season.type,
+      startDate: season.startDate,
+      weekDates: season.weekDates,
+      datePickerValue: '',
+      weekCount: String(season.weekCount)
+    })
   }
 
-  function addEditingSeasonDate(date: string) {
-    if (!date) {
-      return
-    }
-
-    setEditingSeasonWeekDates((current) => [...new Set([...current, date])].sort())
-    setEditingSeasonDatePickerValue('')
-  }
-
-  function removeEditingSeasonDate(date: string) {
-    setEditingSeasonWeekDates((current) => current.filter((item) => item !== date))
-  }
-
-  function generateEditingSeasonDates() {
-    const dates = buildWeeklyDates(editingSeasonStartDate, editingSeasonWeekCount)
-    if (!dates) {
-      return
-    }
-
-    setEditingSeasonWeekDates(dates)
-    setError(null)
+  function closeEditingSeason() {
+    setEditingSeasonId(null)
+    editSeason.reset()
   }
 
   async function handleCreateSeason(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    setIsSubmitting(true)
-    setError(null)
-    setMessage(null)
 
-    const weekDates = [...seasonWeekDates]
-
-    const response = await fetch('/api/seasons', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        name: seasonName,
-        type: seasonType,
-        startDate: seasonStartDate,
-        weekDates
+    await runAction(async () => {
+      const response = await fetch('/api/seasons', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          name: seasonName,
+          type: seasonType,
+          startDate: seasonStartDate,
+          weekDates: [...seasonWeekDates]
+        })
       })
-    })
-
-    if (!response.ok) {
-      const payload = await response.json().catch(() => null)
-      setError(payload?.error ?? 'Unable to create season')
-      setIsSubmitting(false)
-      return
-    }
-
-    setSeasonName('')
-    setSeasonStartDate('')
-    setSeasonWeekDates([])
-    setSeasonDatePickerValue('')
-    setIsSubmitting(false)
-    await refreshPage('Season created.')
+      await requireOk(response, 'Unable to create season')
+      createSeason.reset()
+    }, 'Season created.')
   }
 
   async function handleSaveSeason(event: FormEvent<HTMLFormElement>) {
@@ -898,46 +1129,32 @@ export function RosterClient({ initialData }: RosterClientProps) {
       return
     }
 
-    setIsSubmitting(true)
-    setError(null)
-    setMessage(null)
+    const seasonId = editingSeasonId
+    const hasWeekActivity = editingSeason?.hasWeekActivity ?? false
 
-    const response = await fetch(`/api/seasons/${editingSeasonId}`, {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(
-        editingSeason?.hasWeekActivity
-          ? {
-              name: editingSeasonName,
-              type: editingSeasonType
-            }
-          : {
-              name: editingSeasonName,
-              type: editingSeasonType,
-              startDate: editingSeasonStartDate,
-              weekDates: editingSeasonWeekDates
-            }
-      )
-    })
-
-    if (!response.ok) {
-      const payload = await response.json().catch(() => null)
-      setError(payload?.error ?? 'Unable to save season')
-      setIsSubmitting(false)
-      return
-    }
-
-    setEditingSeasonId(null)
-    setEditingSeasonName('')
-    setEditingSeasonType('spring')
-    setEditingSeasonStartDate('')
-    setEditingSeasonWeekDates([])
-    setEditingSeasonDatePickerValue('')
-    setEditingSeasonWeekCount('8')
-    setIsSubmitting(false)
-    await refreshPage('Season updated.')
+    await runAction(async () => {
+      const response = await fetch(`/api/seasons/${seasonId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(
+          hasWeekActivity
+            ? {
+                name: editingSeasonName,
+                type: editingSeasonType
+              }
+            : {
+                name: editingSeasonName,
+                type: editingSeasonType,
+                startDate: editingSeasonStartDate,
+                weekDates: editingSeasonWeekDates
+              }
+        )
+      })
+      await requireOk(response, 'Unable to save season')
+      closeEditingSeason()
+    }, 'Season updated.')
   }
 
   async function handleSeasonArchiveToggle(
@@ -954,31 +1171,20 @@ export function RosterClient({ initialData }: RosterClientProps) {
       return
     }
 
-    setIsSubmitting(true)
-    setError(null)
-    setMessage(null)
+    await runAction(async () => {
+      const response = await fetch(`/api/seasons/${season.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ archived })
+      })
+      await requireOk(response, 'Unable to update season')
 
-    const response = await fetch(`/api/seasons/${season.id}`, {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ archived })
-    })
-
-    if (!response.ok) {
-      const payload = await response.json().catch(() => null)
-      setError(payload?.error ?? 'Unable to update season')
-      setIsSubmitting(false)
-      return
-    }
-
-    if (editingSeasonId === season.id && archived) {
-      setEditingSeasonId(null)
-    }
-
-    setIsSubmitting(false)
-    await refreshPage(archived ? 'Season archived.' : 'Season restored.')
+      if (editingSeasonId === season.id && archived) {
+        closeEditingSeason()
+      }
+    }, archived ? 'Season archived.' : 'Season restored.')
   }
 
   async function handleDeleteSeason(season: RosterPageData['seasons'][number]) {
@@ -990,27 +1196,16 @@ export function RosterClient({ initialData }: RosterClientProps) {
       return
     }
 
-    setIsSubmitting(true)
-    setError(null)
-    setMessage(null)
+    await runAction(async () => {
+      const response = await fetch(`/api/seasons/${season.id}`, {
+        method: 'DELETE'
+      })
+      await requireOk(response, 'Unable to delete season')
 
-    const response = await fetch(`/api/seasons/${season.id}`, {
-      method: 'DELETE'
-    })
-
-    if (!response.ok) {
-      const payload = await response.json().catch(() => null)
-      setError(payload?.error ?? 'Unable to delete season')
-      setIsSubmitting(false)
-      return
-    }
-
-    if (editingSeasonId === season.id) {
-      setEditingSeasonId(null)
-    }
-
-    setIsSubmitting(false)
-    await refreshPage('Season deleted.')
+      if (editingSeasonId === season.id) {
+        closeEditingSeason()
+      }
+    }, 'Season deleted.')
   }
 
   const editingSeason = data.seasons.find((season) => season.id === editingSeasonId) ?? null
@@ -1095,7 +1290,7 @@ export function RosterClient({ initialData }: RosterClientProps) {
             inputMode="tel"
             placeholder="Cell phone"
             value={editingPlayerCellPhone}
-            onChange={(event) => handleEditingPlayerCellPhoneChange(event.target.value)}
+            onChange={(event) => setEditingPlayerCellPhone(formatUsPhoneInput(event.target.value))}
           />
           <input
             className="w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
@@ -1478,7 +1673,7 @@ export function RosterClient({ initialData }: RosterClientProps) {
               inputMode="tel"
               placeholder="Cell phone (optional)"
               value={playerCellPhone}
-              onChange={(event) => handlePlayerCellPhoneChange(event.target.value)}
+              onChange={(event) => setPlayerCellPhone(formatUsPhoneInput(event.target.value))}
             />
             <input
               className="w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
@@ -1497,99 +1692,19 @@ export function RosterClient({ initialData }: RosterClientProps) {
           </div>
         </form>
 
-        <form
-          className="rounded-xl border border-surface-border bg-surface-elevated p-4"
+        <SeasonEditorForm
+          title="Create Season"
+          placeholder="Spring 2026"
+          values={createSeason.values}
+          onFieldChange={createSeason.setField}
           onSubmit={handleCreateSeason}
-        >
-          <p className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
-            Create Season
-          </p>
-          <div className="mt-4 space-y-3">
-            <input
-              className="w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
-              placeholder="Spring 2026"
-              value={seasonName}
-              onChange={(event) => setSeasonName(event.target.value)}
-            />
-            <select
-              className="w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
-              value={seasonType}
-              onChange={(event) => setSeasonType(event.target.value as 'spring' | 'summer')}
-            >
-              <option value="spring">Spring</option>
-              <option value="summer">Summer</option>
-            </select>
-            <div>
-              <p className="mb-1.5 font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
-                Start Date
-              </p>
-              <input
-                className="w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
-                type="date"
-                value={seasonStartDate}
-                onChange={(event) => setSeasonStartDate(event.target.value)}
-              />
-            </div>
-            <div className="grid gap-3 md:grid-cols-[1fr_120px]">
-              <input
-                className="w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
-                type="date"
-                value={seasonDatePickerValue}
-                onChange={(event) => setSeasonDatePickerValue(event.target.value)}
-              />
-              <button
-                type="button"
-                className="rounded-lg border border-surface-border bg-surface-sunken px-4 py-3 text-sm font-semibold text-text-primary"
-                onClick={() => addSeasonDate(seasonDatePickerValue)}
-              >
-                Add Date
-              </button>
-            </div>
-            <div className="grid gap-3 md:grid-cols-[120px_1fr]">
-              <input
-                className="w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
-                inputMode="numeric"
-                value={seasonWeekCount}
-                onChange={(event) => setSeasonWeekCount(event.target.value)}
-              />
-              <button
-                type="button"
-                className="rounded-lg border border-surface-border bg-surface-sunken px-4 py-3 text-sm font-semibold text-text-primary"
-                onClick={generateWeeklyDates}
-              >
-                Generate Weekly Dates
-              </button>
-            </div>
-            <div className="rounded-lg border border-surface-border bg-surface-sunken p-3">
-              <p className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
-                Selected Week Dates
-              </p>
-              <div className="mt-3 flex flex-wrap gap-2">
-                {seasonWeekDates.length > 0 ? (
-                  seasonWeekDates.map((date) => (
-                    <button
-                      key={date}
-                      type="button"
-                      className="rounded bg-accent-dim px-2 py-1 text-xs font-semibold text-accent-text"
-                      onClick={() => removeSeasonDate(date)}
-                    >
-                      {date} ×
-                    </button>
-                  ))
-                ) : (
-                  <p className="text-sm text-text-secondary">No dates selected yet.</p>
-                )}
-              </div>
-            </div>
-            <button
-              type="submit"
-              className="font-condensed w-full rounded-lg bg-accent px-4 py-3 text-sm font-bold uppercase tracking-wide text-white disabled:cursor-not-allowed disabled:bg-surface-sunken disabled:text-text-disabled"
-              disabled={isSubmitting}
-            >
-              Create Season
-            </button>
-          </div>
-        </form>
+          onAddDate={createSeason.addDate}
+          onRemoveDate={createSeason.removeDate}
+          onGenerateDates={() => generateSeasonDates(createSeason)}
+          datesHeading="Selected Week Dates"
+          submitLabel="Create Season"
+          isSubmitting={isSubmitting}
+        />
       </section>
 
       <section className="rounded-xl border border-surface-border bg-surface-elevated xl:flex xl:overflow-hidden">
@@ -1731,371 +1846,6 @@ export function RosterClient({ initialData }: RosterClientProps) {
                   onSubmit={handleSavePlayer}
                 >
                   {renderPlayerEditFormBody(player)}
-                  {false && (<>
-                  <div className="mt-4 grid gap-3 md:grid-cols-2">
-                    <input
-                      className="w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
-                      placeholder="Name"
-                      value={editingPlayerName}
-                      onChange={(event) => setEditingPlayerName(event.target.value)}
-                    />
-                    <select
-                      className="w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
-                      value={editingPlayerGender}
-                      onChange={(event) => {
-                        const nextGender = event.target.value as Gender
-                        setEditingPlayerGender(nextGender)
-                        setEditingPlayerDefaultTeeColor(getDefaultTeeColorForGender(nextGender))
-                      }}
-                    >
-                      <option value="man">Man</option>
-                      <option value="woman">Woman</option>
-                    </select>
-                    <select
-                      className="w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
-                      value={editingPlayerDefaultTeeColor}
-                      onChange={(event) =>
-                        setEditingPlayerDefaultTeeColor(event.target.value as TeeColor)
-                      }
-                    >
-                      <option value="blue">Standard tee: Blue</option>
-                      <option value="white">Standard tee: White</option>
-                      <option value="yellow">Standard tee: Yellow</option>
-                      <option value="silver">Standard tee: Silver</option>
-                    </select>
-                    <input
-                      className="w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
-                      placeholder="Email"
-                      value={editingPlayerEmail}
-                      onChange={(event) => setEditingPlayerEmail(event.target.value)}
-                    />
-                    <input
-                      className="w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
-                      inputMode="tel"
-                      placeholder="Cell phone"
-                      value={editingPlayerCellPhone}
-                      onChange={(event) => handleEditingPlayerCellPhoneChange(event.target.value)}
-                    />
-                    <input
-                      className="w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
-                      inputMode="decimal"
-                      placeholder="Seed handicap"
-                      value={editingPlayerSeedHandicap}
-                      onChange={(event) => setEditingPlayerSeedHandicap(event.target.value)}
-                    />
-                  </div>
-                  <div className="mt-4 rounded-lg border border-surface-border bg-surface-sunken p-3">
-                    <p className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
-                      Season Tee Choice
-                    </p>
-                    <div className="mt-3 space-y-3">
-                      {data.seasons.length > 0 ? (
-                        data.seasons.map((season) => (
-                          <div key={season.id} className="grid gap-2 md:grid-cols-[1fr_140px] md:items-center">
-                            <div>
-                              <p className="text-sm font-medium text-text-primary">{season.name}</p>
-                              <p className="text-xs text-text-secondary">
-                                {season.archivedAt ? 'Archived season' : 'Applies across this season'}
-                              </p>
-                            </div>
-                            <select
-                              className="w-full rounded-md border border-surface-border bg-surface-elevated px-3 py-2.5 text-sm text-text-primary"
-                              value={editingPlayerSeasonTeeChoices[season.id] ?? getDefaultTeeColorForGender(editingPlayerGender)}
-                              onChange={(event) =>
-                                updateEditingPlayerSeasonTeeChoice(season.id, event.target.value as TeeColor)
-                              }
-                            >
-                              <option value="blue">Blue</option>
-                              <option value="white">White</option>
-                              <option value="yellow">Yellow</option>
-                              <option value="silver">Silver</option>
-                            </select>
-                          </div>
-                        ))
-                      ) : (
-                        <p className="text-sm text-text-secondary">
-                          Create a season first, then assign each player’s tee color for that season.
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                  <div className="mt-4 rounded-lg border border-surface-border bg-surface-sunken p-3">
-                    <div className="flex items-center justify-between gap-3">
-                      <div>
-                        <p className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
-                          Last 20 Handicap Rounds
-                        </p>
-                        <p className="mt-2 text-xs text-text-secondary">
-                          Read-only view of the player&apos;s latest handicap rounds from both imported history and league-entered scorecards.
-                        </p>
-                      </div>
-                      <span className="rounded bg-surface-elevated px-2 py-1 text-[11px] font-semibold text-text-secondary">
-                        {player.recentHandicapRounds.length} shown
-                      </span>
-                    </div>
-                    <div className="mt-4">
-                      {player.recentHandicapRounds.length > 0 ? (
-                        <div className="space-y-2">
-                          {player.recentHandicapRounds.map((round, index) => (
-                            <div
-                              key={`${round.date}-${round.weekId ?? 'imported'}-${index}`}
-                              className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-surface-border bg-surface-elevated px-3 py-2 text-sm"
-                            >
-                              <span className="text-text-primary">{formatRosterRoundLabel(round)}</span>
-                              <span
-                                className={`rounded px-2 py-1 text-[11px] font-semibold ${
-                                  round.isImported
-                                    ? 'bg-surface-sunken text-text-secondary'
-                                    : 'bg-accent-dim text-accent-text'
-                                }`}
-                              >
-                                {round.isImported ? 'Imported' : 'League'}
-                              </span>
-                            </div>
-                          ))}
-                        </div>
-                      ) : (
-                        <div className="rounded-lg border border-dashed border-surface-border px-4 py-6 text-sm text-text-secondary">
-                          No handicap rounds on file yet.
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                  <div className="mt-4 rounded-lg border border-surface-border bg-surface-sunken p-3">
-                    <div className="flex items-center justify-between gap-3">
-                      <div>
-                        <p className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
-                          Editable Imported Rounds
-                        </p>
-                        <p className="mt-2 text-xs text-text-secondary">
-                          Add or correct up to 20 imported 9-hole rounds with the date picker, course, tee, and gross score.
-                        </p>
-                        <p className="mt-1 text-xs text-text-secondary">
-                          Leave adjusted blank when gross and adjusted are the same. Choose custom only when the round does not match one of the configured courses.
-                        </p>
-                        <p className="mt-1 text-xs font-semibold text-text-secondary">
-                          {editingPlayerImportedRounds.length > 0
-                            ? `${editingPlayerImportedRounds.length} round${editingPlayerImportedRounds.length === 1 ? '' : 's'} loaded`
-                            : 'No prior rounds loaded yet'}
-                        </p>
-                      </div>
-                      <div className="flex gap-2">
-                        <button
-                          type="button"
-                          className="rounded-lg border border-surface-border bg-surface-elevated px-3 py-2 text-sm font-semibold text-text-primary"
-                          onClick={() => setEditingPlayerRoundsExpanded((current) => !current)}
-                        >
-                          {editingPlayerRoundsExpanded ? 'Hide Rounds' : 'Show Rounds'}
-                        </button>
-                        <button
-                          type="button"
-                          className="rounded-lg border border-surface-border bg-surface-elevated px-3 py-2 text-sm font-semibold text-text-primary"
-                          onClick={addEditingPlayerImportedRound}
-                          disabled={isSubmitting || editingPlayerImportedRounds.length >= 20}
-                        >
-                          Add Round
-                        </button>
-                      </div>
-                    </div>
-                    {editingPlayerRoundsExpanded ? (
-                      <div className="mt-4 space-y-3">
-                        {editingPlayerImportedRounds.length > 0 ? (
-                        editingPlayerImportedRounds.map((round, index) => {
-                          const selectedTee =
-                            round.courseId !== CUSTOM_COURSE_ID
-                              ? getImportedHandicapCourseTee(
-                                  data.courses,
-                                  round.courseId,
-                                  round.teeColor,
-                                  editingPlayerGender
-                                )
-                              : null
-
-                          return (
-                            <div
-                              key={round.id}
-                              className="rounded-lg border border-surface-border bg-surface-elevated p-3"
-                            >
-                              <div className="flex items-center justify-between gap-3">
-                                <p className="text-sm font-semibold text-text-primary">
-                                  Round {index + 1}
-                                </p>
-                                <button
-                                  type="button"
-                                  className="text-sm text-danger-text"
-                                  onClick={() => removeEditingPlayerImportedRound(round.id)}
-                                >
-                                  Remove
-                                </button>
-                              </div>
-                              <div className="mt-3 grid gap-3 md:grid-cols-2 xl:grid-cols-5">
-                                <label className="space-y-1">
-                                  <span className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
-                                    Date
-                                  </span>
-                                  <input
-                                    className="w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
-                                    type="date"
-                                    value={round.date}
-                                    onChange={(event) =>
-                                      updateEditingPlayerImportedRound(round.id, {
-                                        date: event.target.value
-                                      })
-                                    }
-                                  />
-                                </label>
-                                <label className="space-y-1 xl:col-span-2">
-                                  <span className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
-                                    Course
-                                  </span>
-                                  <select
-                                    className="w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
-                                    value={round.courseId}
-                                    onChange={(event) =>
-                                      updateEditingPlayerImportedRound(round.id, {
-                                        courseId: event.target.value
-                                      })
-                                    }
-                                  >
-                                    {data.courses.map((course) => (
-                                      <option key={course.id} value={course.id}>
-                                        {course.name}
-                                      </option>
-                                    ))}
-                                    <option value={CUSTOM_COURSE_ID}>Custom course values</option>
-                                  </select>
-                                </label>
-                                <label className="space-y-1">
-                                  <span className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
-                                    Tee
-                                  </span>
-                                  <select
-                                    className="w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary disabled:text-text-disabled"
-                                    value={round.teeColor}
-                                    onChange={(event) =>
-                                      updateEditingPlayerImportedRound(round.id, {
-                                        teeColor: event.target.value as TeeColor
-                                      })
-                                    }
-                                    disabled={round.courseId === CUSTOM_COURSE_ID}
-                                  >
-                                    <option value="blue">Blue</option>
-                                    <option value="white">White</option>
-                                    <option value="yellow">Yellow</option>
-                                    <option value="silver">Silver</option>
-                                  </select>
-                                </label>
-                                <label className="space-y-1">
-                                  <span className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
-                                    Gross
-                                  </span>
-                                  <input
-                                    className="w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
-                                    inputMode="numeric"
-                                    value={round.grossScore}
-                                    onChange={(event) =>
-                                      updateEditingPlayerImportedRound(round.id, {
-                                        grossScore: event.target.value
-                                      })
-                                    }
-                                  />
-                                </label>
-                              </div>
-                              <div className="mt-3 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-                                <label className="space-y-1">
-                                  <span className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
-                                    Adjusted
-                                  </span>
-                                  <input
-                                    className="w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
-                                    inputMode="numeric"
-                                    placeholder="Same as gross"
-                                    value={round.adjustedGrossScore}
-                                    onChange={(event) =>
-                                      updateEditingPlayerImportedRound(round.id, {
-                                        adjustedGrossScore: event.target.value
-                                      })
-                                    }
-                                  />
-                                </label>
-                                {round.courseId === CUSTOM_COURSE_ID ? (
-                                  <>
-                                    <label className="space-y-1">
-                                      <span className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
-                                        Rating
-                                      </span>
-                                      <input
-                                        className="w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
-                                        inputMode="decimal"
-                                        value={round.courseRating}
-                                        onChange={(event) =>
-                                          updateEditingPlayerImportedRound(round.id, {
-                                            courseRating: event.target.value
-                                          })
-                                        }
-                                      />
-                                    </label>
-                                    <label className="space-y-1">
-                                      <span className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
-                                        Slope
-                                      </span>
-                                      <input
-                                        className="w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
-                                        inputMode="numeric"
-                                        value={round.slopeRating}
-                                        onChange={(event) =>
-                                          updateEditingPlayerImportedRound(round.id, {
-                                            slopeRating: event.target.value
-                                          })
-                                        }
-                                      />
-                                    </label>
-                                    <label className="space-y-1">
-                                      <span className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
-                                        Par
-                                      </span>
-                                      <input
-                                        className="w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
-                                        inputMode="numeric"
-                                        value={round.coursePar}
-                                        onChange={(event) =>
-                                          updateEditingPlayerImportedRound(round.id, {
-                                            coursePar: event.target.value
-                                          })
-                                        }
-                                      />
-                                    </label>
-                                  </>
-                                ) : (
-                                  <div className="xl:col-span-3 rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-secondary">
-                                    {selectedTee ? (
-                                      <>
-                                        Uses {selectedTee.courseName} {selectedTee.teeColor} tee values:
-                                        {' '}
-                                        {selectedTee.nineHoleRating.toFixed(1)} / {selectedTee.nineHoleSlope} / Par {selectedTee.nineHolePar}
-                                      </>
-                                    ) : (
-                                      'This course does not have tee values configured yet.'
-                                    )}
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-                          )
-                        })
-                        ) : (
-                          <div className="rounded-lg border border-dashed border-surface-border px-4 py-6 text-sm text-text-secondary">
-                            No prior handicap rounds added yet.
-                          </div>
-                        )}
-                      </div>
-                    ) : (
-                      <div className="mt-4 rounded-lg border border-dashed border-surface-border px-4 py-4 text-sm text-text-secondary">
-                        Prior rounds are collapsed for quicker profile edits.
-                      </div>
-                    )}
-                  </div>
-                  </>)}
                 </form>
               ) : null}
             </div>
@@ -2183,124 +1933,27 @@ export function RosterClient({ initialData }: RosterClientProps) {
       </section>
 
       {editingSeasonId ? (
-        <form
-          className="rounded-xl border border-surface-border bg-surface-elevated p-4"
+        <SeasonEditorForm
+          title="Edit Season"
+          description="Update season metadata and, when no week activity exists yet, adjust the scheduled dates."
+          placeholder="Season name"
+          values={editSeason.values}
+          onFieldChange={editSeason.setField}
           onSubmit={handleSaveSeason}
-        >
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <p className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
-                Edit Season
-              </p>
-              <p className="mt-1 text-sm text-text-secondary">
-                Update season metadata and, when no week activity exists yet, adjust the scheduled dates.
-              </p>
-            </div>
-            <button
-              type="button"
-              className="text-sm text-text-secondary"
-              onClick={() => setEditingSeasonId(null)}
-            >
-              Close
-            </button>
-          </div>
-          <div className="mt-4 space-y-3">
-            <input
-              className="w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
-              placeholder="Season name"
-              value={editingSeasonName}
-              onChange={(event) => setEditingSeasonName(event.target.value)}
-            />
-            <select
-              className="w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
-              value={editingSeasonType}
-              onChange={(event) => setEditingSeasonType(event.target.value as 'spring' | 'summer')}
-            >
-              <option value="spring">Spring</option>
-              <option value="summer">Summer</option>
-            </select>
-            <div>
-              <p className="mb-1.5 font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
-                Start Date
-              </p>
-              <input
-                className="w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
-                type="date"
-                value={editingSeasonStartDate}
-                onChange={(event) => setEditingSeasonStartDate(event.target.value)}
-                disabled={editingSeason?.hasWeekActivity}
-              />
-            </div>
-            <div className="grid gap-3 md:grid-cols-[1fr_120px]">
-              <input
-                className="w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary disabled:text-text-disabled"
-                type="date"
-                value={editingSeasonDatePickerValue}
-                onChange={(event) => setEditingSeasonDatePickerValue(event.target.value)}
-                disabled={editingSeason?.hasWeekActivity}
-              />
-              <button
-                type="button"
-                className="rounded-lg border border-surface-border bg-surface-sunken px-4 py-3 text-sm font-semibold text-text-primary disabled:cursor-not-allowed disabled:text-text-disabled"
-                onClick={() => addEditingSeasonDate(editingSeasonDatePickerValue)}
-                disabled={editingSeason?.hasWeekActivity}
-              >
-                Add Date
-              </button>
-            </div>
-            <div className="grid gap-3 md:grid-cols-[120px_1fr]">
-              <input
-                className="w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary disabled:text-text-disabled"
-                inputMode="numeric"
-                value={editingSeasonWeekCount}
-                onChange={(event) => setEditingSeasonWeekCount(event.target.value)}
-                disabled={editingSeason?.hasWeekActivity}
-              />
-              <button
-                type="button"
-                className="rounded-lg border border-surface-border bg-surface-sunken px-4 py-3 text-sm font-semibold text-text-primary disabled:cursor-not-allowed disabled:text-text-disabled"
-                onClick={generateEditingSeasonDates}
-                disabled={editingSeason?.hasWeekActivity}
-              >
-                Generate Weekly Dates
-              </button>
-            </div>
-            <div className="rounded-lg border border-surface-border bg-surface-sunken p-3">
-              <p className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
-                Scheduled Week Dates
-              </p>
-              {editingSeason?.hasWeekActivity ? (
-                <p className="mt-2 text-xs text-text-secondary">
-                  Dates are read-only because this season already has attendance, pairings, or scores.
-                </p>
-              ) : null}
-              <div className="mt-3 flex flex-wrap gap-2">
-                {editingSeasonWeekDates.length > 0 ? (
-                  editingSeasonWeekDates.map((date) => (
-                    <button
-                      key={date}
-                      type="button"
-                      className="rounded bg-accent-dim px-2 py-1 text-xs font-semibold text-accent-text disabled:cursor-not-allowed disabled:opacity-60"
-                      onClick={() => removeEditingSeasonDate(date)}
-                      disabled={editingSeason?.hasWeekActivity}
-                    >
-                      {date} ×
-                    </button>
-                  ))
-                ) : (
-                  <p className="text-sm text-text-secondary">No dates selected yet.</p>
-                )}
-              </div>
-            </div>
-            <button
-              type="submit"
-              className="font-condensed w-full rounded-lg bg-accent px-4 py-3 text-sm font-bold uppercase tracking-wide text-white disabled:cursor-not-allowed disabled:bg-surface-sunken disabled:text-text-disabled"
-              disabled={isSubmitting}
-            >
-              Save Season
-            </button>
-          </div>
-        </form>
+          onClose={closeEditingSeason}
+          onAddDate={editSeason.addDate}
+          onRemoveDate={editSeason.removeDate}
+          onGenerateDates={() => generateSeasonDates(editSeason)}
+          datesHeading="Scheduled Week Dates"
+          scheduleDisabled={editingSeason?.hasWeekActivity}
+          scheduleDisabledMessage={
+            editingSeason?.hasWeekActivity
+              ? 'Dates are read-only because this season already has attendance, pairings, or scores.'
+              : undefined
+          }
+          submitLabel="Save Season"
+          isSubmitting={isSubmitting}
+        />
       ) : null}
 
       <section className="rounded-xl border border-surface-border bg-surface-elevated">

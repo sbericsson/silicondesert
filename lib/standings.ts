@@ -2,8 +2,9 @@ import { prisma } from '@/lib/db'
 import { getPlayerHandicapInlineLabel } from '@/lib/player-handicap-display'
 import { comparePlayerNamesByLastName } from '@/lib/player-sort'
 import { resolveSeasonPair } from '@/lib/seasons'
-import { accumulatePoints } from '@/lib/standings-engine'
-import { getCurrentWeekRecord } from '@/lib/week'
+import { accumulatePoints, mergeSeasonTotals } from '@/lib/standings-engine'
+import { getActiveWeekWhere } from '@/lib/week'
+import { HANDICAP_RECORDS_INCLUDE } from '@/lib/handicap-records'
 
 type StandingRow = {
   playerId: string
@@ -31,7 +32,10 @@ export async function getStandingsPageData() {
   }
 
   const [currentWeek, seasons] = await Promise.all([
-    getCurrentWeekRecord(),
+    prisma.week.findFirst({
+      where: getActiveWeekWhere(),
+      select: { seasonId: true }
+    }),
     prisma.season.findMany({
       where: { archivedAt: null },
       orderBy: [{ startDate: 'asc' }]
@@ -71,11 +75,7 @@ export async function getStandingsPageData() {
     prisma.player.findMany({
       where: { active: true },
       include: {
-        handicapRecords: {
-          where: { countsForHandicap: true },
-          orderBy: { date: 'desc' },
-          take: 20
-        }
+        handicapRecords: HANDICAP_RECORDS_INCLUDE
       },
       orderBy: { name: 'asc' }
     })
@@ -90,7 +90,6 @@ export async function getStandingsPageData() {
   const multiSeason =
     multiSeasonCandidate && weeks.some((w) => w.seasonId === summer!.id && w.completedAt != null)
 
-  const overallTotals = accumulatePoints(weeks, playerInputs)
   const springTotals = multiSeason
     ? accumulatePoints(
         weeks.filter((week) => week.seasonId === spring!.id),
@@ -103,6 +102,9 @@ export async function getStandingsPageData() {
         playerInputs
       )
     : null
+  const overallTotals = multiSeason
+    ? mergeSeasonTotals(springTotals!, summerTotals!)
+    : accumulatePoints(weeks, playerInputs)
 
   const standings: StandingRow[] = playerInputs
     .map((player) => {

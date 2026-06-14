@@ -6,6 +6,8 @@ export interface Player {
   earlyBirdRequested?: boolean
 }
 
+export const REFERENCE_SCORECARD_PLAYER_ID = '__reference_scorecard__'
+
 export interface PriorMatch {
   player1Id: string
   player2Id: string
@@ -52,7 +54,7 @@ function pairCost(player1: Player, player2: Player, repeatCounts: Map<string, nu
   return gap * 2 + priorCount * REPEAT_PAIRING_PENALTY
 }
 
-function buildRepeatCounts(priorMatchesThisSeason: PriorMatch[]) {
+export function buildRepeatCounts(priorMatchesThisSeason: PriorMatch[]) {
   const counts = new Map<string, number>()
 
   for (const match of priorMatchesThisSeason) {
@@ -219,9 +221,10 @@ function buildFlags(
 
 export function buildPairingFlags(
   matches: Array<{ player1: Player; player2: Player }>,
-  priorMatchesThisSeason: PriorMatch[]
+  priorMatchesThisSeason: PriorMatch[],
+  repeatCounts = buildRepeatCounts(priorMatchesThisSeason)
 ): PairingResult['flags'] {
-  return buildFlags(matches, buildRepeatCounts(priorMatchesThisSeason))
+  return buildFlags(matches, repeatCounts)
 }
 
 function totalMatchCost(

@@ -1,22 +1,17 @@
-export const DEFAULT_TRAILING_PLAYER_NAME = 'Peter Pestalozzi'
-
 type CheckedInPlayer = {
   playerId: string
-  player: {
-    name: string
-  }
 }
 
 export function getWeeklyTrailingPlayerId(
   attendance: CheckedInPlayer[],
-  commissionerPlayerId: string | null
+  commissionerPlayerId: string | null,
+  defaultTrailingPlayerId: string | null
 ) {
-  const defaultTrailingPlayer = attendance.find(
-    (entry) => entry.player.name === DEFAULT_TRAILING_PLAYER_NAME
-  )
-
-  if (defaultTrailingPlayer) {
-    return defaultTrailingPlayer.playerId
+  if (
+    defaultTrailingPlayerId &&
+    attendance.some((entry) => entry.playerId === defaultTrailingPlayerId)
+  ) {
+    return defaultTrailingPlayerId
   }
 
   if (!commissionerPlayerId) {

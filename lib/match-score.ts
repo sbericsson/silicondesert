@@ -1,3 +1,4 @@
+import type { Gender, HandicapMode, TeeColor } from '@prisma/client'
 import { prisma } from '@/lib/db'
 import {
   applyESC,
@@ -7,12 +8,84 @@ import {
   scoreDifferential,
   strokesReceivedOnHole
 } from '@/lib/handicap'
-import { getCourseTee, getPlayerMatchTeeColor } from '@/lib/course-tee'
+import { getCourseDefaultTeeFallback, getCourseTee, getPlayerMatchTeeColor } from '@/lib/course-tee'
 import { getMatchStrokeAllocation } from '@/lib/match-net-scoring'
 import { getHandicapModeLabel, getPlayingHandicap } from '@/lib/playing-handicap'
 import { calculateMatchPlayResult, calculateMatchPoints } from '@/lib/scoring'
-import { recomputeUsedInIndex } from '@/lib/handicap-records'
+import { HANDICAP_RECORDS_INCLUDE, recomputeUsedInIndex } from '@/lib/handicap-records'
 import { writeAuditLog } from '@/lib/audit'
+
+type CourseTee = {
+  color: TeeColor
+  gender: Gender
+  nineHolePar: number
+  nineHoleRating: number
+  nineHoleSlope: number
+}
+
+type CourseHole = {
+  holeNumber: number
+  par: number
+  strokeIndex: number
+  womenStrokeIndex: number
+}
+
+type WeekWithCourse = {
+  id: string
+  date: Date
+  handicapMode: HandicapMode
+  season: { id: string }
+  course: {
+    nineHolePar: number
+    nineHoleRating: number
+    nineHoleSlope: number
+    tees: CourseTee[]
+    holes: CourseHole[]
+  }
+}
+
+type MatchPlayer = {
+  gender: Gender
+  defaultTeeColor: TeeColor | null
+  seedHandicap: number | null
+  seasonTeeChoices: Array<{ seasonId: string; teeColor: TeeColor }>
+  handicapRecords: Array<{ courseDifferential: number; date: Date; weekId: string | null }>
+}
+
+type MatchWithPlayers = {
+  player1: MatchPlayer
+  player2: MatchPlayer
+  player1HandicapIndex: number | null
+  player2HandicapIndex: number | null
+  player1PlayingHandicap: number | null
+  player2PlayingHandicap: number | null
+  player1TeeOverrideColor: TeeColor | null
+  player2TeeOverrideColor: TeeColor | null
+}
+
+type HoleScoreInput = {
+  holeNumber: number
+  grossScore: number
+}
+
+type ProcessedScore = {
+  holeNumber: number
+  grossScore: number
+  adjustedScore: number
+  netScore: number
+}
+
+type HoleScoreWriter = {
+  holeScore: {
+    upsert: typeof prisma.holeScore.upsert
+  }
+}
+
+type HandicapRecordWriter = {
+  handicapRecord: {
+    upsert: typeof prisma.handicapRecord.upsert
+  }
+}
 
 function getEffectiveHandicapIndex(player: {
   seedHandicap: number | null
@@ -78,6 +151,199 @@ function normalizeScores(scores: Array<{ holeNumber: number; grossScore: number 
   return [...scores].sort((a, b) => a.holeNumber - b.holeNumber)
 }
 
+function resolveMatchHandicaps(
+  match: MatchWithPlayers,
+  week: WeekWithCourse,
+  grossScores: {
+    player1Gross: number | null
+    player2Gross: number | null
+  } = { player1Gross: null, player2Gross: null }
+) {
+  const player1BaseIndex = getEffectiveHandicapIndex(match.player1, match.player1HandicapIndex)
+  const player2BaseIndex = getEffectiveHandicapIndex(match.player2, match.player2HandicapIndex)
+  const player1TeeColor = getPlayerMatchTeeColor(
+    match.player1.seasonTeeChoices,
+    week.season.id,
+    match.player1.gender,
+    match.player1.defaultTeeColor,
+    match.player1TeeOverrideColor
+  )
+  const player2TeeColor = getPlayerMatchTeeColor(
+    match.player2.seasonTeeChoices,
+    week.season.id,
+    match.player2.gender,
+    match.player2.defaultTeeColor,
+    match.player2TeeOverrideColor
+  )
+  const player1Tee = getCourseTee(
+    week.course.tees,
+    player1TeeColor,
+    match.player1.gender,
+    getCourseDefaultTeeFallback(week.course)
+  )
+  const player2Tee = getCourseTee(
+    week.course.tees,
+    player2TeeColor,
+    match.player2.gender,
+    getCourseDefaultTeeFallback(week.course)
+  )
+  const firstRoundPlayer1Index =
+    grossScores.player1Gross === null
+      ? null
+      : getFirstRoundHandicapIndex(match.player1, week.id, week.date, grossScores.player1Gross, player1Tee)
+  const firstRoundPlayer2Index =
+    grossScores.player2Gross === null
+      ? null
+      : getFirstRoundHandicapIndex(match.player2, week.id, week.date, grossScores.player2Gross, player2Tee)
+  const player1Index = firstRoundPlayer1Index ?? player1BaseIndex
+  const player2Index = firstRoundPlayer2Index ?? player2BaseIndex
+  const player1PlayingHandicap =
+    firstRoundPlayer1Index === null && match.player1PlayingHandicap !== null
+      ? match.player1PlayingHandicap
+      : getPlayingHandicap(week.handicapMode, player1Index, player1Tee)
+  const player2PlayingHandicap =
+    firstRoundPlayer2Index === null && match.player2PlayingHandicap !== null
+      ? match.player2PlayingHandicap
+      : getPlayingHandicap(week.handicapMode, player2Index, player2Tee)
+
+  return {
+    player1Index,
+    player2Index,
+    firstRoundPlayer1Index,
+    firstRoundPlayer2Index,
+    player1PlayingHandicap,
+    player2PlayingHandicap,
+    player1Tee,
+    player2Tee,
+    player1TeeColor,
+    player2TeeColor
+  }
+}
+
+function getMatchStrokeMaps(holes: CourseHole[], player1PlayingHandicap: number, player2PlayingHandicap: number, anyWoman: boolean) {
+  const player1MatchStrokes = new Map<number, number>()
+  const player2MatchStrokes = new Map<number, number>()
+
+  for (const hole of holes) {
+    const matchStrokeIndex = anyWoman ? hole.womenStrokeIndex : hole.strokeIndex
+    const strokes = getMatchStrokeAllocation(
+      player1PlayingHandicap,
+      player2PlayingHandicap,
+      matchStrokeIndex
+    )
+    player1MatchStrokes.set(hole.holeNumber, strokes.player1MatchStrokes)
+    player2MatchStrokes.set(hole.holeNumber, strokes.player2MatchStrokes)
+  }
+
+  return { player1MatchStrokes, player2MatchStrokes }
+}
+
+function processPlayerScores(
+  scores: HoleScoreInput[],
+  holesByNumber: Map<number, CourseHole>,
+  gender: Gender,
+  escHandicap: number,
+  matchStrokes: Map<number, number>
+): ProcessedScore[] {
+  return scores.map((score) => {
+    const hole = holesByNumber.get(score.holeNumber)
+    if (!hole) {
+      throw new Error('Invalid hole')
+    }
+
+    const escStrokeIndex = gender === 'woman' ? hole.womenStrokeIndex : hole.strokeIndex
+    const handicapStrokes = strokesReceivedOnHole(escHandicap, escStrokeIndex)
+    const adjustedScore = applyESC(score.grossScore, hole.par, handicapStrokes)
+    const playerMatchStrokes = matchStrokes.get(score.holeNumber) ?? 0
+
+    return {
+      holeNumber: score.holeNumber,
+      grossScore: score.grossScore,
+      adjustedScore,
+      netScore: score.grossScore - playerMatchStrokes
+    }
+  })
+}
+
+async function upsertPlayerHoleScores(
+  tx: HoleScoreWriter,
+  weekId: string,
+  playerId: string,
+  matchId: string,
+  scores: ProcessedScore[],
+  existingMatchIds: Map<string, string | null>
+) {
+  for (const score of scores) {
+    await tx.holeScore.upsert({
+      where: {
+        weekId_playerId_holeNumber: {
+          weekId,
+          playerId,
+          holeNumber: score.holeNumber
+        }
+      },
+      update: {
+        grossScore: score.grossScore,
+        adjustedScore: score.adjustedScore,
+        matchId: existingMatchIds.get(`${playerId}-${score.holeNumber}`) ?? matchId
+      },
+      create: {
+        weekId,
+        playerId,
+        holeNumber: score.holeNumber,
+        grossScore: score.grossScore,
+        adjustedScore: score.adjustedScore,
+        matchId
+      }
+    })
+  }
+}
+
+async function upsertHandicapRecord(
+  tx: HandicapRecordWriter,
+  weekId: string,
+  playerId: string,
+  date: Date,
+  grossScore: number,
+  adjustedGrossScore: number,
+  tee: CourseTee
+) {
+  const courseDifferential = scoreDifferential(
+    adjustedGrossScore,
+    tee.nineHoleRating,
+    tee.nineHoleSlope
+  )
+
+  await tx.handicapRecord.upsert({
+    where: {
+      playerId_weekId: {
+        playerId,
+        weekId
+      }
+    },
+    update: {
+      date,
+      grossScore,
+      adjustedGrossScore,
+      courseRating: tee.nineHoleRating,
+      slopeRating: tee.nineHoleSlope,
+      coursePar: tee.nineHolePar,
+      courseDifferential
+    },
+    create: {
+      playerId,
+      weekId,
+      date,
+      grossScore,
+      adjustedGrossScore,
+      courseRating: tee.nineHoleRating,
+      slopeRating: tee.nineHoleSlope,
+      coursePar: tee.nineHolePar,
+      courseDifferential
+    }
+  })
+}
+
 async function getNextPendingMatchId(weekId: string, currentMatch: {
   id: string
   createdAt: Date
@@ -140,21 +406,13 @@ export async function getMatchScorePageData(weekId: string, matchId: string) {
       },
       player1: {
         include: {
-          handicapRecords: {
-            where: { countsForHandicap: true },
-            orderBy: { date: 'desc' },
-            take: 20
-          },
+          handicapRecords: HANDICAP_RECORDS_INCLUDE,
           seasonTeeChoices: true
         }
       },
       player2: {
         include: {
-          handicapRecords: {
-            where: { countsForHandicap: true },
-            orderBy: { date: 'desc' },
-            take: 20
-          },
+          handicapRecords: HANDICAP_RECORDS_INCLUDE,
           seasonTeeChoices: true
         }
       }
@@ -163,6 +421,10 @@ export async function getMatchScorePageData(weekId: string, matchId: string) {
 
   if (!match || !match.week.course) {
     return null
+  }
+  const week = {
+    ...match.week,
+    course: match.week.course
   }
 
   const holeScores = await prisma.holeScore.findMany({
@@ -175,53 +437,26 @@ export async function getMatchScorePageData(weekId: string, matchId: string) {
     orderBy: { holeNumber: 'asc' }
   })
 
-  const attendanceMap = new Map(match.week.attendance.map((entry) => [entry.playerId, entry.present]))
-  const player1BaseIndex = getEffectiveHandicapIndex(match.player1, match.player1HandicapIndex)
-  const player2BaseIndex = getEffectiveHandicapIndex(match.player2, match.player2HandicapIndex)
-  const player1TeeColor = getPlayerMatchTeeColor(
-    match.player1.seasonTeeChoices,
-    match.week.season.id,
-    match.player1.gender,
-    match.player1.defaultTeeColor,
-    match.player1TeeOverrideColor
-  )
-  const player2TeeColor = getPlayerMatchTeeColor(
-    match.player2.seasonTeeChoices,
-    match.week.season.id,
-    match.player2.gender,
-    match.player2.defaultTeeColor,
-    match.player2TeeOverrideColor
-  )
-  const player1Tee = getCourseTee(match.week.course.tees, player1TeeColor, match.player1.gender, {
-    color: 'white',
-    gender: 'man',
-    nineHolePar: match.week.course.nineHolePar,
-    nineHoleRating: match.week.course.nineHoleRating,
-    nineHoleSlope: match.week.course.nineHoleSlope
-  })
-  const player2Tee = getCourseTee(match.week.course.tees, player2TeeColor, match.player2.gender, {
-    color: 'white',
-    gender: 'man',
-    nineHolePar: match.week.course.nineHolePar,
-    nineHoleRating: match.week.course.nineHoleRating,
-    nineHoleSlope: match.week.course.nineHoleSlope
-  })
   const savedPlayer1Scores = holeScores.filter((score) => score.playerId === match.player1Id)
   const savedPlayer2Scores = holeScores.filter((score) => score.playerId === match.player2Id)
   const savedPlayer1Gross =
     savedPlayer1Scores.length === 9 ? sum(savedPlayer1Scores.map((score) => score.grossScore)) : null
   const savedPlayer2Gross =
     savedPlayer2Scores.length === 9 ? sum(savedPlayer2Scores.map((score) => score.grossScore)) : null
-  const firstRoundPlayer1Index =
-    savedPlayer1Gross === null
-      ? null
-      : getFirstRoundHandicapIndex(match.player1, weekId, match.week.date, savedPlayer1Gross, player1Tee)
-  const firstRoundPlayer2Index =
-    savedPlayer2Gross === null
-      ? null
-      : getFirstRoundHandicapIndex(match.player2, weekId, match.week.date, savedPlayer2Gross, player2Tee)
-  const player1Index = firstRoundPlayer1Index ?? player1BaseIndex
-  const player2Index = firstRoundPlayer2Index ?? player2BaseIndex
+  const attendanceMap = new Map(match.week.attendance.map((entry) => [entry.playerId, entry.present]))
+  const {
+    player1Index,
+    player2Index,
+    player1PlayingHandicap,
+    player2PlayingHandicap,
+    player1Tee,
+    player2Tee,
+    player1TeeColor,
+    player2TeeColor
+  } = resolveMatchHandicaps(match, week, {
+    player1Gross: savedPlayer1Gross,
+    player2Gross: savedPlayer2Gross
+  })
   const player1CourseHandicap = courseHandicap(
     player1Index,
     player1Tee.nineHoleSlope,
@@ -236,22 +471,12 @@ export async function getMatchScorePageData(weekId: string, matchId: string) {
   )
   const player1EscHandicap = roundToWholeHandicap(player1Index)
   const player2EscHandicap = roundToWholeHandicap(player2Index)
-  const player1PlayingHandicap =
-    firstRoundPlayer1Index === null
-      ? match.player1PlayingHandicap ??
-        getPlayingHandicap(match.week.handicapMode, player1Index, player1Tee)
-      : getPlayingHandicap(match.week.handicapMode, player1Index, player1Tee)
-  const player2PlayingHandicap =
-    firstRoundPlayer2Index === null
-      ? match.player2PlayingHandicap ??
-        getPlayingHandicap(match.week.handicapMode, player2Index, player2Tee)
-      : getPlayingHandicap(match.week.handicapMode, player2Index, player2Tee)
 
   const scoreMap = new Map(holeScores.map((score) => [`${score.playerId}:${score.holeNumber}`, score]))
 
   const anyWoman = match.player1.gender === 'woman' || match.player2.gender === 'woman'
 
-  const rows = match.week.course.holes.map((hole) => {
+  const rows = week.course.holes.map((hole) => {
     const p1 = scoreMap.get(`${match.player1Id}:${hole.holeNumber}`)
     const p2 = scoreMap.get(`${match.player2Id}:${hole.holeNumber}`)
     const matchStrokeIndex = anyWoman ? hole.womenStrokeIndex : hole.strokeIndex
@@ -294,7 +519,7 @@ export async function getMatchScorePageData(weekId: string, matchId: string) {
       id: match.id,
       weekId,
       weekLabel: `Week ${match.week.weekNumber} - ${match.week.season.name}`,
-      courseName: match.week.course.name,
+      courseName: week.course.name,
       handicapMode: match.week.handicapMode,
       handicapModeLabel: getHandicapModeLabel(match.week.handicapMode),
       ctpHoleNumber: match.week.ctpHoleNumber,
@@ -380,7 +605,7 @@ export async function submitMatchScores(input: {
       player1: {
         include: {
           handicapRecords: {
-            where: { countsForHandicap: true },
+            where: HANDICAP_RECORDS_INCLUDE.where,
             orderBy: { date: 'desc' }
           },
           seasonTeeChoices: true
@@ -389,7 +614,7 @@ export async function submitMatchScores(input: {
       player2: {
         include: {
           handicapRecords: {
-            where: { countsForHandicap: true },
+            where: HANDICAP_RECORDS_INCLUDE.where,
             orderBy: { date: 'desc' }
           },
           seasonTeeChoices: true
@@ -401,12 +626,16 @@ export async function submitMatchScores(input: {
   if (!match || !match.week.course) {
     throw new Error('Match not found')
   }
+  const week = {
+    ...match.week,
+    course: match.week.course
+  }
 
   if (match.week.season.archivedAt) {
     throw new Error('Archived seasons cannot be edited')
   }
 
-  const course = match.week.course
+  const course = week.course
 
   if (!match.locked || !match.week.locked) {
     throw new Error('Match must be locked before scores can be entered')
@@ -417,117 +646,47 @@ export async function submitMatchScores(input: {
     throw new Error('Both players must be checked in before scores can be entered')
   }
 
-  const player1Index = getEffectiveHandicapIndex(match.player1, match.player1HandicapIndex)
-  const player2Index = getEffectiveHandicapIndex(match.player2, match.player2HandicapIndex)
-  const player1TeeColor = getPlayerMatchTeeColor(
-    match.player1.seasonTeeChoices,
-    match.week.season.id,
-    match.player1.gender,
-    match.player1.defaultTeeColor,
-    match.player1TeeOverrideColor
-  )
-  const player2TeeColor = getPlayerMatchTeeColor(
-    match.player2.seasonTeeChoices,
-    match.week.season.id,
-    match.player2.gender,
-    match.player2.defaultTeeColor,
-    match.player2TeeOverrideColor
-  )
-  const player1Tee = getCourseTee(course.tees, player1TeeColor, match.player1.gender, {
-    color: 'white',
-    gender: 'man',
-    nineHolePar: course.nineHolePar,
-    nineHoleRating: course.nineHoleRating,
-    nineHoleSlope: course.nineHoleSlope
-  })
-  const player2Tee = getCourseTee(course.tees, player2TeeColor, match.player2.gender, {
-    color: 'white',
-    gender: 'man',
-    nineHolePar: course.nineHolePar,
-    nineHoleRating: course.nineHoleRating,
-    nineHoleSlope: course.nineHoleSlope
-  })
   const player1Gross = sum(player1Scores.map((score) => score.grossScore))
   const player2Gross = sum(player2Scores.map((score) => score.grossScore))
-  const firstRoundPlayer1Index = getFirstRoundHandicapIndex(
-    match.player1,
-    input.weekId,
-    match.week.date,
-    player1Gross,
-    player1Tee
-  )
-  const firstRoundPlayer2Index = getFirstRoundHandicapIndex(
-    match.player2,
-    input.weekId,
-    match.week.date,
-    player2Gross,
+  const {
+    player1Index: scoringPlayer1Index,
+    player2Index: scoringPlayer2Index,
+    firstRoundPlayer1Index,
+    firstRoundPlayer2Index,
+    player1PlayingHandicap,
+    player2PlayingHandicap,
+    player1Tee,
     player2Tee
-  )
-  const scoringPlayer1Index = firstRoundPlayer1Index ?? player1Index
-  const scoringPlayer2Index = firstRoundPlayer2Index ?? player2Index
+  } = resolveMatchHandicaps(match, week, {
+    player1Gross,
+    player2Gross
+  })
   const player1EscHandicap = roundToWholeHandicap(scoringPlayer1Index)
   const player2EscHandicap = roundToWholeHandicap(scoringPlayer2Index)
-  const player1PlayingHandicap =
-    firstRoundPlayer1Index === null
-      ? match.player1PlayingHandicap ??
-        getPlayingHandicap(match.week.handicapMode, scoringPlayer1Index, player1Tee)
-      : getPlayingHandicap(match.week.handicapMode, scoringPlayer1Index, player1Tee)
-  const player2PlayingHandicap =
-    firstRoundPlayer2Index === null
-      ? match.player2PlayingHandicap ??
-        getPlayingHandicap(match.week.handicapMode, scoringPlayer2Index, player2Tee)
-      : getPlayingHandicap(match.week.handicapMode, scoringPlayer2Index, player2Tee)
 
   const holeByNumber = new Map(course.holes.map((hole) => [hole.holeNumber, hole]))
   const anyWoman = match.player1.gender === 'woman' || match.player2.gender === 'woman'
+  const { player1MatchStrokes, player2MatchStrokes } = getMatchStrokeMaps(
+    course.holes,
+    player1PlayingHandicap,
+    player2PlayingHandicap,
+    anyWoman
+  )
 
-  const processedP1 = player1Scores.map((score) => {
-    const hole = holeByNumber.get(score.holeNumber)
-    if (!hole) {
-      throw new Error('Invalid hole')
-    }
-
-    const matchStrokeIndex = anyWoman ? hole.womenStrokeIndex : hole.strokeIndex
-    const escStrokeIndex = match.player1.gender === 'woman' ? hole.womenStrokeIndex : hole.strokeIndex
-    const { player1MatchStrokes } = getMatchStrokeAllocation(
-      player1PlayingHandicap,
-      player2PlayingHandicap,
-      matchStrokeIndex
-    )
-    const handicapStrokes = strokesReceivedOnHole(player1EscHandicap, escStrokeIndex)
-    const adjustedScore = applyESC(score.grossScore, hole.par, handicapStrokes)
-
-    return {
-      holeNumber: score.holeNumber,
-      grossScore: score.grossScore,
-      adjustedScore,
-      netScore: score.grossScore - player1MatchStrokes
-    }
-  })
-
-  const processedP2 = player2Scores.map((score) => {
-    const hole = holeByNumber.get(score.holeNumber)
-    if (!hole) {
-      throw new Error('Invalid hole')
-    }
-
-    const matchStrokeIndex = anyWoman ? hole.womenStrokeIndex : hole.strokeIndex
-    const escStrokeIndex = match.player2.gender === 'woman' ? hole.womenStrokeIndex : hole.strokeIndex
-    const { player2MatchStrokes } = getMatchStrokeAllocation(
-      player1PlayingHandicap,
-      player2PlayingHandicap,
-      matchStrokeIndex
-    )
-    const handicapStrokes = strokesReceivedOnHole(player2EscHandicap, escStrokeIndex)
-    const adjustedScore = applyESC(score.grossScore, hole.par, handicapStrokes)
-
-    return {
-      holeNumber: score.holeNumber,
-      grossScore: score.grossScore,
-      adjustedScore,
-      netScore: score.grossScore - player2MatchStrokes
-    }
-  })
+  const processedP1 = processPlayerScores(
+    player1Scores,
+    holeByNumber,
+    match.player1.gender,
+    player1EscHandicap,
+    player1MatchStrokes
+  )
+  const processedP2 = processPlayerScores(
+    player2Scores,
+    holeByNumber,
+    match.player2.gender,
+    player2EscHandicap,
+    player2MatchStrokes
+  )
 
   const player1NetTotal = sum(processedP1.map((score) => score.netScore))
   const player2NetTotal = sum(processedP2.map((score) => score.netScore))
@@ -549,75 +708,39 @@ export async function submitMatchScores(input: {
       : null
 
   await prisma.$transaction(async (tx) => {
-    for (const score of processedP1) {
-      const existing = await tx.holeScore.findUnique({
-        where: {
-          weekId_playerId_holeNumber: {
-            weekId: input.weekId,
-            playerId: match.player1Id,
-            holeNumber: score.holeNumber
-          }
+    const existingHoleScores = await tx.holeScore.findMany({
+      where: {
+        weekId: input.weekId,
+        playerId: {
+          in: [match.player1Id, match.player2Id]
         }
-      })
+      },
+      select: {
+        playerId: true,
+        holeNumber: true,
+        matchId: true
+      }
+    })
+    const existingMatchIdByScore = new Map(
+      existingHoleScores.map((score) => [`${score.playerId}-${score.holeNumber}`, score.matchId])
+    )
 
-      await tx.holeScore.upsert({
-        where: {
-          weekId_playerId_holeNumber: {
-            weekId: input.weekId,
-            playerId: match.player1Id,
-            holeNumber: score.holeNumber
-          }
-        },
-        update: {
-          grossScore: score.grossScore,
-          adjustedScore: score.adjustedScore,
-          matchId: existing?.matchId ?? input.matchId
-        },
-        create: {
-          weekId: input.weekId,
-          playerId: match.player1Id,
-          holeNumber: score.holeNumber,
-          grossScore: score.grossScore,
-          adjustedScore: score.adjustedScore,
-          matchId: input.matchId
-        }
-      })
-    }
-
-    for (const score of processedP2) {
-      const existing = await tx.holeScore.findUnique({
-        where: {
-          weekId_playerId_holeNumber: {
-            weekId: input.weekId,
-            playerId: match.player2Id,
-            holeNumber: score.holeNumber
-          }
-        }
-      })
-
-      await tx.holeScore.upsert({
-        where: {
-          weekId_playerId_holeNumber: {
-            weekId: input.weekId,
-            playerId: match.player2Id,
-            holeNumber: score.holeNumber
-          }
-        },
-        update: {
-          grossScore: score.grossScore,
-          adjustedScore: score.adjustedScore,
-          matchId: existing?.matchId ?? input.matchId
-        },
-        create: {
-          weekId: input.weekId,
-          playerId: match.player2Id,
-          holeNumber: score.holeNumber,
-          grossScore: score.grossScore,
-          adjustedScore: score.adjustedScore,
-          matchId: input.matchId
-        }
-      })
-    }
+    await upsertPlayerHoleScores(
+      tx,
+      input.weekId,
+      match.player1Id,
+      input.matchId,
+      processedP1,
+      existingMatchIdByScore
+    )
+    await upsertPlayerHoleScores(
+      tx,
+      input.weekId,
+      match.player2Id,
+      input.matchId,
+      processedP2,
+      existingMatchIdByScore
+    )
 
     await tx.match.update({
       where: { id: input.matchId },
@@ -658,79 +781,24 @@ export async function submitMatchScores(input: {
       })
     })
 
-    await tx.handicapRecord.upsert({
-      where: {
-        playerId_weekId: {
-          playerId: match.player1Id,
-          weekId: input.weekId
-        }
-      },
-      update: {
-        date: match.week.date,
-        grossScore: player1Gross,
-        adjustedGrossScore: player1AdjustedGross,
-        courseRating: player1Tee.nineHoleRating,
-        slopeRating: player1Tee.nineHoleSlope,
-        coursePar: player1Tee.nineHolePar,
-        courseDifferential: scoreDifferential(
-          player1AdjustedGross,
-          player1Tee.nineHoleRating,
-          player1Tee.nineHoleSlope
-        )
-      },
-      create: {
-        playerId: match.player1Id,
-        weekId: input.weekId,
-        date: match.week.date,
-        grossScore: player1Gross,
-        adjustedGrossScore: player1AdjustedGross,
-        courseRating: player1Tee.nineHoleRating,
-        slopeRating: player1Tee.nineHoleSlope,
-        coursePar: player1Tee.nineHolePar,
-        courseDifferential: scoreDifferential(
-          player1AdjustedGross,
-          player1Tee.nineHoleRating,
-          player1Tee.nineHoleSlope
-        )
-      }
-    })
-
-    await tx.handicapRecord.upsert({
-      where: {
-        playerId_weekId: {
-          playerId: match.player2Id,
-          weekId: input.weekId
-        }
-      },
-      update: {
-        date: match.week.date,
-        grossScore: player2Gross,
-        adjustedGrossScore: player2AdjustedGross,
-        courseRating: player2Tee.nineHoleRating,
-        slopeRating: player2Tee.nineHoleSlope,
-        coursePar: player2Tee.nineHolePar,
-        courseDifferential: scoreDifferential(
-          player2AdjustedGross,
-          player2Tee.nineHoleRating,
-          player2Tee.nineHoleSlope
-        )
-      },
-      create: {
-        playerId: match.player2Id,
-        weekId: input.weekId,
-        date: match.week.date,
-        grossScore: player2Gross,
-        adjustedGrossScore: player2AdjustedGross,
-        courseRating: player2Tee.nineHoleRating,
-        slopeRating: player2Tee.nineHoleSlope,
-        coursePar: player2Tee.nineHolePar,
-        courseDifferential: scoreDifferential(
-          player2AdjustedGross,
-          player2Tee.nineHoleRating,
-          player2Tee.nineHoleSlope
-        )
-      }
-    })
+    await upsertHandicapRecord(
+      tx,
+      input.weekId,
+      match.player1Id,
+      match.week.date,
+      player1Gross,
+      player1AdjustedGross,
+      player1Tee
+    )
+    await upsertHandicapRecord(
+      tx,
+      input.weekId,
+      match.player2Id,
+      match.week.date,
+      player2Gross,
+      player2AdjustedGross,
+      player2Tee
+    )
 
     await Promise.all([
       recomputeUsedInIndex(tx, match.player1Id),

@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/db'
+import { HANDICAP_RECORDS_INCLUDE } from '@/lib/handicap-records'
 import { getPlayerHandicapDisplay } from '@/lib/player-handicap-display'
 
 export async function getPublicRosterData() {
@@ -27,11 +28,7 @@ export async function getPublicRosterData() {
       active: true
     },
     include: {
-      handicapRecords: {
-        where: { countsForHandicap: true },
-        orderBy: { date: 'desc' },
-        take: 20
-      }
+      handicapRecords: HANDICAP_RECORDS_INCLUDE
     },
     orderBy: { name: 'asc' }
   })

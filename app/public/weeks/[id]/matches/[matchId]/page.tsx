@@ -132,25 +132,27 @@ export default async function PublicMatchDetailPage({
 
   return (
     <section className="space-y-4">
-      <Link
-        href={`/public/weeks/${data.week.id}`}
-        className="inline-flex font-condensed text-xs font-semibold uppercase tracking-widest text-accent-text"
-      >
-        Back to Week {data.week.weekNumber}
-      </Link>
+      <div className="flex items-center justify-between gap-3">
+        <Link
+          href={`/public/weeks/${data.week.id}`}
+          className="font-condensed text-xs font-semibold uppercase tracking-widest text-accent-text"
+        >
+          ← Week {data.week.weekNumber}
+        </Link>
+        <p className="text-right text-xs text-text-secondary">
+          {data.week.dateLabel} · {data.week.courseName}
+        </p>
+      </div>
 
-      <div className="overflow-hidden rounded-3xl border border-surface-border bg-surface-elevated p-6 shadow-sm">
+      <div className="overflow-hidden rounded-2xl border border-surface-border bg-surface-elevated p-5 shadow-sm">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <p className="font-condensed text-xs font-bold uppercase tracking-widest text-accent-text">
               {data.match.label}
             </p>
-            <h2 className="font-condensed mt-2 text-2xl font-bold uppercase tracking-wide text-text-primary">
+            <h2 className="font-condensed mt-1.5 text-2xl font-bold uppercase tracking-wide text-text-primary">
               {data.match.player1.name} vs {data.match.player2.name}
             </h2>
-            <p className="mt-2 text-sm text-text-secondary">
-              Week {data.week.weekNumber} · {data.week.courseName} · {data.week.dateLabel}
-            </p>
           </div>
           {data.match.isThreesome ? (
             <span className="rounded-full bg-surface-sunken px-3 py-1 font-condensed text-[11px] font-semibold uppercase tracking-widest text-text-secondary">
@@ -159,7 +161,7 @@ export default async function PublicMatchDetailPage({
           ) : null}
         </div>
 
-        <div className="mt-5 grid gap-3 sm:grid-cols-2">
+        <div className="mt-4 grid gap-3 sm:grid-cols-2">
           <div className="rounded-2xl border border-surface-border bg-surface-base p-4">
             <p className="font-condensed text-[11px] font-bold uppercase tracking-widest text-text-muted">
               Stroke

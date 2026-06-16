@@ -2,11 +2,10 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { getApiSession, unauthorizedResponse } from '@/lib/api-auth'
 import { writeAuditLog } from '@/lib/audit'
-import { getCourseTee, getPlayerSeasonTeeColor } from '@/lib/course-tee'
-import { buildPairingFlags } from '@/lib/matchmaking'
+import { getCourseDefaultTeeFallback, getCourseTee, getPlayerSeasonTeeColor } from '@/lib/course-tee'
+import { HANDICAP_RECORDS_INCLUDE } from '@/lib/handicap-records'
+import { buildPairingFlags, REFERENCE_SCORECARD_PLAYER_ID } from '@/lib/matchmaking'
 import { getPlayerHandicapIndexValue, getPlayingHandicap } from '@/lib/playing-handicap'
-
-const REFERENCE_SCORECARD_PLAYER_ID = '__reference_scorecard__'
 
 export async function POST(
   request: NextRequest,
@@ -61,11 +60,7 @@ export async function POST(
         include: {
           player: {
             include: {
-              handicapRecords: {
-                where: { countsForHandicap: true },
-                orderBy: { date: 'desc' },
-                take: 20
-              },
+              handicapRecords: HANDICAP_RECORDS_INCLUDE,
               seasonTeeChoices: true
             }
           }
@@ -161,11 +156,7 @@ export async function POST(
     ? await prisma.player.findMany({
         where: { id: { in: manualPlayerIds } },
         include: {
-          handicapRecords: {
-            where: { countsForHandicap: true },
-            orderBy: { date: 'desc' },
-            take: 20
-          },
+          handicapRecords: HANDICAP_RECORDS_INCLUDE,
           seasonTeeChoices: true
         }
       })
@@ -186,13 +177,7 @@ export async function POST(
       player.defaultTeeColor
     )
     const tee = week.course
-      ? getCourseTee(week.course.tees, teeColor, player.gender, {
-          color: 'white',
-          gender: 'man',
-          nineHolePar: week.course.nineHolePar,
-          nineHoleRating: week.course.nineHoleRating,
-          nineHoleSlope: week.course.nineHoleSlope
-        })
+      ? getCourseTee(week.course.tees, teeColor, player.gender, getCourseDefaultTeeFallback(week.course))
       : null
 
     return {

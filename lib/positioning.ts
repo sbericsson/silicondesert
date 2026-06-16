@@ -1,5 +1,6 @@
 import type { SeasonType } from '@prisma/client'
 import { prisma } from '@/lib/db'
+import { HANDICAP_RECORDS_INCLUDE } from '@/lib/handicap-records'
 import { getPlayerHandicapInlineLabel } from '@/lib/player-handicap-display'
 import { comparePlayerNamesByLastName } from '@/lib/player-sort'
 import { findPrecedingSpringSeason } from '@/lib/seasons'
@@ -87,11 +88,7 @@ export async function getPositioningRanks(
     prisma.player.findMany({
       where: { active: true },
       include: {
-        handicapRecords: {
-          where: { countsForHandicap: true },
-          orderBy: { date: 'desc' },
-          take: 20
-        }
+        handicapRecords: HANDICAP_RECORDS_INCLUDE
       },
       orderBy: { name: 'asc' }
     })

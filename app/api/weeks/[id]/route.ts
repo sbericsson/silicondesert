@@ -2,8 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import type { HandicapMode, Prisma } from '@prisma/client'
 import { prisma } from '@/lib/db'
 import { getApiSession, unauthorizedResponse } from '@/lib/api-auth'
-import { writeAuditLog } from '@/lib/audit'
-import { getCourseTee, getPlayerMatchTeeColor } from '@/lib/course-tee'
+import { writeAuditLog, writeAuditLogBatch, type AuditEntry } from '@/lib/audit'
+import { getCourseDefaultTeeFallback, getCourseTee, getPlayerMatchTeeColor } from '@/lib/course-tee'
+import { HANDICAP_RECORDS_INCLUDE } from '@/lib/handicap-records'
 import { calculateMatchOutcomeFromGrossScores } from '@/lib/match-net-scoring'
 import { getPlayerHandicapIndexValue, getPlayingHandicap } from '@/lib/playing-handicap'
 
@@ -57,21 +58,13 @@ async function rescoreLockedWeekMatchesForHandicapMode(
         include: {
           player1: {
             include: {
-              handicapRecords: {
-                where: { countsForHandicap: true },
-                orderBy: { date: 'desc' },
-                take: 20
-              },
+              handicapRecords: HANDICAP_RECORDS_INCLUDE,
               seasonTeeChoices: true
             }
           },
           player2: {
             include: {
-              handicapRecords: {
-                where: { countsForHandicap: true },
-                orderBy: { date: 'desc' },
-                take: 20
-              },
+              handicapRecords: HANDICAP_RECORDS_INCLUDE,
               seasonTeeChoices: true
             }
           },
@@ -110,20 +103,8 @@ async function rescoreLockedWeekMatchesForHandicapMode(
       match.player2.defaultTeeColor,
       match.player2TeeOverrideColor
     )
-    const player1Tee = getCourseTee(week.course.tees, player1TeeColor, match.player1.gender, {
-      color: 'white',
-      gender: 'man',
-      nineHolePar: week.course.nineHolePar,
-      nineHoleRating: week.course.nineHoleRating,
-      nineHoleSlope: week.course.nineHoleSlope
-    })
-    const player2Tee = getCourseTee(week.course.tees, player2TeeColor, match.player2.gender, {
-      color: 'white',
-      gender: 'man',
-      nineHolePar: week.course.nineHolePar,
-      nineHoleRating: week.course.nineHoleRating,
-      nineHoleSlope: week.course.nineHoleSlope
-    })
+    const player1Tee = getCourseTee(week.course.tees, player1TeeColor, match.player1.gender, getCourseDefaultTeeFallback(week.course))
+    const player2Tee = getCourseTee(week.course.tees, player2TeeColor, match.player2.gender, getCourseDefaultTeeFallback(week.course))
     const player1PlayingHandicap = getPlayingHandicap(handicapMode, player1HandicapIndex, player1Tee)
     const player2PlayingHandicap = getPlayingHandicap(handicapMode, player2HandicapIndex, player2Tee)
     const grossScoreByKey = new Map(
@@ -294,7 +275,12 @@ export async function PATCH(
 
   let validPar3HoleNumbers: number[] = []
   if (effectiveCourseId) {
-    validPar3HoleNumbers = await getCoursePar3HoleNumbers(effectiveCourseId)
+    validPar3HoleNumbers =
+      effectiveCourseId === existingWeek.courseId && existingWeek.course
+        ? existingWeek.course.holes
+            .filter((hole) => hole.par === 3)
+            .map((hole) => hole.holeNumber)
+        : await getCoursePar3HoleNumbers(effectiveCourseId)
   }
 
   if (
@@ -367,10 +353,12 @@ export async function PATCH(
         ? await rescoreLockedWeekMatchesForHandicapMode(tx, params.id, updates.handicapMode)
         : 0
 
+    const auditEntries: AuditEntry[] = []
+
     for (const [field, newValue] of Object.entries(updates)) {
       const oldValue = existingWeek[field as keyof typeof existingWeek]
       if (oldValue !== newValue) {
-        await writeAuditLog(tx, {
+        auditEntries.push({
           weekId: params.id,
           action: 'week_update',
           field,
@@ -379,6 +367,8 @@ export async function PATCH(
         })
       }
     }
+
+    await writeAuditLogBatch(tx, auditEntries)
 
     if (rescoredMatchCount > 0) {
       await writeAuditLog(tx, {

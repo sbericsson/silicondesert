@@ -139,3 +139,35 @@ export function accumulatePoints(
 
   return totals
 }
+
+export function mergeSeasonTotals(
+  first: Map<string, StandingTotals>,
+  second: Map<string, StandingTotals>
+): Map<string, StandingTotals> {
+  const totals = new Map<string, StandingTotals>()
+  const playerIds = new Set([...first.keys(), ...second.keys()])
+
+  for (const playerId of playerIds) {
+    const firstTotals = first.get(playerId)
+    const secondTotals = second.get(playerId)
+    const baseTotals = firstTotals ?? secondTotals
+
+    if (!baseTotals) {
+      continue
+    }
+
+    totals.set(playerId, {
+      playerId,
+      name: baseTotals.name,
+      currentIndexDisplay: baseTotals.currentIndexDisplay,
+      totalPoints: (firstTotals?.totalPoints ?? 0) + (secondTotals?.totalPoints ?? 0),
+      attendancePoints: (firstTotals?.attendancePoints ?? 0) + (secondTotals?.attendancePoints ?? 0),
+      strokePoints: (firstTotals?.strokePoints ?? 0) + (secondTotals?.strokePoints ?? 0),
+      matchPlayPoints: (firstTotals?.matchPlayPoints ?? 0) + (secondTotals?.matchPlayPoints ?? 0),
+      ctpWins: (firstTotals?.ctpWins ?? 0) + (secondTotals?.ctpWins ?? 0),
+      lpWins: (firstTotals?.lpWins ?? 0) + (secondTotals?.lpWins ?? 0)
+    })
+  }
+
+  return totals
+}

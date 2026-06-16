@@ -161,20 +161,20 @@ describe('generatePairings', () => {
     expect(result.threesome?.pivot.id).toBe('e')
   })
 
-  it('keeps Peter Pestalozzi in the final standard pairing when checked in', () => {
+  it('keeps Default Trailing in the final standard pairing when checked in', () => {
     const result = generatePairings(
       [
         { id: 'a', name: 'A', handicapIndex: 5, checkInOrder: 1 },
         { id: 'b', name: 'B', handicapIndex: 6, checkInOrder: 2 },
-        { id: 'peter', name: 'Peter Pestalozzi', handicapIndex: 7, checkInOrder: 3 },
+        { id: 'trailing', name: 'Default Trailing', handicapIndex: 7, checkInOrder: 3 },
         { id: 'd', name: 'D', handicapIndex: 8, checkInOrder: 4 }
       ],
       [],
-      { trailingPlayerId: 'peter' }
+      { trailingPlayerId: 'trailing' }
     )
 
     expect(result.threesome).toBeNull()
-    expect(result.matches.at(-1)?.player1.id).toBe('peter')
+    expect(result.matches.at(-1)?.player1.id).toBe('trailing')
   })
 
   it('keeps the trailing player group last when that player did not request early', () => {
@@ -185,29 +185,29 @@ describe('generatePairings', () => {
         { id: 'c', name: 'C', handicapIndex: 3, checkInOrder: 3 },
         { id: 'd', name: 'D', handicapIndex: 4, checkInOrder: 4 },
         {
-          id: 'peter',
-          name: 'Peter Pestalozzi',
+          id: 'trailing',
+          name: 'Default Trailing',
           handicapIndex: 5,
           checkInOrder: 5
         },
         { id: 'f', name: 'F', handicapIndex: 6, checkInOrder: 6 }
       ],
       [],
-      { trailingPlayerId: 'peter' }
+      { trailingPlayerId: 'trailing' }
     )
 
     expect(result.groups.at(-1)).toMatchObject({
       type: 'match',
       match: {
-        player1: { id: 'peter' }
+        player1: { id: 'trailing' }
       }
     })
   })
 
-  it('weights Peter Pestalozzi toward a stronger final standard opponent', () => {
+  it('weights Default Trailing toward a stronger final standard opponent', () => {
     const result = generatePairings(
       [
-        { id: 'peter', name: 'Peter Pestalozzi', handicapIndex: 0, checkInOrder: 1 },
+        { id: 'trailing', name: 'Default Trailing', handicapIndex: 0, checkInOrder: 1 },
         { id: 'strong', name: 'Strong Player', handicapIndex: 4, checkInOrder: 2 },
         { id: 'a', name: 'A', handicapIndex: 6, checkInOrder: 3 },
         { id: 'b', name: 'B', handicapIndex: 7, checkInOrder: 4 },
@@ -215,62 +215,62 @@ describe('generatePairings', () => {
         { id: 'wayne', name: 'Wayne Davis', handicapIndex: 12, checkInOrder: 6 }
       ],
       [],
-      { trailingPlayerId: 'peter' }
+      { trailingPlayerId: 'trailing' }
     )
 
     expect(result.matches.at(-1)).toMatchObject({
-      player1: { id: 'peter' },
+      player1: { id: 'trailing' },
       player2: { id: 'strong' }
     })
   })
 
-  it('keeps Peter Pestalozzi as the threesome pivot when checked in with an odd group', () => {
+  it('keeps Default Trailing as the threesome pivot when checked in with an odd group', () => {
     const result = generatePairings(
       [
         { id: 'a', name: 'A', handicapIndex: 5, checkInOrder: 1 },
         { id: 'b', name: 'B', handicapIndex: 6, checkInOrder: 2 },
         { id: 'c', name: 'C', handicapIndex: 7, checkInOrder: 3 },
         { id: 'd', name: 'D', handicapIndex: 8, checkInOrder: 4 },
-        { id: 'peter', name: 'Peter Pestalozzi', handicapIndex: 9, checkInOrder: 5 }
+        { id: 'trailing', name: 'Default Trailing', handicapIndex: 9, checkInOrder: 5 }
       ],
       [],
-      { trailingPlayerId: 'peter' }
+      { trailingPlayerId: 'trailing' }
     )
 
-    expect(result.threesome?.pivot.id).toBe('peter')
+    expect(result.threesome?.pivot.id).toBe('trailing')
   })
 
-  it('uses the closer live opponent as the reference scorecard in a Peter threesome', () => {
+  it('uses the closer live opponent as the reference scorecard in a default trailing player threesome', () => {
     const result = generatePairings(
       [
         { id: 'jack', name: 'Jack Higgins', handicapIndex: 9.2, checkInOrder: 1 },
         { id: 'kristen', name: 'Kristen Amen', handicapIndex: 17.3, checkInOrder: 2 },
-        { id: 'peter', name: 'Peter Pestalozzi', handicapIndex: 0.8, checkInOrder: 3 }
+        { id: 'trailing', name: 'Default Trailing', handicapIndex: 0.8, checkInOrder: 3 }
       ],
       [],
-      { trailingPlayerId: 'peter' }
+      { trailingPlayerId: 'trailing' }
     )
 
-    expect(result.threesome?.pivot.id).toBe('peter')
+    expect(result.threesome?.pivot.id).toBe('trailing')
     expect(result.threesome?.matchA.player2.id).toBe('jack')
     expect(result.threesome?.matchBRef.player.id).toBe('kristen')
     expect(result.threesome?.matchBRef.referencePlayer.id).toBe('jack')
   })
 
-  it('reserves a stronger live opponent for a Peter Pestalozzi threesome', () => {
+  it('reserves a stronger live opponent for a Default Trailing threesome', () => {
     const result = generatePairings(
       [
         { id: 'strong', name: 'Strong Player', handicapIndex: 2, checkInOrder: 1 },
         { id: 'strong-peer', name: 'Strong Peer', handicapIndex: 3, checkInOrder: 2 },
         { id: 'wayne', name: 'Wayne Davis', handicapIndex: 14, checkInOrder: 3 },
         { id: 'wayne-peer', name: 'Wayne Peer', handicapIndex: 15, checkInOrder: 4 },
-        { id: 'peter', name: 'Peter Pestalozzi', handicapIndex: 0, checkInOrder: 5 }
+        { id: 'trailing', name: 'Default Trailing', handicapIndex: 0, checkInOrder: 5 }
       ],
       [],
-      { trailingPlayerId: 'peter' }
+      { trailingPlayerId: 'trailing' }
     )
 
-    expect(result.threesome?.matchA.player1.id).toBe('peter')
+    expect(result.threesome?.matchA.player1.id).toBe('trailing')
     expect(result.threesome?.matchA.player2.id).toBe('strong')
     expect(result.threesome?.matchBRef.player.id).toBe('strong-peer')
   })
@@ -312,7 +312,7 @@ describe('generatePairings', () => {
         { id: 'jim', name: 'Jim Sopko', handicapIndex: 14, checkInOrder: 12 },
         { id: 'tom', name: 'Tom Sleasman', handicapIndex: 4, checkInOrder: 13 },
         { id: 'chris', name: 'Chris Wozniak', handicapIndex: 12, checkInOrder: 14 },
-        { id: 'peter', name: 'Peter Pestalozzi', handicapIndex: 1, checkInOrder: 15 },
+        { id: 'trailing', name: 'Default Trailing', handicapIndex: 1, checkInOrder: 15 },
         { id: 'lisa', name: 'Lisa Aubuchon', handicapIndex: 12, checkInOrder: 16 }
       ],
       [{ player1Id: 'chris', player2Id: 'jim' }]

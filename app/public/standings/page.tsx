@@ -1,4 +1,5 @@
 import { StandingsTable } from '@/components/standings-table'
+import { PublicPageHeader } from '@/components/public-page-header'
 import { getPublicStandingsData } from '@/lib/public-standings'
 
 export const revalidate = 60
@@ -9,18 +10,15 @@ export default async function PublicStandingsPage() {
 
   return (
     <section className="space-y-4">
-      <div className="rounded-2xl border border-surface-border bg-surface-elevated p-6 shadow-sm">
-        <p className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
-          Standings
-        </p>
-        <h2 className="font-condensed mt-2 text-2xl font-bold uppercase tracking-wide text-text-primary">
-          {data.seasonLabel ?? 'Season Standings'}
-        </h2>
-        <p className="mt-2 text-sm text-text-secondary">
-          {data.multiSeason
+      <PublicPageHeader
+        eyebrow="Standings"
+        title={data.seasonLabel ?? 'Season Standings'}
+        subtitle={
+          data.multiSeason
             ? 'Spring, Summer, and combined Overall points from completed league weeks.'
-            : 'Live points, stroke points, and match-play points from completed league weeks.'}
-        </p>
+            : 'Live points, stroke points, and match-play points from completed league weeks.'
+        }
+      >
         {data.standings[0] ? (
           <div className="mt-4 rounded-2xl border border-accent/20 bg-accent-dim px-4 py-3">
             <p className="font-condensed text-[11px] font-semibold uppercase tracking-widest text-accent-text">
@@ -31,7 +29,7 @@ export default async function PublicStandingsPage() {
             </p>
           </div>
         ) : null}
-      </div>
+      </PublicPageHeader>
 
       {data.standings.length > 0 ? (
         <>
@@ -39,7 +37,7 @@ export default async function PublicStandingsPage() {
           <p className="text-sm text-text-secondary">Last updated {data.lastUpdatedLabel}</p>
         </>
       ) : (
-        <div className="rounded-2xl border border-surface-border bg-surface-elevated p-6 text-sm text-text-secondary shadow-sm">
+        <div className="rounded-2xl border border-surface-border bg-surface-elevated p-5 text-sm text-text-secondary shadow-sm">
           No matches played yet this season. Standings will appear after Week 1.
         </div>
       )}

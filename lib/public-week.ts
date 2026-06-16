@@ -4,7 +4,7 @@ import { HANDICAP_RECORDS_INCLUDE } from '@/lib/handicap-records'
 import { getHandicapModeLabel, getPlayerHandicapIndexValue, getPlayingHandicap } from '@/lib/playing-handicap'
 import { applyStoredMatchResult } from '@/lib/points'
 import { resolveStrokeWinnerId } from '@/lib/stroke-result'
-import { formatDate } from '@/lib/week'
+import { formatDate, formatDateLong } from '@/lib/week'
 import { getMatchScorePageData } from '@/lib/match-score'
 
 function formatMatchPlaySummary(input: {
@@ -35,6 +35,49 @@ function formatMatchPlaySummary(input: {
   }
 
   return input.matchPlayLeadBy === 0 ? 'Halved' : 'All square'
+}
+
+export type WeekNavRef = { id: string; weekNumber: number }
+
+export type WeekAdjacency = {
+  prevWeekId: string | null
+  nextWeekId: string | null
+  isLatest: boolean
+  position: number
+  totalPublished: number
+}
+
+export function computeWeekAdjacency(weeks: WeekNavRef[], weekId: string): WeekAdjacency {
+  const index = weeks.findIndex((w) => w.id === weekId)
+  if (index === -1) {
+    return { prevWeekId: null, nextWeekId: null, isLatest: false, position: 0, totalPublished: weeks.length }
+  }
+  return {
+    prevWeekId: index > 0 ? weeks[index - 1].id : null,
+    nextWeekId: index < weeks.length - 1 ? weeks[index + 1].id : null,
+    isLatest: index === weeks.length - 1,
+    position: index + 1,
+    totalPublished: weeks.length
+  }
+}
+
+export async function getPublicWeekNav(weekId: string): Promise<WeekAdjacency | null> {
+  if (!process.env.DATABASE_URL) return null
+
+  const week = await prisma.week.findUnique({
+    where: { id: weekId },
+    select: { seasonId: true }
+  })
+
+  if (!week) return null
+
+  const weeks = await prisma.week.findMany({
+    where: { seasonId: week.seasonId, locked: true, season: { archivedAt: null } },
+    orderBy: { date: 'asc' },
+    select: { id: true, weekNumber: true }
+  })
+
+  return computeWeekAdjacency(weeks, weekId)
 }
 
 export async function getLatestPublishedWeekId() {
@@ -130,6 +173,7 @@ export async function getPublicWeekData(weekId: string) {
     weekNumber: week.weekNumber,
     seasonName: week.season.name,
     dateLabel: formatDate(week.date),
+    dateLabelLong: formatDateLong(week.date),
     courseName: week.course?.name ?? 'Course not selected',
     handicapMode: week.handicapMode,
     handicapModeLabel: getHandicapModeLabel(week.handicapMode),

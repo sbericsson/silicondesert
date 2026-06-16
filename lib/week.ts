@@ -113,6 +113,16 @@ export function formatDate(date: Date) {
   }).format(date)
 }
 
+export function formatDateLong(date: Date) {
+  return new Intl.DateTimeFormat('en-US', {
+    timeZone: 'America/Phoenix',
+    weekday: 'long',
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric'
+  }).format(date)
+}
+
 export function pickActiveSeason<T extends {
   id: string
   weeks: Array<{ matches: Array<{ matchPlayLeadBy: number | null }> }>

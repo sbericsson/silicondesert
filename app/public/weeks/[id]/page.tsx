@@ -1,31 +1,12 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { getPublicWeekData } from '@/lib/public-week'
+import { getPublicWeekData, getPublicWeekNav } from '@/lib/public-week'
+import { getWeekStatusChip, STATUS_CHIP_CLASSES, STATUS_DOT_CLASSES } from '@/lib/week-status'
+import { WeekStepper } from '@/components/week-stepper'
 
 export const revalidate = 60
 export const dynamic = 'force-dynamic'
-
-function getStatusBanner(data: NonNullable<Awaited<ReturnType<typeof getPublicWeekData>>>) {
-  if (!data.locked) {
-    return {
-      className: 'border-surface-border bg-surface-elevated text-text-secondary',
-      text: `Pairings for Week ${data.weekNumber} will be available after check-in.`
-    }
-  }
-
-  if (!data.allScoresComplete) {
-    return {
-      className: 'border-warning bg-warning-dim text-warning-text',
-      text: `Scores in progress - ${data.scoredMatchCount} of ${data.matchCount} matches complete.`
-    }
-  }
-
-  return {
-    className: 'border-accent bg-accent-dim text-accent-text',
-    text: `All ${data.matchCount} matches scored.`
-  }
-}
 
 export async function generateMetadata({
   params
@@ -65,67 +46,100 @@ function PublicMatchCard({
   resultsVisible: boolean
   pairingsVisible: boolean
 }) {
+  const winnerId: 'p1' | 'p2' | null =
+    match.player1Points !== null && match.player2Points !== null
+      ? match.player1Points > match.player2Points
+        ? 'p1'
+        : match.player2Points > match.player1Points
+          ? 'p2'
+          : null
+      : null
+
   const cardClassName =
-    'block rounded-3xl border border-surface-border bg-surface-elevated p-5 shadow-sm transition hover:border-accent hover:bg-surface-base'
+    'block rounded-2xl border border-surface-border bg-surface-elevated p-4 shadow-sm transition hover:border-accent hover:bg-surface-base'
+
   const content = (
     <>
       <div className="flex items-center justify-between gap-3">
         <p className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
           {match.label}
         </p>
-        <div className="flex flex-wrap items-center justify-end gap-2">
+        <div className="flex items-center gap-2">
           {match.isThreesome ? (
-            <span className="rounded-full bg-surface-sunken px-2 py-1 font-condensed text-[11px] font-semibold uppercase tracking-widest text-text-secondary">
+            <span className="rounded-full bg-surface-sunken px-2 py-0.5 font-condensed text-[11px] font-semibold uppercase tracking-widest text-text-secondary">
               Threesome
             </span>
           ) : null}
           {resultsVisible ? (
             <span className="font-condensed text-[11px] font-semibold uppercase tracking-widest text-accent-text">
-              View Hole-By-Hole
+              Hole-by-hole ›
             </span>
           ) : null}
         </div>
       </div>
 
-      <div className="mt-4 grid gap-3">
-        <div className="flex items-center justify-between gap-3 rounded-2xl border border-surface-border bg-surface-base px-4 py-3">
-          <div>
-            <p className="font-condensed text-[15px] font-semibold uppercase text-text-primary">{match.player1Name}</p>
-            <p className="mt-1 text-xs text-text-secondary">
-              Handicap {match.player1PlayingHandicap}
-            </p>
-          </div>
+      <div className="mt-3 space-y-1.5">
+        <div className="flex items-center gap-2">
           {resultsVisible ? (
-            <p className="text-[15px] font-bold text-text-primary">{match.player1Points} pts</p>
+            <span className={`shrink-0 text-sm font-bold text-accent-text ${winnerId === 'p1' ? 'visible' : 'invisible'}`}>
+              ✓
+            </span>
+          ) : null}
+          <p className={`flex-1 font-condensed text-[15px] font-semibold uppercase ${
+            resultsVisible
+              ? winnerId === 'p1'
+                ? 'text-text-primary'
+                : 'text-text-secondary'
+              : 'text-text-primary'
+          }`}>
+            {match.player1Name}
+          </p>
+          {resultsVisible ? (
+            <p className={`font-condensed text-[15px] font-bold tabular-nums ${
+              winnerId === 'p1' ? 'text-accent-text' : 'text-text-secondary'
+            }`}>
+              {match.player1Points} pts
+            </p>
           ) : null}
         </div>
-        <p className="font-condensed text-center text-xs font-bold uppercase tracking-widest text-text-muted">
-          vs
-        </p>
-        <div className="flex items-center justify-between gap-3 rounded-2xl border border-surface-border bg-surface-base px-4 py-3">
-          <div>
-            <p className="font-condensed text-[15px] font-semibold uppercase text-text-primary">{match.player2Name}</p>
-            <p className="mt-1 text-xs text-text-secondary">
-              Handicap {match.player2PlayingHandicap}
-            </p>
-          </div>
+
+        <div className="flex items-center gap-2">
           {resultsVisible ? (
-            <p className="text-[15px] font-bold text-text-primary">{match.player2Points} pts</p>
+            <span className={`shrink-0 text-sm font-bold text-accent-text ${winnerId === 'p2' ? 'visible' : 'invisible'}`}>
+              ✓
+            </span>
+          ) : null}
+          <p className={`flex-1 font-condensed text-[15px] font-semibold uppercase ${
+            resultsVisible
+              ? winnerId === 'p2'
+                ? 'text-text-primary'
+                : 'text-text-secondary'
+              : 'text-text-primary'
+          }`}>
+            {match.player2Name}
+          </p>
+          {resultsVisible ? (
+            <p className={`font-condensed text-[15px] font-bold tabular-nums ${
+              winnerId === 'p2' ? 'text-accent-text' : 'text-text-secondary'
+            }`}>
+              {match.player2Points} pts
+            </p>
           ) : null}
         </div>
       </div>
 
       {resultsVisible ? (
-        <div className="mt-4 rounded-2xl border border-surface-border bg-surface-base px-4 py-3 text-sm text-text-secondary">
-          <p>Stroke: {match.strokeSummary}</p>
-          <p className="mt-1">Match: {match.matchPlaySummary}</p>
+        <div className="mt-3 border-t border-surface-border pt-2.5">
+          <p className="text-xs text-text-secondary">
+            Stroke: {match.strokeSummary} · Match: {match.matchPlaySummary}
+          </p>
         </div>
       ) : pairingsVisible ? (
-        <p className="mt-4 text-sm text-text-secondary">
+        <p className="mt-3 text-sm text-text-secondary">
           Pairings are locked. Scores will appear here after all matches are submitted.
         </p>
       ) : (
-        <p className="mt-4 text-sm text-text-secondary">
+        <p className="mt-3 text-sm text-text-secondary">
           Pairings are not public yet.
         </p>
       )}
@@ -148,67 +162,93 @@ export default async function PublicWeekDetailPage({
 }: {
   params: { id: string }
 }) {
-  const data = await getPublicWeekData(params.id)
+  const [data, nav] = await Promise.all([
+    getPublicWeekData(params.id),
+    getPublicWeekNav(params.id)
+  ])
 
   if (!data) {
     notFound()
   }
 
-  const statusBanner = getStatusBanner(data)
+  const status = getWeekStatusChip({ locked: data.locked, allScoresComplete: data.allScoresComplete })
 
   return (
-    <section className="space-y-4">
-      <div className="flex items-center justify-between gap-3">
-        <div className={`flex-1 rounded-2xl border px-4 py-3 text-sm font-medium shadow-sm ${statusBanner.className}`}>
-          {statusBanner.text}
+    <section className="space-y-3">
+      {/* Week identity card */}
+      <div className="overflow-hidden rounded-2xl border border-surface-border bg-surface-elevated p-5 shadow-sm">
+        <WeekStepper
+          prevWeekId={nav?.prevWeekId ?? null}
+          nextWeekId={nav?.nextWeekId ?? null}
+        >
+          <div className="flex flex-wrap items-center justify-center gap-2">
+            <span className={`font-condensed rounded-full px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-widest ${
+              nav?.isLatest
+                ? 'bg-accent-dim text-accent-text'
+                : 'bg-surface-sunken text-text-secondary'
+            }`}>
+              {nav?.isLatest ? 'Latest' : 'Past week'}
+            </span>
+            <span className={`flex items-center gap-1.5 rounded-full px-2.5 py-0.5 font-condensed text-[11px] font-semibold uppercase tracking-widest ${STATUS_CHIP_CLASSES[status.tone]}`}>
+              <span className={`h-1.5 w-1.5 rounded-full ${STATUS_DOT_CLASSES[status.tone]}`} />
+              {status.label}
+            </span>
+          </div>
+        </WeekStepper>
+
+        <h2 className="font-condensed mt-4 text-3xl font-bold uppercase tracking-wide text-text-primary">
+          Week {data.weekNumber}
+        </h2>
+        <p className="mt-1 text-[15px] font-semibold text-accent-text">{data.dateLabelLong}</p>
+        <p className="mt-0.5 text-sm text-text-secondary">
+          {data.courseName} · {data.seasonName}
+        </p>
+
+        <div
+          className="mt-4"
+          role="progressbar"
+          aria-valuenow={data.scoredMatchCount}
+          aria-valuemin={0}
+          aria-valuemax={data.matchCount}
+          aria-label={`${data.scoredMatchCount} of ${data.matchCount} matches scored`}
+        >
+          <div className="h-1.5 overflow-hidden rounded-full bg-surface-sunken">
+            <div
+              className="h-full rounded-full bg-accent transition-all"
+              style={{ width: data.matchCount > 0 ? `${(data.scoredMatchCount / data.matchCount) * 100}%` : '0%' }}
+            />
+          </div>
+          <p className="mt-1.5 text-xs text-text-secondary">
+            {data.scoredMatchCount} of {data.matchCount} matches scored
+          </p>
         </div>
-        {data.resultsVisible ? (
+
+        {nav && !nav.isLatest ? (
           <Link
-            href={`/public/weeks/${data.id}/print`}
-            className="font-condensed shrink-0 rounded-full border border-surface-border bg-surface-elevated px-4 py-2 text-sm font-semibold uppercase tracking-wide text-text-secondary shadow-sm hover:border-accent hover:text-accent-text"
+            href="/public/week"
+            className="mt-3 inline-flex font-condensed text-xs font-semibold uppercase tracking-widest text-accent-text hover:underline"
           >
-            Print Results
+            Jump to latest →
           </Link>
         ) : null}
-      </div>
 
-      <div className="overflow-hidden rounded-3xl border border-surface-border bg-surface-elevated p-6 shadow-sm">
-        <p className="font-condensed text-xs font-bold uppercase tracking-widest text-accent-text">
-          Week {data.weekNumber}
-        </p>
-        <h2 className="font-condensed mt-2 text-2xl font-bold uppercase tracking-wide text-text-primary">{data.seasonName}</h2>
-        <p className="mt-2 text-sm text-text-secondary">
-          {data.courseName} · {data.dateLabel}
-        </p>
-        <div className="mt-4 grid gap-3 sm:grid-cols-3">
-          <div className="rounded-2xl border border-surface-border bg-surface-base p-4">
-            <p className="font-condensed text-[11px] font-bold uppercase tracking-widest text-text-muted">
-              Matches
-            </p>
-            <p className="font-condensed mt-2 text-2xl font-bold tabular-nums text-text-primary">{data.matchCount}</p>
-          </div>
-          <div className="rounded-2xl border border-surface-border bg-surface-base p-4">
-            <p className="font-condensed text-[11px] font-bold uppercase tracking-widest text-text-muted">
-              Scores In
-            </p>
-            <p className="font-condensed mt-2 text-2xl font-bold tabular-nums text-text-primary">{data.scoredMatchCount}</p>
-          </div>
-          <div className="rounded-2xl border border-surface-border bg-surface-base p-4">
-            <p className="font-condensed text-[11px] font-bold uppercase tracking-widest text-text-muted">
-              Status
-            </p>
-            <p className="mt-2 text-sm font-semibold text-text-primary">
-              {data.allScoresComplete ? 'Final' : data.locked ? 'In Progress' : 'Not Public'}
-            </p>
-          </div>
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+          <p className="text-xs text-text-secondary">
+            Handicap basis: {data.handicapModeLabel}
+          </p>
+          {data.resultsVisible ? (
+            <Link
+              href={`/public/weeks/${data.id}/print`}
+              className="font-condensed shrink-0 rounded-full border border-surface-border bg-surface-base px-4 py-2 text-xs font-semibold uppercase tracking-wide text-text-secondary shadow-sm hover:border-accent hover:text-accent-text"
+            >
+              Print
+            </Link>
+          ) : null}
         </div>
-        <p className="mt-4 text-xs text-text-secondary">
-          Handicap basis: {data.handicapModeLabel}
-        </p>
       </div>
 
       {data.resultsVisible && (data.ctpWinnerName || data.longestPuttWinnerName) ? (
-        <section className="rounded-2xl border border-accent bg-accent-dim p-5">
+        <section className="rounded-2xl border border-accent bg-accent-dim p-4">
           <p className="font-condensed text-xs font-semibold uppercase tracking-widest text-accent-text">
             Side Games
           </p>
@@ -237,7 +277,7 @@ export default async function PublicWeekDetailPage({
         </section>
       ) : null}
 
-      <section className="space-y-3">
+      <section className="space-y-2.5">
         {data.matches.map((match) => (
           <PublicMatchCard
             key={match.id}

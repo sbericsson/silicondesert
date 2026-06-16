@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { getPublicRosterData } from '@/lib/public-roster'
+import { PublicPageHeader } from '@/components/public-page-header'
 
 export const revalidate = 60
 
@@ -15,23 +16,20 @@ export default async function PublicRosterPage() {
 
   return (
     <section className="space-y-4">
-      <div className="rounded-2xl border border-surface-border bg-surface-elevated p-6 shadow-sm">
-        <p className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
-          Roster
-        </p>
-        <h2 className="font-condensed mt-2 text-2xl font-bold uppercase tracking-wide text-text-primary">League Players</h2>
-        <p className="mt-2 text-sm text-text-secondary">
-          Active player names and current handicap display.
-        </p>
+      <PublicPageHeader
+        eyebrow="Roster"
+        title="League Players"
+        subtitle="Active player names and current handicap display."
+      >
         {data.enabled ? (
           <div className="mt-4 rounded-2xl border border-surface-border bg-surface-base px-4 py-3 text-sm text-text-secondary">
             {data.players.length} active player{data.players.length === 1 ? '' : 's'}
           </div>
         ) : null}
-      </div>
+      </PublicPageHeader>
 
       {data.enabled ? (
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className="grid gap-2.5 sm:grid-cols-2">
           {data.players.map((player) => (
             <div
               key={player.id}
@@ -45,7 +43,7 @@ export default async function PublicRosterPage() {
           ))}
         </div>
       ) : (
-        <div className="rounded-2xl border border-surface-border bg-surface-elevated p-6 text-sm text-text-secondary shadow-sm">
+        <div className="rounded-2xl border border-surface-border bg-surface-elevated p-5 text-sm text-text-secondary shadow-sm">
           The league roster is not publicly available. Contact the commissioner for details.
         </div>
       )}

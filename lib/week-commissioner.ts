@@ -1,5 +1,10 @@
+export const FALLBACK_DEFAULT_TRAILING_PLAYER_NAME = 'Peter Pestalozzi'
+
 type CheckedInPlayer = {
   playerId: string
+  player?: {
+    name: string
+  }
 }
 
 export function getWeeklyTrailingPlayerId(
@@ -12,6 +17,13 @@ export function getWeeklyTrailingPlayerId(
     attendance.some((entry) => entry.playerId === defaultTrailingPlayerId)
   ) {
     return defaultTrailingPlayerId
+  }
+
+  const fallbackDefaultTrailingPlayer = attendance.find(
+    (entry) => entry.player?.name === FALLBACK_DEFAULT_TRAILING_PLAYER_NAME
+  )
+  if (fallbackDefaultTrailingPlayer) {
+    return fallbackDefaultTrailingPlayer.playerId
   }
 
   if (!commissionerPlayerId) {

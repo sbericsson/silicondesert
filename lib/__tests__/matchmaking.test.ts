@@ -400,6 +400,47 @@ describe('generatePositioningPairings', () => {
     expect(result.groups).toHaveLength(2)
   })
 
+  it('keeps the trailing player in the final positioning match for an even count', () => {
+    const result = generatePositioningPairings(
+      ['1', 'trailing', '2', '3', '4', '5'].map(rankedPlayer),
+      [],
+      { trailingPlayerId: 'trailing' }
+    )
+
+    expect(result.threesome).toBeNull()
+    expect(result.matches.at(-1)).toMatchObject({
+      player1: { id: 'trailing' },
+      player2: { id: '5' }
+    })
+    expect(result.groups.at(-1)).toMatchObject({
+      type: 'match',
+      match: {
+        player1: { id: 'trailing' },
+        player2: { id: '5' }
+      }
+    })
+  })
+
+  it('keeps the trailing player as the final positioning threesome pivot for an odd count', () => {
+    const result = generatePositioningPairings(
+      ['1', 'trailing', '2', '3', '4'].map(rankedPlayer),
+      [],
+      { trailingPlayerId: 'trailing' }
+    )
+
+    expect(result.matches.map((match) => [match.player1.id, match.player2.id])).toEqual([['1', '2']])
+    expect(result.threesome?.pivot.id).toBe('trailing')
+    expect(result.threesome?.matchA.player1.id).toBe('trailing')
+    expect(result.threesome?.matchA.player2.id).toBe('3')
+    expect(result.threesome?.matchBRef.player.id).toBe('4')
+    expect(result.groups.at(-1)).toMatchObject({
+      type: 'threesome',
+      threesome: {
+        pivot: { id: 'trailing' }
+      }
+    })
+  })
+
   it('treats exactly three players as a single threesome', () => {
     const result = generatePositioningPairings(['1', '2', '3'].map(rankedPlayer), [])
 

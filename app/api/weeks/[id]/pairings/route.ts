@@ -146,6 +146,11 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
     weekNumber: week.weekNumber,
     seasonWeekNumbers: [...week.season.weeks.map((seasonWeek) => seasonWeek.weekNumber), week.weekNumber]
   })
+  const trailingPlayerId = getWeeklyTrailingPlayerId(
+    week.attendance,
+    week.commissionerPlayerId,
+    commissioner?.defaultTrailingPlayerId ?? null
+  )
 
   let generated: PairingResult
   let matchIdsToDelete: string[] = []
@@ -181,14 +186,10 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
 
     generated = generatePositioningPairings(
       rankedAttendance.map((entry, index) => toPairingPlayer(entry, index + 1)),
-      priorMatches
+      priorMatches,
+      { trailingPlayerId }
     )
   } else {
-    const trailingPlayerId = getWeeklyTrailingPlayerId(
-      week.attendance,
-      week.commissionerPlayerId,
-      commissioner?.defaultTrailingPlayerId ?? null
-    )
     const trailingPlayerCurrentGroupMatches =
       trailingPlayerId && week.matches.length > 0
         ? week.matches.filter(
@@ -264,34 +265,36 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
       })
     }
 
-    const createdMatches = await Promise.all(
-      generated.groups.flatMap((group) =>
-        group.type === 'match'
-          ? [
-              tx.match.create({
-                data: buildLiveMatchData(group.match)
-              })
-            ]
-          : [
-              tx.match.create({
-                data: buildLiveMatchData(group.threesome.matchA)
-              }),
-              tx.match.create({
-                data: buildReferenceMatchData(group.threesome.matchBRef)
-              })
-            ]
-      )
-    )
+    let createdMatchCount = 0
+    for (const group of generated.groups) {
+      if (group.type === 'match') {
+        await tx.match.create({
+          data: buildLiveMatchData(group.match)
+        })
+        createdMatchCount += 1
+        continue
+      }
+
+      await tx.match.create({
+        data: buildLiveMatchData(group.threesome.matchA)
+      })
+      createdMatchCount += 1
+
+      await tx.match.create({
+        data: buildReferenceMatchData(group.threesome.matchBRef)
+      })
+      createdMatchCount += 1
+    }
 
     await writeAuditLog(tx, {
       weekId: params.id,
       action: 'pairings_generate',
       field: 'matchCount',
       oldValue: String(week.matches.length),
-      newValue: String(week.matches.length - matchIdsToDelete.length + createdMatches.length)
+      newValue: String(week.matches.length - matchIdsToDelete.length + createdMatchCount)
     })
 
-    return createdMatches
+    return createdMatchCount
   }).catch((error: Error) => {
     return error
   })
@@ -301,7 +304,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
   }
 
   return NextResponse.json({
-    matchesCreated: result.length,
+    matchesCreated: result,
     pairingResult: generated
   })
 }

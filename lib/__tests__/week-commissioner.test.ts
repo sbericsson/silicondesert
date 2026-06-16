@@ -48,4 +48,17 @@ describe('getWeeklyTrailingPlayerId', () => {
       )
     ).toBe('kelly')
   })
+
+  it('falls back to Peter Pestalozzi by name when no default trailing player is configured', () => {
+    expect(
+      getWeeklyTrailingPlayerId(
+        [
+          { playerId: 'kelly', player: { name: 'Kelly Fogg' } },
+          { playerId: 'peter', player: { name: 'Peter Pestalozzi' } }
+        ],
+        'kelly',
+        null
+      )
+    ).toBe('peter')
+  })
 })

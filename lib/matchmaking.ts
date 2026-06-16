@@ -39,6 +39,10 @@ interface GeneratePairingsOptions {
   trailingPlayerId?: string | null
 }
 
+interface GeneratePositioningPairingsOptions {
+  trailingPlayerId?: string | null
+}
+
 const TRAILING_PLAYER_PAIR_WEIGHT = 4
 const REPEAT_PAIRING_PENALTY = 30
 
@@ -241,6 +245,35 @@ function averageHandicap(match: { player1: Player; player2: Player }) {
   return (match.player1.handicapIndex + match.player2.handicapIndex) / 2
 }
 
+function buildThreesome(
+  pivot: Player,
+  candidateA: Player,
+  candidateB: Player,
+  repeatCounts: Map<string, number>
+): NonNullable<PairingResult['threesome']> {
+  const anchorPlayer1Cost =
+    pairCost(pivot, candidateA, repeatCounts) +
+    pairCost(candidateB, candidateA, repeatCounts)
+  const anchorPlayer2Cost =
+    pairCost(pivot, candidateB, repeatCounts) +
+    pairCost(candidateA, candidateB, repeatCounts)
+  const anchorPlayer = anchorPlayer1Cost <= anchorPlayer2Cost ? candidateA : candidateB
+  const scorecardPlayer =
+    anchorPlayer.id === candidateA.id ? candidateB : candidateA
+
+  return {
+    pivot,
+    matchA: {
+      player1: pivot,
+      player2: anchorPlayer
+    },
+    matchBRef: {
+      player: scorecardPlayer,
+      referencePlayer: anchorPlayer
+    }
+  }
+}
+
 function spreadMatchesByHandicap(
   matches: Array<{ player1: Player; player2: Player }>,
   trailingPlayerId: string | null
@@ -359,7 +392,8 @@ function orderPairingGroups(
 // threesome. Prior matches only feed the informational repeat/gap flags here.
 export function generatePositioningPairings(
   rankedPlayers: Player[],
-  priorMatchesThisSeason: PriorMatch[]
+  priorMatchesThisSeason: PriorMatch[],
+  options: GeneratePositioningPairingsOptions = {}
 ): PairingResult {
   if (rankedPlayers.length < 2) {
     throw new Error('Need at least 2 players')
@@ -367,23 +401,46 @@ export function generatePositioningPairings(
 
   const repeatCounts = buildRepeatCounts(priorMatchesThisSeason)
   const players = [...rankedPlayers]
+  const trailingPlayer =
+    options.trailingPlayerId
+      ? players.find((player) => player.id === options.trailingPlayerId) ?? null
+      : null
 
   let threesome: PairingResult['threesome'] = null
   let pairPool = players
+  let trailingMatch: { player1: Player; player2: Player } | null = null
 
   if (players.length % 2 === 1) {
-    const [anchorA, anchorB, scorecard] = players.slice(players.length - 3)
-    pairPool = players.slice(0, players.length - 3)
-    threesome = {
-      pivot: anchorA,
-      matchA: { player1: anchorA, player2: anchorB },
-      matchBRef: { player: scorecard, referencePlayer: anchorB }
+    if (trailingPlayer) {
+      const rankedWithoutTrailing = players.filter((player) => player.id !== trailingPlayer.id)
+      const [candidateA, candidateB] = rankedWithoutTrailing.slice(rankedWithoutTrailing.length - 2)
+      pairPool = rankedWithoutTrailing.slice(0, rankedWithoutTrailing.length - 2)
+      threesome = buildThreesome(trailingPlayer, candidateA, candidateB, repeatCounts)
+    } else {
+      const [anchorA, anchorB, scorecard] = players.slice(players.length - 3)
+      pairPool = players.slice(0, players.length - 3)
+      threesome = {
+        pivot: anchorA,
+        matchA: { player1: anchorA, player2: anchorB },
+        matchBRef: { player: scorecard, referencePlayer: anchorB }
+      }
+    }
+  } else if (trailingPlayer) {
+    const rankedWithoutTrailing = players.filter((player) => player.id !== trailingPlayer.id)
+    const trailingOpponent = rankedWithoutTrailing[rankedWithoutTrailing.length - 1]
+    pairPool = rankedWithoutTrailing.slice(0, rankedWithoutTrailing.length - 1)
+    trailingMatch = {
+      player1: trailingPlayer,
+      player2: trailingOpponent
     }
   }
 
   const matches: Array<{ player1: Player; player2: Player }> = []
   for (let index = 0; index + 1 < pairPool.length; index += 2) {
     matches.push({ player1: pairPool[index], player2: pairPool[index + 1] })
+  }
+  if (trailingMatch) {
+    matches.push(trailingMatch)
   }
 
   const groups: PairingResult['groups'] = matches.map((match) => ({ type: 'match' as const, match }))
@@ -486,27 +543,7 @@ export function generatePairings(
       pivot.id === trailingPlayer?.id ? trailingThreesomeIndex : worstIndex,
       1
     )
-    const anchorPlayer1Cost =
-      pairCost(pivot, worstMatch.player1, repeatCounts) +
-      pairCost(worstMatch.player2, worstMatch.player1, repeatCounts)
-    const anchorPlayer2Cost =
-      pairCost(pivot, worstMatch.player2, repeatCounts) +
-      pairCost(worstMatch.player1, worstMatch.player2, repeatCounts)
-    const anchorPlayer = anchorPlayer1Cost <= anchorPlayer2Cost ? worstMatch.player1 : worstMatch.player2
-    const scorecardPlayer =
-      anchorPlayer.id === worstMatch.player1.id ? worstMatch.player2 : worstMatch.player1
-
-    threesome = {
-      pivot,
-      matchA: {
-        player1: pivot,
-        player2: anchorPlayer
-      },
-      matchBRef: {
-        player: scorecardPlayer,
-        referencePlayer: anchorPlayer
-      }
-    }
+    threesome = buildThreesome(pivot, worstMatch.player1, worstMatch.player2, repeatCounts)
   }
 
   matches = spreadMatchesByHandicap(matches, trailingPlayer?.id ?? null)

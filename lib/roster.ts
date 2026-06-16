@@ -7,7 +7,8 @@ export async function getRosterPageData() {
   if (!process.env.DATABASE_URL) {
     return {
       settings: {
-        publicRosterEnabled: false
+        publicRosterEnabled: false,
+        defaultTrailingPlayerId: null
       },
       players: [],
       courses: [],
@@ -60,14 +61,16 @@ export async function getRosterPageData() {
     }),
     prisma.commissioner.findFirst({
       select: {
-        publicRosterEnabled: true
+        publicRosterEnabled: true,
+        defaultTrailingPlayerId: true
       }
     })
   ])
 
   return {
     settings: {
-      publicRosterEnabled: commissioner?.publicRosterEnabled ?? false
+      publicRosterEnabled: commissioner?.publicRosterEnabled ?? false,
+      defaultTrailingPlayerId: commissioner?.defaultTrailingPlayerId ?? null
     },
     players: [...players]
       .sort((left, right) => {

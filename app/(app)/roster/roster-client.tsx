@@ -29,6 +29,7 @@ type ImportedRoundEditor = {
 type RosterPageData = {
   settings: {
     publicRosterEnabled: boolean
+    defaultTrailingPlayerId: string | null
   }
   players: Array<{
     id: string
@@ -775,6 +776,26 @@ export function RosterClient({ initialData }: RosterClientProps) {
         }
       }))
     }, publicRosterEnabled ? 'Public roster enabled.' : 'Public roster hidden.')
+  }
+
+  async function handleDefaultTrailingPlayerChange(defaultTrailingPlayerId: string | null) {
+    await runAction(async () => {
+      const response = await fetch('/api/commissioner/settings', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ defaultTrailingPlayerId })
+      })
+      await requireOk(response, 'Unable to update default trailing player')
+      setData((current) => ({
+        ...current,
+        settings: {
+          ...current.settings,
+          defaultTrailingPlayerId
+        }
+      }))
+    }, 'Default trailing player updated.')
   }
 
   async function handleCreatePlayer(event: FormEvent<HTMLFormElement>) {
@@ -1601,27 +1622,51 @@ export function RosterClient({ initialData }: RosterClientProps) {
       ) : null}
 
       <section className="rounded-xl border border-surface-border bg-surface-elevated p-4">
-        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        <div className="grid gap-4 lg:grid-cols-[1fr_280px] lg:items-start">
           <div>
             <p className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
-              Public Roster
+              Commissioner Settings
             </p>
             <p className="mt-2 text-sm text-text-secondary">
-              Control whether `/public/roster` is visible to league members and website visitors.
+              Control public roster visibility and the default player kept in the final group.
             </p>
           </div>
-          <button
-            type="button"
-            className={`rounded-lg px-4 py-3 text-sm font-semibold ${
-              data.settings.publicRosterEnabled
-                ? 'bg-accent text-white'
-                : 'bg-surface-sunken text-text-primary'
-            } disabled:cursor-not-allowed disabled:opacity-70`}
-            onClick={() => handlePublicRosterToggle(!data.settings.publicRosterEnabled)}
-            disabled={isSubmitting}
-          >
-            {data.settings.publicRosterEnabled ? 'Disable Public Roster' : 'Enable Public Roster'}
-          </button>
+          <div className="space-y-3">
+            <label className="block">
+              <span className="font-condensed text-[11px] font-semibold uppercase tracking-widest text-text-muted">
+                Default Trailing Player
+              </span>
+              <select
+                className="mt-1 w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2.5 text-sm text-text-primary"
+                value={data.settings.defaultTrailingPlayerId ?? ''}
+                onChange={(event) =>
+                  handleDefaultTrailingPlayerChange(event.target.value || null)
+                }
+                disabled={isSubmitting}
+              >
+                <option value="">No default selected</option>
+                {data.players
+                  .filter((player) => player.active)
+                  .map((player) => (
+                    <option key={player.id} value={player.id}>
+                      {player.name}
+                    </option>
+                  ))}
+              </select>
+            </label>
+            <button
+              type="button"
+              className={`w-full rounded-lg px-4 py-3 text-sm font-semibold ${
+                data.settings.publicRosterEnabled
+                  ? 'bg-accent text-white'
+                  : 'bg-surface-sunken text-text-primary'
+              } disabled:cursor-not-allowed disabled:opacity-70`}
+              onClick={() => handlePublicRosterToggle(!data.settings.publicRosterEnabled)}
+              disabled={isSubmitting}
+            >
+              {data.settings.publicRosterEnabled ? 'Disable Public Roster' : 'Enable Public Roster'}
+            </button>
+          </div>
         </div>
       </section>
 

@@ -14,7 +14,7 @@ export function PublicNav() {
   const pathname = usePathname()
 
   return (
-    <nav className="flex min-w-0 flex-1 gap-1.5 overflow-x-auto">
+    <nav className="mt-2 flex gap-1.5">
       {navItems.map((item) => {
         const isActive =
           pathname === item.href ||
@@ -24,7 +24,7 @@ export function PublicNav() {
           <Link
             key={item.href}
             href={item.href}
-            className={`min-h-[44px] shrink-0 rounded-full px-3 py-2 text-sm font-medium transition ${
+            className={`flex-1 min-h-[44px] rounded-full px-2 py-2 text-center text-sm font-medium transition ${
               isActive
                 ? 'bg-accent text-white shadow-sm'
                 : 'border border-surface-border bg-surface-base text-text-secondary hover:border-accent hover:text-accent-text'

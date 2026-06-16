@@ -11,12 +11,10 @@ export default function PublicLayout({
     <div className="min-h-screen bg-surface-base text-text-primary">
       <div className="mx-auto flex min-h-screen max-w-3xl flex-col px-4 py-4">
         <header className="overflow-hidden rounded-2xl border border-surface-border bg-surface-elevated px-4 py-3 shadow-sm">
-          <div className="flex items-center gap-4">
-            <p className="font-condensed shrink-0 text-xs font-semibold uppercase tracking-widest text-accent-text">
-              Silicon Desert Golf League
-            </p>
-            <PublicNav />
-          </div>
+          <p className="font-condensed text-sm font-semibold uppercase tracking-widest text-accent-text">
+            Silicon Desert Golf League
+          </p>
+          <PublicNav />
         </header>
 
         <main className="flex-1 py-4">{children}</main>

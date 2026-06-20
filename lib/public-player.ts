@@ -61,6 +61,48 @@ export async function getPublicPlayerDetail(playerId: string) {
 
   const handicap = getPlayerHandicapDisplay(player)
 
+  // Resolve a link to the hole-by-hole match scorecard for each league round.
+  // A round is only clickable when the week's results are public (every match
+  // scored, matching getPublicMatchHoleData's resultsVisible guard) and the
+  // player actually has a match that week.
+  const leagueWeekIds = [
+    ...new Set(
+      player.handicapRecords
+        .map((record) => record.weekId)
+        .filter((weekId): weekId is string => weekId !== null)
+    )
+  ]
+  const matchHrefByWeek = new Map<string, string>()
+  if (leagueWeekIds.length > 0) {
+    const matches = await prisma.match.findMany({
+      where: { weekId: { in: leagueWeekIds } },
+      select: {
+        id: true,
+        weekId: true,
+        player1Id: true,
+        player2Id: true,
+        matchPlayLeadBy: true
+      }
+    })
+    const matchesByWeek = new Map<string, typeof matches>()
+    for (const match of matches) {
+      const list = matchesByWeek.get(match.weekId) ?? []
+      list.push(match)
+      matchesByWeek.set(match.weekId, list)
+    }
+    for (const [weekId, weekMatches] of matchesByWeek) {
+      const resultsVisible =
+        weekMatches.length > 0 &&
+        weekMatches.every((match) => match.matchPlayLeadBy !== null)
+      const playerMatch = weekMatches.find(
+        (match) => match.player1Id === player.id || match.player2Id === player.id
+      )
+      if (resultsVisible && playerMatch) {
+        matchHrefByWeek.set(weekId, `/public/weeks/${weekId}/matches/${playerMatch.id}`)
+      }
+    }
+  }
+
   const rounds = player.handicapRecords.map((record) => ({
     date: record.date.toISOString().slice(0, 10),
     courseName: record.week?.course?.name ?? null,
@@ -71,7 +113,8 @@ export async function getPublicPlayerDetail(playerId: string) {
     slopeRating: record.slopeRating,
     coursePar: record.coursePar,
     courseDifferential: record.courseDifferential,
-    usedInIndex: record.usedInIndex
+    usedInIndex: record.usedInIndex,
+    matchHref: record.weekId ? matchHrefByWeek.get(record.weekId) ?? null : null
   }))
 
   // Season points: reuse the public standings calculation and find this player.

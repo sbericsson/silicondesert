@@ -105,7 +105,7 @@ export default async function PublicPlayerDetailPage({
         <p className="mt-1 text-sm text-text-secondary">
           The lowest differentials from the last 20 rounds set the handicap index,
           building up to the best 8 once history reaches 20 rounds. Highlighted rows
-          count.{' '}
+          count. Tap a league round&apos;s date for its hole-by-hole scorecard.{' '}
           <a
             href="https://www.usga.org/content/usga/home-page/handicapping/world-handicap-system/topics/handicap-index-calculation.html"
             target="_blank"
@@ -137,9 +137,20 @@ export default async function PublicPlayerDetailPage({
                     key={index}
                     className={`border-t border-surface-border ${
                       round.usedInIndex ? 'bg-surface-sunken' : ''
-                    }`}
+                    } ${round.matchHref ? 'hover:bg-accent-subtle' : ''}`}
                   >
-                    <td className="py-2 pr-3 text-text-secondary">{round.date}</td>
+                    <td className="py-2 pr-3 text-text-secondary">
+                      {round.matchHref ? (
+                        <Link
+                          href={round.matchHref}
+                          className="font-medium text-accent-text hover:underline"
+                        >
+                          {round.date}
+                        </Link>
+                      ) : (
+                        round.date
+                      )}
+                    </td>
                     <td className="py-2 pr-3 text-text-primary">
                       {round.isImported ? (
                         <span className="text-text-muted">Imported</span>

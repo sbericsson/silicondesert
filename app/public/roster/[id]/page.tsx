@@ -103,8 +103,20 @@ export default async function PublicPlayerDetailPage({
           Handicap rounds
         </h3>
         <p className="mt-1 text-sm text-text-secondary">
-          Most recent 20 scoring rounds. Highlighted rows are the best differentials
-          counted toward the current handicap index (WHS: best 8 of last 20).
+          These are the most recent 20 scoring rounds. Each round&apos;s differential
+          measures how that score compared to the difficulty of the tees played. Under
+          the World Handicap System, the handicap index is the average of the lowest 8
+          differentials from the last 20 rounds (fewer are used until 20 rounds are
+          posted). The highlighted rows are the differentials currently counted toward
+          this player&apos;s index.{' '}
+          <a
+            href="https://www.usga.org/content/usga/home-page/handicapping/world-handicap-system/topics/handicap-index-calculation.html"
+            target="_blank"
+            rel="noreferrer"
+            className="font-medium text-accent-text hover:underline"
+          >
+            Click here for the full USGA calculation details.
+          </a>
         </p>
 
         {detail.rounds.length === 0 ? (

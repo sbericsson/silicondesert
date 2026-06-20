@@ -122,7 +122,8 @@ const holeOptions = Array.from({ length: 9 }, (_, index) => index + 1)
 const SIDE_GAME_ENTRY_FEE = 5
 
 function formatHoleUseOption(hole: number, gameLabel: 'CTP' | 'LPM', useCounts: Record<number, number>) {
-  return `Hole ${hole} · ${gameLabel} ${useCounts[hole] ?? 0}x prior`
+  const useCount = useCounts[hole] ?? 0
+  return useCount > 0 ? `Hole ${hole} · ${gameLabel} ${useCount}x prior` : `Hole ${hole}`
 }
 
 export function WeekClient({ initialData }: WeekClientProps) {

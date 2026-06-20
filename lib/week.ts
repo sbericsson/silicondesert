@@ -337,10 +337,11 @@ export async function getCurrentWeekPageData() {
         orderBy: { createdAt: 'asc' }
       })
     : []
-  const priorSideGameWeeks = currentWeek
+  const priorSideGameWeeks = currentWeek?.courseId
     ? await prisma.week.findMany({
         where: {
           seasonId: currentWeek.seasonId,
+          courseId: currentWeek.courseId,
           weekNumber: { lt: currentWeek.weekNumber }
         },
         select: {

@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/db'
 import { HANDICAP_RECORDS_INCLUDE } from '@/lib/handicap-records'
 import { getPlayerHandicapDisplay } from '@/lib/player-handicap-display'
+import { comparePlayerNamesByLastName } from '@/lib/player-sort'
 
 export async function getPublicRosterData() {
   if (!process.env.DATABASE_URL) {
@@ -29,16 +30,17 @@ export async function getPublicRosterData() {
     },
     include: {
       handicapRecords: HANDICAP_RECORDS_INCLUDE
-    },
-    orderBy: { name: 'asc' }
+    }
   })
 
   return {
     enabled: true,
-    players: players.map((player) => ({
-      id: player.id,
-      name: player.name,
-      handicap: getPlayerHandicapDisplay(player)
-    }))
+    players: players
+      .sort((a, b) => comparePlayerNamesByLastName(a.name, b.name))
+      .map((player) => ({
+        id: player.id,
+        name: player.name,
+        handicap: getPlayerHandicapDisplay(player)
+      }))
   }
 }

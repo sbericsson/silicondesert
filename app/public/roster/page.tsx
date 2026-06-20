@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import Link from 'next/link'
 import { getPublicRosterData } from '@/lib/public-roster'
 import { PublicPageHeader } from '@/components/public-page-header'
 
@@ -31,15 +32,16 @@ export default async function PublicRosterPage() {
       {data.enabled ? (
         <div className="grid gap-2.5 sm:grid-cols-2">
           {data.players.map((player) => (
-            <div
+            <Link
               key={player.id}
-              className="flex items-center justify-between gap-3 rounded-2xl border border-surface-border bg-surface-elevated p-4 shadow-sm"
+              href={`/public/roster/${player.id}`}
+              className="flex items-center justify-between gap-3 rounded-2xl border border-surface-border bg-surface-elevated p-4 shadow-sm transition hover:border-accent hover:text-accent-text"
             >
               <p className="text-sm font-medium text-text-primary">{player.name}</p>
               <p className="rounded-full bg-surface-sunken px-3 py-1 text-sm text-text-secondary">
                 {player.handicap.kind === 'HCP' ? player.handicap.value : player.handicap.kind}
               </p>
-            </div>
+            </Link>
           ))}
         </div>
       ) : (

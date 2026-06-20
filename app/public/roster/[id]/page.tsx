@@ -145,7 +145,7 @@ export default async function PublicPlayerDetailPage({
                       {round.adjustedGrossScore > 0 ? round.adjustedGrossScore : '—'}
                     </td>
                     <td className="py-2 pr-3 text-right tabular-nums text-text-secondary">
-                      {round.courseRating}/{round.slopeRating}
+                      {round.isImported ? '—' : `${round.courseRating}/${round.slopeRating}`}
                     </td>
                     <td className="py-2 pr-0 text-right font-medium tabular-nums text-text-primary">
                       {round.courseDifferential.toFixed(1)}

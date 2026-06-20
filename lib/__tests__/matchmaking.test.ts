@@ -2,6 +2,13 @@ import { describe, expect, it } from 'vitest'
 import { buildPairingFlags, generatePairings, generatePositioningPairings } from '@/lib/matchmaking'
 
 const rankedPlayer = (id: string) => ({ id, name: id, handicapIndex: 10, checkInOrder: 0 })
+const positionedPlayer = (id: string, checkInOrder: number, earlyBirdRequested = false) => ({
+  id,
+  name: id,
+  handicapIndex: 10,
+  checkInOrder,
+  earlyBirdRequested
+})
 
 function hasPair(
   matches: Array<{ player1: { id: string }; player2: { id: string } }>,
@@ -443,6 +450,58 @@ describe('generatePositioningPairings', () => {
         player2: { id: '5' }
       }
     })
+  })
+
+  it('keeps positioning matchups but orders early-bird groups first', () => {
+    const result = generatePositioningPairings(
+      [
+        positionedPlayer('rank-1', 1),
+        positionedPlayer('rank-2', 2),
+        positionedPlayer('rank-3', 5, true),
+        positionedPlayer('rank-4', 6),
+        positionedPlayer('rank-5', 3),
+        positionedPlayer('rank-6', 4)
+      ],
+      []
+    )
+
+    expect(result.matches.map((match) => [match.player1.id, match.player2.id])).toEqual([
+      ['rank-1', 'rank-2'],
+      ['rank-3', 'rank-4'],
+      ['rank-5', 'rank-6']
+    ])
+    expect(result.groups[0]).toMatchObject({
+      type: 'match',
+      match: {
+        player1: { id: 'rank-3' },
+        player2: { id: 'rank-4' }
+      }
+    })
+  })
+
+  it('keeps positioning matchups but breaks tee-order ties by check-in order', () => {
+    const result = generatePositioningPairings(
+      [
+        positionedPlayer('rank-1', 7),
+        positionedPlayer('rank-2', 8),
+        positionedPlayer('rank-3', 1),
+        positionedPlayer('rank-4', 2),
+        positionedPlayer('rank-5', 5),
+        positionedPlayer('rank-6', 6)
+      ],
+      []
+    )
+
+    expect(result.matches.map((match) => [match.player1.id, match.player2.id])).toEqual([
+      ['rank-1', 'rank-2'],
+      ['rank-3', 'rank-4'],
+      ['rank-5', 'rank-6']
+    ])
+    expect(result.groups.map((group) => group.type === 'match' ? group.match.player1.id : 'threesome')).toEqual([
+      'rank-3',
+      'rank-5',
+      'rank-1'
+    ])
   })
 
   it('keeps the trailing player as the final positioning threesome pivot for an odd count', () => {

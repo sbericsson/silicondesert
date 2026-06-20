@@ -461,10 +461,7 @@ export function generatePositioningPairings(
     matches.push(trailingMatch)
   }
 
-  const groups: PairingResult['groups'] = matches.map((match) => ({ type: 'match' as const, match }))
-  if (threesome) {
-    groups.push({ type: 'threesome' as const, threesome })
-  }
+  const groups = orderPairingGroups(matches, threesome, trailingPlayer?.id ?? null)
 
   const allFlagMatches = threesome
     ? [

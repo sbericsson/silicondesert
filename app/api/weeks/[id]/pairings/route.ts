@@ -175,6 +175,9 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
     }
 
     const ranks = await getPositioningRanks(positioningBasis, { id: week.id, seasonId: week.seasonId })
+    const checkInOrderByPlayerId = new Map(
+      availableAttendance.map((entry, index) => [entry.playerId, index + 1])
+    )
     const rankedAttendance = [...availableAttendance].sort((a, b) => {
       const rankA = ranks.get(a.playerId) ?? Number.POSITIVE_INFINITY
       const rankB = ranks.get(b.playerId) ?? Number.POSITIVE_INFINITY
@@ -185,7 +188,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
     })
 
     generated = generatePositioningPairings(
-      rankedAttendance.map((entry, index) => toPairingPlayer(entry, index + 1)),
+      rankedAttendance.map((entry) => toPairingPlayer(entry, checkInOrderByPlayerId.get(entry.playerId) ?? 0)),
       priorMatches,
       { trailingPlayerId }
     )

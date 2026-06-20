@@ -33,7 +33,7 @@ describe('generatePairings', () => {
     expect(result.threesome).toBeNull()
   })
 
-  it('spreads standard matches instead of sending the lowest handicap group first', () => {
+  it('uses check-in order as the standard group ordering tiebreaker', () => {
     const result = generatePairings(
       [
         { id: 'a', name: 'A', handicapIndex: 1, checkInOrder: 1 },
@@ -48,11 +48,35 @@ describe('generatePairings', () => {
       []
     )
 
-    const averageHandicaps = result.matches.map(
-      (match) => (match.player1.handicapIndex + match.player2.handicapIndex) / 2
+    const averageHandicaps = result.groups.map((group) =>
+      group.type === 'match'
+        ? (group.match.player1.handicapIndex + group.match.player2.handicapIndex) / 2
+        : 0
     )
 
-    expect(averageHandicaps).toEqual([3.5, 5.5, 1.5, 7.5])
+    expect(averageHandicaps).toEqual([1.5, 3.5, 5.5, 7.5])
+  })
+
+  it('keeps later arrivals below earlier standard groups when selecting the next pairing', () => {
+    const result = generatePairings(
+      [
+        { id: 'early-a', name: 'Early A', handicapIndex: 1, checkInOrder: 1 },
+        { id: 'early-b', name: 'Early B', handicapIndex: 2, checkInOrder: 2 },
+        { id: 'middle-a', name: 'Middle A', handicapIndex: 3, checkInOrder: 3 },
+        { id: 'middle-b', name: 'Middle B', handicapIndex: 4, checkInOrder: 4 },
+        { id: 'late-a', name: 'Late A', handicapIndex: 5, checkInOrder: 5 },
+        { id: 'late-b', name: 'Late B', handicapIndex: 6, checkInOrder: 6 }
+      ],
+      []
+    )
+
+    expect(result.groups[0]).toMatchObject({
+      type: 'match',
+      match: {
+        player1: { id: 'early-a' },
+        player2: { id: 'early-b' }
+      }
+    })
   })
 
   it('orders early-bird matches before standard matches', () => {

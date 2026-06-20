@@ -420,7 +420,7 @@ export function WeekClient({ initialData }: WeekClientProps) {
         const payload = await response.json().catch(() => null)
         throw new Error(payload?.error ?? 'Unable to generate pairings')
       }
-    }, 'Pairings generated.')
+    }, 'Next pairing generated.')
   }
 
   async function createManualPairing() {

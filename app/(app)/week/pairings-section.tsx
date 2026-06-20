@@ -152,7 +152,7 @@ export function PairingsSection({
             onClick={onGeneratePairings}
             disabled={!canGeneratePairings || isRefreshing}
           >
-            {isRefreshing ? 'Working...' : matchCount > 0 ? 'Generate Next Pairings' : 'Generate Pairings'}
+            {isRefreshing ? 'Working...' : 'Generate Next Pairing'}
           </button>
           {matchCount > 0 ? (
             <button

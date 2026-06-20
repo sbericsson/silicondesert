@@ -243,9 +243,7 @@ export function WeekPairingsActionBar({
             >
               {isRefreshing
                 ? 'Working...'
-                : matchCount > 0
-                  ? 'Generate Next'
-                  : 'Generate Pairings'}
+                : 'Generate Next'}
             </button>
             <button
               ref={manualButtonRef}

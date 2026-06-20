@@ -338,6 +338,18 @@ function earlyBirdCountForThreesome(threesome: NonNullable<PairingResult['threes
   )
 }
 
+function latestCheckInOrderForGroup(group: PairingResult['groups'][number]) {
+  if (group.type === 'match') {
+    return Math.max(group.match.player1.checkInOrder, group.match.player2.checkInOrder)
+  }
+
+  return Math.max(
+    group.threesome.pivot.checkInOrder,
+    group.threesome.matchA.player2.checkInOrder,
+    group.threesome.matchBRef.player.checkInOrder
+  )
+}
+
 function orderPairingGroups(
   matches: Array<{ player1: Player; player2: Player }>,
   threesome: PairingResult['threesome'],
@@ -377,6 +389,12 @@ function orderPairingGroups(
         const earlyComparison = earlyBirdRank(right.group) - earlyBirdRank(left.group)
         if (earlyComparison !== 0) {
           return earlyComparison
+        }
+
+        const checkInComparison =
+          latestCheckInOrderForGroup(left.group) - latestCheckInOrderForGroup(right.group)
+        if (checkInComparison !== 0) {
+          return checkInComparison
         }
 
         return left.index - right.index

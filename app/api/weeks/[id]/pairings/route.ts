@@ -190,6 +190,11 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
       { trailingPlayerId }
     )
   } else {
+    const unmatchedCandidateAttendance = week.attendance.filter(
+      (entry) =>
+        !alreadyPairedPlayerIds.has(entry.playerId) &&
+        (!requestedPlayerIdSet || requestedPlayerIdSet.has(entry.playerId))
+    )
     const trailingPlayerCurrentGroupMatches =
       trailingPlayerId && week.matches.length > 0
         ? week.matches.filter(
@@ -202,11 +207,10 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
     const shouldRebuildTrailingPlayerGroup =
       Boolean(trailingPlayerId) &&
       trailingPlayerCurrentGroupMatches.length > 0 &&
-      week.attendance.some(
+      unmatchedCandidateAttendance.length < 2 &&
+      unmatchedCandidateAttendance.some(
         (entry) =>
-          !alreadyPairedPlayerIds.has(entry.playerId) &&
-          entry.playerId !== trailingPlayerId &&
-          (!requestedPlayerIdSet || requestedPlayerIdSet.has(entry.playerId))
+          entry.playerId !== trailingPlayerId
       )
 
     const availableAttendance = week.attendance.filter(
@@ -253,6 +257,39 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
     player2Id: match.referencePlayer.id,
     player2ScorecardOnly: true
   })
+  const nextGroups = generated.groups.slice(0, 1)
+  const nextLiveMatches = nextGroups.flatMap((group) =>
+    group.type === 'match' ? [group.match] : [group.threesome.matchA]
+  )
+  const nextThreesome = nextGroups[0]?.type === 'threesome' ? nextGroups[0].threesome : null
+  const hasSamePair = (leftPlayerIds: [string, string], rightPlayerIds: [string, string]) =>
+    leftPlayerIds.every((playerId) => rightPlayerIds.includes(playerId))
+  const nextPairingResult: PairingResult = {
+    matches: nextLiveMatches,
+    threesome: nextThreesome,
+    groups: nextGroups,
+    flags: generated.flags.filter((flag) =>
+      nextGroups.some((group) => {
+        if (group.type === 'match') {
+          return hasSamePair(
+            [group.match.player1.id, group.match.player2.id],
+            [flag.player1Id, flag.player2Id]
+          )
+        }
+
+        return (
+          hasSamePair(
+            [group.threesome.matchA.player1.id, group.threesome.matchA.player2.id],
+            [flag.player1Id, flag.player2Id]
+          ) ||
+          hasSamePair(
+            [group.threesome.matchBRef.player.id, group.threesome.matchBRef.referencePlayer.id],
+            [flag.player1Id, flag.player2Id]
+          )
+        )
+      })
+    )
+  }
 
   const result = await prisma.$transaction(async (tx) => {
     if (matchIdsToDelete.length > 0) {
@@ -266,7 +303,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
     }
 
     let createdMatchCount = 0
-    for (const group of generated.groups) {
+    for (const group of nextPairingResult.groups) {
       if (group.type === 'match') {
         await tx.match.create({
           data: buildLiveMatchData(group.match)
@@ -305,6 +342,6 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
 
   return NextResponse.json({
     matchesCreated: result,
-    pairingResult: generated
+    pairingResult: nextPairingResult
   })
 }

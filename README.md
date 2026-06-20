@@ -84,7 +84,7 @@ The pairing algorithm balances two competing goals: keep handicap gaps reasonabl
 cost = handicapGap × 2 + repeatCount × 30
 ```
 
-Pairings use the current week's handicap basis: rounded index or course handicap. Early-bird players are paired first with their best available opponent, then the remaining even-sized pool is solved as a minimum total-cost matching. Groups are ordered so early-bird groups float up and the designated trailing player stays in the last group when possible.
+Pairings use the current week's handicap basis: rounded index or course handicap. Each Generate Next Pairing click creates the next best available group instead of filling the whole card at once. Early-bird players are paired first with their best available opponent, then the remaining even-sized pool is solved as a minimum total-cost matching. Groups are ordered so early-bird groups float up, earlier check-ins get a modest ordering bias, and the designated trailing player stays in the last group when possible.
 
 For odd player counts, the pivot is the designated trailing player if one is available; otherwise it is the last checked-in player. The pivot plays a live match, and a third player plays a scorecard-only reference match against a player from that live group.
 

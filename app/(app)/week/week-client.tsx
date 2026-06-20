@@ -27,8 +27,10 @@ type WeekPageData = {
     courseId: string | null
     courseName: string | null
     ctpHoleOptions: number[]
+    ctpHoleUseCounts: Record<number, number>
     ctpHoleNumber: number | null
     longestPuttHoleNumber: number | null
+    longestPuttHoleUseCounts: Record<number, number>
     commissionerPlayerId: string | null
     commissionerPlayerName: string | null
     defaultTrailingPlayerId: string | null
@@ -118,6 +120,10 @@ interface WeekClientProps {
 
 const holeOptions = Array.from({ length: 9 }, (_, index) => index + 1)
 const SIDE_GAME_ENTRY_FEE = 5
+
+function formatHoleUseOption(hole: number, gameLabel: 'CTP' | 'LPM', useCounts: Record<number, number>) {
+  return `Hole ${hole} · ${gameLabel} ${useCounts[hole] ?? 0}x prior`
+}
 
 export function WeekClient({ initialData }: WeekClientProps) {
   const router = useRouter()
@@ -742,6 +748,8 @@ export function WeekClient({ initialData }: WeekClientProps) {
   const ctpHoleOptions =
     selectedCourse?.holes.filter((hole) => hole.par === 3).map((hole) => hole.holeNumber) ??
     data.currentWeek.ctpHoleOptions
+  const ctpHoleUseCounts = data.currentWeek.ctpHoleUseCounts
+  const longestPuttHoleUseCounts = data.currentWeek.longestPuttHoleUseCounts
   const eligibleCtpPlayers = data.attendance.filter((player) => player.present && player.ctpPoolPaid)
   const eligibleLongestPuttPlayers = data.attendance.filter(
     (player) => player.present && player.longestPuttPoolPaid
@@ -859,14 +867,18 @@ export function WeekClient({ initialData }: WeekClientProps) {
           <option value="">{selectedCourse ? 'Select par 3 hole' : 'Select course first'}</option>
           {ctpHoleOptions.map((hole) => (
             <option key={hole} value={hole}>
-              Hole {hole}
+              {formatHoleUseOption(hole, 'CTP', ctpHoleUseCounts)}
             </option>
           ))}
           {data.currentWeek.locked &&
             data.currentWeek.ctpHoleNumber !== null &&
             !ctpHoleOptions.includes(data.currentWeek.ctpHoleNumber) && (
               <option value={data.currentWeek.ctpHoleNumber}>
-                Hole {data.currentWeek.ctpHoleNumber}
+                {formatHoleUseOption(
+                  data.currentWeek.ctpHoleNumber,
+                  'CTP',
+                  ctpHoleUseCounts
+                )}
               </option>
             )}
         </select>
@@ -889,7 +901,7 @@ export function WeekClient({ initialData }: WeekClientProps) {
           <option value="">Select hole</option>
           {holeOptions.map((hole) => (
             <option key={hole} value={hole}>
-              Hole {hole}
+              {formatHoleUseOption(hole, 'LPM', longestPuttHoleUseCounts)}
             </option>
           ))}
         </select>

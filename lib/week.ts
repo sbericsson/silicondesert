@@ -46,6 +46,24 @@ function getDisambiguatedInitials(name: string) {
   return leading + lastDisplay
 }
 
+function countHoleSelections(weeks: Array<{ ctpHoleNumber: number | null; longestPuttHoleNumber: number | null }>) {
+  const ctpHoleUseCounts: Record<number, number> = {}
+  const longestPuttHoleUseCounts: Record<number, number> = {}
+
+  for (const week of weeks) {
+    if (week.ctpHoleNumber !== null) {
+      ctpHoleUseCounts[week.ctpHoleNumber] = (ctpHoleUseCounts[week.ctpHoleNumber] ?? 0) + 1
+    }
+
+    if (week.longestPuttHoleNumber !== null) {
+      longestPuttHoleUseCounts[week.longestPuttHoleNumber] =
+        (longestPuttHoleUseCounts[week.longestPuttHoleNumber] ?? 0) + 1
+    }
+  }
+
+  return { ctpHoleUseCounts, longestPuttHoleUseCounts }
+}
+
 // Builds a resolver that maps a player name to display initials, disambiguating
 // only the names whose base initials collide with a different player.
 function createInitialsResolver(names: Iterable<string>) {
@@ -319,6 +337,19 @@ export async function getCurrentWeekPageData() {
         orderBy: { createdAt: 'asc' }
       })
     : []
+  const priorSideGameWeeks = currentWeek
+    ? await prisma.week.findMany({
+        where: {
+          seasonId: currentWeek.seasonId,
+          weekNumber: { lt: currentWeek.weekNumber }
+        },
+        select: {
+          ctpHoleNumber: true,
+          longestPuttHoleNumber: true
+        }
+      })
+    : []
+  const { ctpHoleUseCounts, longestPuttHoleUseCounts } = countHoleSelections(priorSideGameWeeks)
   const opponentCountsByPlayerId = new Map<string, Map<string, number>>()
   const allOpponentNames = new Set<string>()
 
@@ -414,8 +445,10 @@ export async function getCurrentWeekPageData() {
           courseName: currentWeek.course?.name ?? null,
           ctpHoleOptions:
             currentWeek.course?.holes.filter((hole) => hole.par === 3).map((hole) => hole.holeNumber) ?? [],
+          ctpHoleUseCounts,
           ctpHoleNumber: currentWeek.ctpHoleNumber,
           longestPuttHoleNumber: currentWeek.longestPuttHoleNumber,
+          longestPuttHoleUseCounts,
           commissionerPlayerId: currentWeek.commissionerPlayerId,
           commissionerPlayerName: currentWeek.commissionerPlayer?.name ?? null,
           defaultTrailingPlayerId: commissioner?.defaultTrailingPlayerId ?? null,

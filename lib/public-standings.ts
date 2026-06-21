@@ -5,7 +5,6 @@ import { resolveSeasonPair } from '@/lib/seasons'
 import { accumulatePoints, mergeSeasonTotals, type StandingTotals } from '@/lib/standings-engine'
 import { formatPhoenixTimestamp } from '@/lib/phoenix-time'
 import { HANDICAP_RECORDS_INCLUDE } from '@/lib/handicap-records'
-import { getPlayerHandicapIndexValue } from '@/lib/playing-handicap'
 
 type PublicStandingRow = {
   playerId: string
@@ -22,7 +21,7 @@ type PublicStandingRow = {
 }
 
 type ComparisonStandingRow = StandingTotals & {
-  handicapIndexValue: number
+  handicapSortValue: number
   weeksScored: number
   overallPoints: number | null
 }
@@ -58,6 +57,12 @@ function hasAnyPoints(row: {
     row.ctpWins > 0 ||
     row.lpWins > 0
   )
+}
+
+function getHandicapSortValue(currentIndexDisplay: string) {
+  const value = Number.parseFloat(currentIndexDisplay)
+
+  return Number.isFinite(value) ? value : Number.POSITIVE_INFINITY
 }
 
 // Public players' standings: Spring / Summer / Overall columns once both seasons exist,
@@ -231,12 +236,16 @@ export async function getComparisonStandings(weekId: string) {
     prisma.player.findMany({ include: playerInclude, orderBy: { name: 'asc' } })
   ])
 
-  const playerInputs = players.map((player) => ({
-    id: player.id,
-    name: player.name,
-    currentIndexDisplay: getPlayerHandicapInlineLabel(player),
-    handicapIndexValue: getPlayerHandicapIndexValue(player)
-  }))
+  const playerInputs = players.map((player) => {
+    const currentIndexDisplay = getPlayerHandicapInlineLabel(player)
+
+    return {
+      id: player.id,
+      name: player.name,
+      currentIndexDisplay,
+      handicapSortValue: getHandicapSortValue(currentIndexDisplay)
+    }
+  })
   const activeById = new Map(players.map((player) => [player.id, player.active]))
   const seasonWeeks = weeks.filter((seasonWeek) => seasonWeek.seasonId === week.seasonId)
   const seasonTotals = accumulatePoints(seasonWeeks, playerInputs)
@@ -267,7 +276,7 @@ export async function getComparisonStandings(weekId: string) {
         playerId: player.id,
         name: player.name,
         currentIndexDisplay: player.currentIndexDisplay,
-        handicapIndexValue: player.handicapIndexValue,
+        handicapSortValue: player.handicapSortValue,
         weeksScored: weeksScoredByPlayerId.get(player.id) ?? 0,
         totalPoints: totals.totalPoints,
         attendancePoints: totals.attendancePoints,
@@ -281,7 +290,7 @@ export async function getComparisonStandings(weekId: string) {
     .filter((row) => activeById.get(row.playerId) || hasAnyPoints(row))
     .sort((a, b) =>
       b.totalPoints - a.totalPoints ||
-      a.handicapIndexValue - b.handicapIndexValue ||
+      a.handicapSortValue - b.handicapSortValue ||
       b.weeksScored - a.weeksScored ||
       comparePlayerNamesByLastName(a.name, b.name)
     )

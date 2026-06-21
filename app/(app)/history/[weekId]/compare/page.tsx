@@ -175,7 +175,6 @@ export default async function SpreadsheetComparisonPage({
                   <th className="py-2 pr-2">#</th>
                   <th className="py-2 pr-2">Player</th>
                   <th className="py-2 pr-2 text-right">HCP</th>
-                  <th className="py-2 pr-2 text-right">Wks</th>
                   <th className="py-2 pr-2 text-right">Pts</th>
                   {standings.isSummer ? (
                     <th className="py-2 pr-2 text-right">Overall</th>
@@ -198,7 +197,6 @@ export default async function SpreadsheetComparisonPage({
                     <td className="py-2 pr-2 text-right tabular-nums text-text-secondary">
                       {row.currentIndexDisplay}
                     </td>
-                    <td className="py-2 pr-2 text-right tabular-nums">{row.weeksScored}</td>
                     <td className="py-2 pr-2 text-right tabular-nums font-semibold">
                       {row.totalPoints}
                     </td>

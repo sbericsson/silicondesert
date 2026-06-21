@@ -73,6 +73,9 @@ export async function getHistoryPageData() {
       const adjustedScoreByPlayerId = new Map(
         week.handicapRecords.map((record) => [record.playerId, record.grossScore])
       )
+      const completed =
+        week.matches.length > 0 && week.matches.every((match) => match.matchPlayLeadBy !== null)
+
       return {
         id: week.id,
         weekNumber: week.weekNumber,
@@ -82,10 +85,8 @@ export async function getHistoryPageData() {
         courseName: week.course?.name ?? 'Course not selected',
         locked: week.locked,
         matchCount: week.matches.length,
-        publicResultsUrl:
-          week.matches.length > 0 && week.matches.every((match) => match.matchPlayLeadBy !== null)
-            ? buildPublicUrl(`/public/weeks/${week.id}`)
-            : null,
+        publicResultsUrl: completed ? buildPublicUrl(`/public/weeks/${week.id}`) : null,
+        comparisonUrl: completed ? `/history/${week.id}/compare` : null,
         ctpHoleNumber: week.ctpHoleNumber,
         ctpWinnerName: week.ctpWinner?.name ?? null,
         longestPuttHoleNumber: week.longestPuttHoleNumber,

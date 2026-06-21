@@ -64,6 +64,7 @@ a {
   }
 
   .min-h-screen > .mx-auto {
+    margin: 0 !important;
     max-width: none !important;
     padding: 0 !important;
   }

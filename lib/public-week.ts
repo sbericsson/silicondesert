@@ -257,8 +257,10 @@ export async function getPublicWeekData(weekId: string) {
         player1Points: points?.player1.totalPoints ?? null,
         player2Points: points?.player2.totalPoints ?? null,
         player1Gross: p1Record?.grossScore ?? null,
+        player1Adjusted: p1Record?.adjustedGrossScore ?? null,
         player1Net: p1Record ? p1Record.grossScore - player1MatchStrokes : null,
         player2Gross: p2Record?.grossScore ?? null,
+        player2Adjusted: p2Record?.adjustedGrossScore ?? null,
         player2Net: p2Record ? p2Record.grossScore - player2MatchStrokes : null,
         strokeSummary:
           match.matchPlayLeadBy === null

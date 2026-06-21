@@ -44,16 +44,26 @@ export default async function HistoryPage() {
             </summary>
 
             <div className="border-t border-surface-border">
-              {week.publicResultsUrl ? (
-                <div className="px-4 py-3">
-                  <a
-                    className="text-sm font-semibold text-accent-text"
-                    href={week.publicResultsUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    View Public Results
-                  </a>
+              {week.publicResultsUrl || week.comparisonUrl ? (
+                <div className="flex flex-wrap gap-x-4 gap-y-2 px-4 py-3">
+                  {week.publicResultsUrl ? (
+                    <a
+                      className="text-sm font-semibold text-accent-text"
+                      href={week.publicResultsUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      View Public Results
+                    </a>
+                  ) : null}
+                  {week.comparisonUrl ? (
+                    <Link
+                      className="text-sm font-semibold text-accent-text"
+                      href={week.comparisonUrl}
+                    >
+                      Spreadsheet Comparison
+                    </Link>
+                  ) : null}
                 </div>
               ) : null}
 

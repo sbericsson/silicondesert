@@ -131,7 +131,7 @@ export default async function SpreadsheetComparisonPage({
                   <td className="py-2 pr-2 text-right tabular-nums text-text-secondary">
                     {formatNumber(match.player1Gross)}
                   </td>
-                  <td className="py-2 pr-2 text-right tabular-nums font-medium">
+                  <td className="py-2 pr-2 text-right tabular-nums text-text-secondary">
                     {formatNumber(match.player1Adjusted)}
                   </td>
                   <td className="py-2 pr-2 text-right tabular-nums text-text-secondary">
@@ -147,7 +147,7 @@ export default async function SpreadsheetComparisonPage({
                   <td className="py-2 pr-2 text-right tabular-nums text-text-secondary">
                     {formatNumber(match.player2Gross)}
                   </td>
-                  <td className="py-2 pr-2 text-right tabular-nums font-medium">
+                  <td className="py-2 pr-2 text-right tabular-nums text-text-secondary">
                     {formatNumber(match.player2Adjusted)}
                   </td>
                   <td className="py-2 pr-2 text-right tabular-nums text-text-secondary">
@@ -168,8 +168,20 @@ export default async function SpreadsheetComparisonPage({
           <h2 className="font-condensed mb-2 text-sm font-bold uppercase tracking-widest text-text-muted print:text-black">
             {standingsHeading}
           </h2>
-          <div className="overflow-x-auto print:overflow-visible">
-            <table className="w-full border-collapse text-xs print:text-[9px]">
+          <div className="max-w-[980px] overflow-x-auto print:max-w-none print:overflow-visible">
+            <table className="w-full table-fixed border-collapse text-xs print:text-[9px]">
+              <colgroup>
+                <col className="w-10" />
+                <col />
+                <col className="w-14" />
+                <col className="w-14" />
+                {standings.isSummer ? <col className="w-20" /> : null}
+                <col className="w-14" />
+                <col className="w-20" />
+                <col className="w-20" />
+                <col className="w-12" />
+                <col className="w-12" />
+              </colgroup>
               <thead>
                 <tr className="border-b-2 border-surface-border text-left font-condensed text-[10px] font-bold uppercase tracking-widest text-text-muted print:border-black print:text-black print:text-[8px]">
                   <th className="py-2 pr-2">#</th>

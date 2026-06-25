@@ -44,6 +44,9 @@ export default async function SpreadsheetComparisonPage({
   const standingsHeading = standings.isSummer
     ? `${standings.seasonLabel ?? 'Season'} Standings (sorted by summer; Overall = full year)`
     : `${standings.seasonLabel ?? 'Season'} Standings`
+  const standingsTableWidth = standings.isSummer
+    ? 'w-[740px] print:w-[7.1in]'
+    : 'w-[668px] print:w-[6.4in]'
 
   return (
     <div className="print-page space-y-6 px-4 py-6 xl:px-6 print:p-0">
@@ -168,19 +171,19 @@ export default async function SpreadsheetComparisonPage({
           <h2 className="font-condensed mb-2 text-sm font-bold uppercase tracking-widest text-text-muted print:text-black">
             {standingsHeading}
           </h2>
-          <div className="max-w-[980px] overflow-x-auto print:max-w-none print:overflow-visible">
-            <table className="w-full table-fixed border-collapse text-xs print:text-[9px]">
+          <div className="overflow-x-auto print:overflow-visible">
+            <table className={`${standingsTableWidth} table-fixed border-collapse text-xs print:text-[9px]`}>
               <colgroup>
-                <col className="w-10" />
-                <col />
-                <col className="w-14" />
-                <col className="w-14" />
-                {standings.isSummer ? <col className="w-20" /> : null}
-                <col className="w-14" />
-                <col className="w-20" />
-                <col className="w-20" />
-                <col className="w-12" />
-                <col className="w-12" />
+                <col className="w-[40px]" />
+                <col className="w-[240px]" />
+                <col className="w-[52px]" />
+                <col className="w-[52px]" />
+                {standings.isSummer ? <col className="w-[72px]" /> : null}
+                <col className="w-[52px]" />
+                <col className="w-[68px]" />
+                <col className="w-[68px]" />
+                <col className="w-[48px]" />
+                <col className="w-[48px]" />
               </colgroup>
               <thead>
                 <tr className="border-b-2 border-surface-border text-left font-condensed text-[10px] font-bold uppercase tracking-widest text-text-muted print:border-black print:text-black print:text-[8px]">

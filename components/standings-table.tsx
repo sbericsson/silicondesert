@@ -43,9 +43,9 @@ export function StandingsTable({
 }) {
   const pointColumns: NumericColumn[] = multiSeason
     ? [
-        { key: 'springPoints', label: 'Spring', width: 'w-[72px]' },
+        { key: 'overallPoints', label: 'Overall', width: 'w-[76px]', emphasize: true },
         { key: 'summerPoints', label: 'Summer', width: 'w-[72px]' },
-        { key: 'overallPoints', label: 'Overall', width: 'w-[76px]', emphasize: true }
+        { key: 'springPoints', label: 'Spring', width: 'w-[72px]' }
       ]
     : [{ key: 'overallPoints', label: 'Pts', width: 'w-[72px]', emphasize: true }]
 

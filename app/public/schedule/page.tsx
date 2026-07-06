@@ -3,11 +3,16 @@ import { prisma } from '@/lib/db'
 import { getPhoenixDateParts } from '@/lib/phoenix-time'
 import { formatDate, getCurrentWeekRecord, pickActiveSeason } from '@/lib/week'
 import { getLatestPublishedWeekId } from '@/lib/public-week'
+import { resolveSeasonPair } from '@/lib/seasons'
 import { STATUS_CHIP_CLASSES, getScheduleWeekStatusTone } from '@/lib/week-status'
 import { PublicPageHeader } from '@/components/public-page-header'
 
 export const revalidate = 60
 export const dynamic = 'force-dynamic'
+
+type ScheduleSearchParams = {
+  season?: string
+}
 
 function getScheduleWeekStatus(
   week: { matches: Array<{ matchPlayLeadBy: number | null }>; locked: boolean; date: Date },
@@ -33,7 +38,11 @@ function getScheduleWeekStatus(
   return { label, tone: getScheduleWeekStatusTone(label) }
 }
 
-export default async function PublicSchedulePage() {
+export default async function PublicSchedulePage({
+  searchParams
+}: {
+  searchParams?: ScheduleSearchParams
+}) {
   if (!process.env.DATABASE_URL) {
     return (
       <section className="space-y-4">
@@ -64,7 +73,11 @@ export default async function PublicSchedulePage() {
     getLatestPublishedWeekId()
   ])
 
-  const season = pickActiveSeason(seasons, currentWeek?.seasonId)
+  const { spring, summer } = resolveSeasonPair(seasons)
+  const requestedSeason = seasons.find(
+    (candidate) => candidate.id === searchParams?.season || candidate.type === searchParams?.season
+  )
+  const season = requestedSeason ?? pickActiveSeason(seasons, currentWeek?.seasonId)
 
   if (!season) {
     return (
@@ -83,6 +96,39 @@ export default async function PublicSchedulePage() {
         title={season.name}
         subtitle={`${formatDate(season.startDate)} – ${formatDate(season.endDate)}`}
       >
+        <div className="mt-4 grid gap-3 sm:grid-cols-2">
+          {[summer, spring].filter(Boolean).map((seasonOption) => {
+            const option = seasonOption!
+            const selected = option.id === season.id
+
+            return (
+              <Link
+                key={option.id}
+                href={`/public/schedule?season=${option.type}`}
+                className={`rounded-2xl border px-4 py-3 transition ${
+                  selected
+                    ? 'border-accent bg-accent-dim'
+                    : 'border-surface-border bg-surface-base hover:border-accent/40'
+                }`}
+                aria-current={selected ? 'page' : undefined}
+              >
+                <p
+                  className={`font-condensed text-[11px] font-semibold uppercase tracking-widest ${
+                    selected ? 'text-accent-text' : 'text-text-muted'
+                  }`}
+                >
+                  {option.type}
+                </p>
+                <p className="font-condensed mt-1 text-xl font-bold uppercase tracking-wide text-text-primary">
+                  {option.name}
+                </p>
+                <p className="mt-1 text-sm text-text-secondary">
+                  {formatDate(option.startDate)} – {formatDate(option.endDate)}
+                </p>
+              </Link>
+            )
+          })}
+        </div>
         <div className="mt-4 rounded-2xl border border-surface-border bg-surface-base px-4 py-3 text-sm text-text-secondary">
           Completed weeks link to their public results page as soon as pairings are locked.
         </div>

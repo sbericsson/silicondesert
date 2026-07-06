@@ -10,6 +10,7 @@ type PublicStandingRow = {
   playerId: string
   name: string
   currentIndexDisplay: string
+  currentSeasonPoints: number
   springPoints: number
   summerPoints: number
   overallPoints: number
@@ -124,6 +125,7 @@ export async function getPublicStandingsData() {
   const overallTotals = multiSeason
     ? mergeSeasonTotals(springTotals!, summerTotals!)
     : accumulatePoints(weeks, playerInputs)
+  const currentSeasonTotals = multiSeason ? summerTotals : overallTotals
 
   const standings = playerInputs
     .map((player) => {
@@ -132,6 +134,7 @@ export async function getPublicStandingsData() {
         playerId: player.id,
         name: player.name,
         currentIndexDisplay: player.currentIndexDisplay,
+        currentSeasonPoints: currentSeasonTotals?.get(player.id)?.totalPoints ?? overall.totalPoints,
         springPoints: springTotals?.get(player.id)?.totalPoints ?? 0,
         summerPoints: summerTotals?.get(player.id)?.totalPoints ?? 0,
         overallPoints: overall.totalPoints,

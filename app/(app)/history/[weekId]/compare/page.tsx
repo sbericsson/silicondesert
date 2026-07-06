@@ -41,11 +41,9 @@ export default async function SpreadsheetComparisonPage({
   }
 
   const standings = await getComparisonStandings(params.weekId)
-  const standingsHeading = standings.isSummer
-    ? `${standings.seasonLabel ?? 'Season'} Standings (sorted by summer; Overall = full year)`
-    : `${standings.seasonLabel ?? 'Season'} Standings`
-  const standingsTableWidth = standings.isSummer
-    ? 'w-[740px] print:w-[7.1in]'
+  const standingsHeading = `${standings.seasonLabel ?? 'Season'} Standings`
+  const standingsTableWidth = standings.multiSeason
+    ? 'w-[812px] print:w-[7.7in]'
     : 'w-[668px] print:w-[6.4in]'
 
   return (
@@ -177,8 +175,9 @@ export default async function SpreadsheetComparisonPage({
                 <col className="w-[40px]" />
                 <col className="w-[240px]" />
                 <col className="w-[52px]" />
-                <col className="w-[52px]" />
-                {standings.isSummer ? <col className="w-[72px]" /> : null}
+                <col className="w-[72px]" />
+                {standings.multiSeason ? <col className="w-[64px]" /> : null}
+                {standings.multiSeason ? <col className="w-[64px]" /> : null}
                 <col className="w-[52px]" />
                 <col className="w-[68px]" />
                 <col className="w-[68px]" />
@@ -190,9 +189,14 @@ export default async function SpreadsheetComparisonPage({
                   <th className="py-2 pr-2">#</th>
                   <th className="py-2 pr-2">Player</th>
                   <th className="py-2 pr-2 text-right">HCP</th>
-                  <th className="py-2 pr-2 text-right">Pts</th>
-                  {standings.isSummer ? (
-                    <th className="py-2 pr-2 text-right">Overall</th>
+                  <th className="py-2 pr-2 text-right">
+                    {standings.multiSeason ? 'Overall' : 'Pts'}
+                  </th>
+                  {standings.multiSeason ? (
+                    <>
+                      <th className="py-2 pr-2 text-right">Summer</th>
+                      <th className="py-2 pr-2 text-right">Spring</th>
+                    </>
                   ) : null}
                   <th className="py-2 pr-2 text-right">Att</th>
                   <th className="py-2 pr-2 text-right">Stroke</th>
@@ -213,12 +217,13 @@ export default async function SpreadsheetComparisonPage({
                       {row.currentIndexDisplay}
                     </td>
                     <td className="py-2 pr-2 text-right tabular-nums font-semibold">
-                      {row.totalPoints}
+                      {row.overallPoints}
                     </td>
-                    {standings.isSummer ? (
-                      <td className="py-2 pr-2 text-right tabular-nums">
-                        {formatNumber(row.overallPoints)}
-                      </td>
+                    {standings.multiSeason ? (
+                      <>
+                        <td className="py-2 pr-2 text-right tabular-nums">{row.summerPoints}</td>
+                        <td className="py-2 pr-2 text-right tabular-nums">{row.springPoints}</td>
+                      </>
                     ) : null}
                     <td className="py-2 pr-2 text-right tabular-nums">{row.attendancePoints}</td>
                     <td className="py-2 pr-2 text-right tabular-nums">{row.strokePoints}</td>

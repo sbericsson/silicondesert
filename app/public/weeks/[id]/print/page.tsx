@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { getPublicWeekData } from '@/lib/public-week'
-import { getSeasonStandingsForPrint } from '@/lib/public-standings'
+import { getPublicStandingsData } from '@/lib/public-standings'
 import { PrintButton } from './print-button'
 
 export const revalidate = 60
@@ -37,7 +37,7 @@ export default async function PrintWeekPage({
     notFound()
   }
 
-  const standingsData = await getSeasonStandingsForPrint(data.seasonId)
+  const standingsData = await getPublicStandingsData()
 
   return (
     <div className="print-page space-y-6">
@@ -154,6 +154,8 @@ export default async function PrintWeekPage({
               <col className="w-12" />
               <col />
               <col className="w-16" />
+              {standingsData.multiSeason ? <col className="w-16" /> : null}
+              {standingsData.multiSeason ? <col className="w-16" /> : null}
               <col className="w-16" />
               <col className="w-16" />
               <col className="w-20" />
@@ -166,7 +168,15 @@ export default async function PrintWeekPage({
                 <th className="py-2 pr-3">#</th>
                 <th className="py-2 pr-3">Player</th>
                 <th className="py-2 pr-3 text-right">HCP</th>
-                <th className="py-2 pr-3 text-right">Pts</th>
+                <th className="py-2 pr-3 text-right">
+                  {standingsData.multiSeason ? 'Overall' : 'Pts'}
+                </th>
+                {standingsData.multiSeason ? (
+                  <>
+                    <th className="py-2 pr-3 text-right">Summer</th>
+                    <th className="py-2 pr-3 text-right">Spring</th>
+                  </>
+                ) : null}
                 <th className="py-2 pr-3 text-right">Att</th>
                 <th className="py-2 pr-3 text-right">Stroke</th>
                 <th className="py-2 pr-3 text-right">Match</th>
@@ -186,8 +196,14 @@ export default async function PrintWeekPage({
                   </td>
                   <td className="py-2 pr-3 text-right tabular-nums text-text-secondary">{row.currentIndexDisplay}</td>
                   <td className="py-2 pr-3 text-right tabular-nums font-semibold">
-                    {row.totalPoints}
+                    {row.overallPoints}
                   </td>
+                  {standingsData.multiSeason ? (
+                    <>
+                      <td className="py-2 pr-3 text-right tabular-nums">{row.summerPoints}</td>
+                      <td className="py-2 pr-3 text-right tabular-nums">{row.springPoints}</td>
+                    </>
+                  ) : null}
                   <td className="py-2 pr-3 text-right tabular-nums">{row.attendancePoints}</td>
                   <td className="py-2 pr-3 text-right tabular-nums">{row.strokePoints}</td>
                   <td className="py-2 pr-3 text-right tabular-nums">{row.matchPlayPoints}</td>

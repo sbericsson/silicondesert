@@ -10,6 +10,10 @@ function formatNumber(value: number | null) {
   return value ?? '\u2014'
 }
 
+function getPageTitle(data: { weekNumber: number; seasonName: string; dateLabel: string }) {
+  return `Spreadsheet Comparison \u2014 Week ${data.weekNumber} \u2014 ${data.seasonName} \u2014 ${data.dateLabel}`
+}
+
 export async function generateMetadata({
   params
 }: {
@@ -24,7 +28,7 @@ export async function generateMetadata({
   }
 
   return {
-    title: `Spreadsheet Comparison - Week ${data.weekNumber} - Silicon Desert Golf`,
+    title: getPageTitle(data),
     description: `${data.courseName} - ${data.dateLabel}`
   }
 }
@@ -41,6 +45,7 @@ export default async function SpreadsheetComparisonPage({
   }
 
   const standings = await getComparisonStandings(params.weekId)
+  const pageTitle = getPageTitle(data)
   const standingsHeading = `${standings.seasonLabel ?? 'Season'} Standings`
   const standingsTableWidth = standings.multiSeason
     ? 'w-[812px] print:w-[7.7in]'
@@ -56,7 +61,7 @@ export default async function SpreadsheetComparisonPage({
           Silicon Desert Golf League
         </p>
         <h1 className="font-condensed mt-1 text-2xl font-bold uppercase tracking-wide">
-          Week {data.weekNumber} &mdash; {data.seasonName} &mdash; {data.dateLabel}
+          {pageTitle}
         </h1>
         <p className="mt-1 text-sm text-text-secondary print:text-black">
           {data.courseName}

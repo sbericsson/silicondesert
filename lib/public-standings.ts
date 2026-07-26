@@ -27,6 +27,38 @@ type ComparisonStandingRow = PublicStandingRow & {
   weeksScored: number
 }
 
+export type ComparisonSortKey = 'overallPoints' | 'summerPoints' | 'springPoints'
+
+export function getComparisonValueClass(columnKey: ComparisonSortKey, sortKey: ComparisonSortKey) {
+  return columnKey === sortKey ? 'font-semibold' : ''
+}
+
+export function getComparisonSortKey({
+  targetSeasonId,
+  springSeasonId,
+  summerSeasonId,
+  multiSeason
+}: {
+  targetSeasonId: string
+  springSeasonId: string | null | undefined
+  summerSeasonId: string | null | undefined
+  multiSeason: boolean
+}): ComparisonSortKey {
+  if (!multiSeason) {
+    return 'overallPoints'
+  }
+
+  if (targetSeasonId === springSeasonId) {
+    return 'springPoints'
+  }
+
+  if (targetSeasonId === summerSeasonId) {
+    return 'summerPoints'
+  }
+
+  return 'overallPoints'
+}
+
 const weekInclude = {
   attendance: {
     select: { playerId: true, present: true }
@@ -164,6 +196,7 @@ export async function getComparisonStandings(weekId: string) {
     return {
       multiSeason: false,
       seasonLabel: null,
+      sortKey: 'overallPoints' as ComparisonSortKey,
       standings: [] as ComparisonStandingRow[]
     }
   }
@@ -183,6 +216,7 @@ export async function getComparisonStandings(weekId: string) {
     return {
       multiSeason: false,
       seasonLabel: null,
+      sortKey: 'overallPoints' as ComparisonSortKey,
       standings: [] as ComparisonStandingRow[]
     }
   }
@@ -196,6 +230,7 @@ export async function getComparisonStandings(weekId: string) {
     return {
       multiSeason: false,
       seasonLabel: null,
+      sortKey: 'overallPoints' as ComparisonSortKey,
       standings: [] as ComparisonStandingRow[]
     }
   }
@@ -218,6 +253,12 @@ export async function getComparisonStandings(weekId: string) {
   const activeById = new Map(players.map((player) => [player.id, player.active]))
   const multiSeason =
     multiSeasonCandidate && weeks.some((week) => week.seasonId === summer!.id && week.completedAt != null)
+  const sortKey = getComparisonSortKey({
+    targetSeasonId: targetWeek.seasonId,
+    springSeasonId: spring?.id,
+    summerSeasonId: summer?.id,
+    multiSeason
+  })
 
   const springTotals = multiSeason
     ? accumulatePoints(weeks.filter((week) => week.seasonId === spring!.id), playerInputs)
@@ -285,6 +326,7 @@ export async function getComparisonStandings(weekId: string) {
       : multiSeasonCandidate
         ? (spring?.name ?? null)
         : selectedSingle?.name ?? null,
+    sortKey,
     standings
   }
 }

@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-import { getComparisonStandings } from '@/lib/public-standings'
+import { getComparisonStandings, getComparisonValueClass } from '@/lib/public-standings'
 import { getPublicWeekData } from '@/lib/public-week'
 import { ComparePrintActions } from './compare-print-actions'
 
@@ -221,13 +221,32 @@ export default async function SpreadsheetComparisonPage({
                     <td className="py-2 pr-2 text-right tabular-nums text-text-secondary">
                       {row.currentIndexDisplay}
                     </td>
-                    <td className="py-2 pr-2 text-right tabular-nums font-semibold">
+                    <td
+                      className={`py-2 pr-2 text-right tabular-nums ${getComparisonValueClass(
+                        'overallPoints',
+                        standings.sortKey
+                      )}`}
+                    >
                       {row.overallPoints}
                     </td>
                     {standings.multiSeason ? (
                       <>
-                        <td className="py-2 pr-2 text-right tabular-nums">{row.summerPoints}</td>
-                        <td className="py-2 pr-2 text-right tabular-nums">{row.springPoints}</td>
+                        <td
+                          className={`py-2 pr-2 text-right tabular-nums ${getComparisonValueClass(
+                            'summerPoints',
+                            standings.sortKey
+                          )}`}
+                        >
+                          {row.summerPoints}
+                        </td>
+                        <td
+                          className={`py-2 pr-2 text-right tabular-nums ${getComparisonValueClass(
+                            'springPoints',
+                            standings.sortKey
+                          )}`}
+                        >
+                          {row.springPoints}
+                        </td>
                       </>
                     ) : null}
                     <td className="py-2 pr-2 text-right tabular-nums">{row.attendancePoints}</td>

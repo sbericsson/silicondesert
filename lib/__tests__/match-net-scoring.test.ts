@@ -1,9 +1,104 @@
 import { describe, expect, it } from 'vitest'
 import {
   calculateMatchOutcomeFromGrossScores,
+  describeMatchPops,
+  describePlayerPops,
   formatPopHoles,
   getPopHoles
 } from '@/lib/match-net-scoring'
+
+describe('describeMatchPops', () => {
+  const evenMatch = {
+    player1Id: 'chris',
+    player1Name: 'Chris Wozniak',
+    player2Name: 'Natasha Ericsson',
+    popDifference: 0,
+    popRecipientId: null,
+    popHoles: [],
+    player2ScorecardOnly: false
+  }
+  const natashaPopHoles = [1, 3, 5, 6, 8, 9].map((holeNumber) => ({ holeNumber, strokes: 1 }))
+
+  it('says so when neither player strokes', () => {
+    expect(describeMatchPops(evenMatch)).toBe('No pops in this match.')
+  })
+
+  it('names the recipient and the holes when player2 gets the pops', () => {
+    expect(
+      describeMatchPops({
+        ...evenMatch,
+        popDifference: 6,
+        popRecipientId: 'natasha',
+        popHoles: natashaPopHoles
+      })
+    ).toBe('Natasha Ericsson gets 6 pops on holes 1, 3, 5, 6, 8, 9.')
+  })
+
+  it('names player1 when player1 gets the pops', () => {
+    expect(
+      describeMatchPops({
+        ...evenMatch,
+        popDifference: 1,
+        popRecipientId: 'chris',
+        popHoles: [{ holeNumber: 8, strokes: 1 }]
+      })
+    ).toBe('Chris Wozniak gets 1 pop on hole 8.')
+  })
+
+  it('flags a reference scorecard match', () => {
+    expect(
+      describeMatchPops({
+        ...evenMatch,
+        popDifference: 2,
+        popRecipientId: 'natasha',
+        popHoles: [
+          { holeNumber: 3, strokes: 1 },
+          { holeNumber: 8, strokes: 1 }
+        ],
+        player2ScorecardOnly: true
+      })
+    ).toBe(
+      'Natasha Ericsson gets 2 pops against the reference scorecard on holes 3, 8.'
+    )
+  })
+
+  it('omits the hole list when the week has no course yet', () => {
+    expect(
+      describeMatchPops({
+        ...evenMatch,
+        popDifference: 6,
+        popRecipientId: 'natasha',
+        popHoles: []
+      })
+    ).toBe('Natasha Ericsson gets 6 pops.')
+  })
+})
+
+describe('describePlayerPops', () => {
+  it('sums the strokes rather than reading the first hole', () => {
+    const popHoles = [
+      { holeNumber: 3, strokes: 2 },
+      { holeNumber: 5, strokes: 2 },
+      { holeNumber: 8, strokes: 2 },
+      { holeNumber: 1, strokes: 1 },
+      { holeNumber: 2, strokes: 1 },
+      { holeNumber: 4, strokes: 1 },
+      { holeNumber: 6, strokes: 1 },
+      { holeNumber: 7, strokes: 1 },
+      { holeNumber: 9, strokes: 1 }
+    ]
+
+    expect(describePlayerPops('Natasha Ericsson', popHoles)).toBe(
+      'Natasha Ericsson gets 12 pops on holes 3, 5, 8 (2 each) and holes 1, 2, 4, 6, 7, 9 (1 each).'
+    )
+  })
+
+  it('uses the singular for a lone pop', () => {
+    expect(describePlayerPops('Chris Wozniak', [{ holeNumber: 8, strokes: 1 }])).toBe(
+      'Chris Wozniak gets 1 pop on hole 8.'
+    )
+  })
+})
 
 describe('getPopHoles', () => {
   // Stroke index runs opposite to hole number so the tests prove pops follow

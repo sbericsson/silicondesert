@@ -105,6 +105,46 @@ export function formatPopHoles(popHoles: PopHole[]) {
     .join(' and ')}`
 }
 
+/**
+ * The pop sentence for a pairing, e.g.
+ * "Natasha Ericsson gets 6 pops on holes 1, 3, 5, 6, 8, 9."
+ *
+ * The hole list is omitted when the week has no course yet, since pops land by
+ * stroke index and there is nothing to name.
+ */
+export function describeMatchPops(match: {
+  player1Id: string
+  player1Name: string
+  player2Name: string
+  popDifference: number
+  popRecipientId: string | null
+  popHoles: PopHole[]
+  player2ScorecardOnly: boolean
+}) {
+  if (match.popDifference === 0) {
+    return 'No pops in this match.'
+  }
+
+  const recipientName =
+    match.popRecipientId === match.player1Id ? match.player1Name : match.player2Name
+  const popLabel = `${match.popDifference} pop${match.popDifference === 1 ? '' : 's'}`
+  const referenceLabel = match.player2ScorecardOnly ? ' against the reference scorecard' : ''
+  const holeLabel = formatPopHoles(match.popHoles)
+
+  return `${recipientName} gets ${popLabel}${referenceLabel}${holeLabel ? ` ${holeLabel}` : ''}.`
+}
+
+/**
+ * The pop sentence for one player on the score entry screen, where the strokes
+ * per hole are already known and the total has to be summed rather than read
+ * off any single hole.
+ */
+export function describePlayerPops(name: string, popHoles: PopHole[]) {
+  const totalPops = popHoles.reduce((total, hole) => total + hole.strokes, 0)
+
+  return `${name} gets ${totalPops} pop${totalPops === 1 ? '' : 's'} ${formatPopHoles(popHoles)}.`
+}
+
 export interface AdjustedMatchHoleInput {
   holeNumber: number
   strokeIndex: number

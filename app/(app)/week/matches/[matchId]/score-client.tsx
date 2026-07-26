@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { applyESC } from '@/lib/handicap'
-import { formatPopHoles } from '@/lib/match-net-scoring'
+import { describePlayerPops } from '@/lib/match-net-scoring'
 import { calculateMatchPlayResult, calculateMatchPoints } from '@/lib/scoring'
 
 type MatchScorePageData = {
@@ -108,15 +108,6 @@ function formatMatchPlayLabel(
   }
 
   return `${winnerName} ${result.matchPlayLeadBy} up.`
-}
-
-function describePopHoles(
-  name: string,
-  popHoles: Array<{ holeNumber: number; strokes: number }>
-) {
-  const totalPops = popHoles.reduce((total, hole) => total + hole.strokes, 0)
-
-  return `${name} gets ${totalPops} pop${totalPops === 1 ? '' : 's'} ${formatPopHoles(popHoles)}.`
 }
 
 export function MatchScoreClient({ initialData, returnHref }: MatchScoreClientProps) {
@@ -275,10 +266,10 @@ export function MatchScoreClient({ initialData, returnHref }: MatchScoreClientPr
             {player1PopHoles.length > 0 || player2PopHoles.length > 0 ? (
               <div className="mt-2 space-y-1 text-xs text-text-secondary">
                 {player1PopHoles.length > 0 ? (
-                  <p>{describePopHoles(initialData.match.player1.name, player1PopHoles)}</p>
+                  <p>{describePlayerPops(initialData.match.player1.name, player1PopHoles)}</p>
                 ) : null}
                 {player2PopHoles.length > 0 ? (
-                  <p>{describePopHoles(initialData.match.player2.name, player2PopHoles)}</p>
+                  <p>{describePlayerPops(initialData.match.player2.name, player2PopHoles)}</p>
                 ) : null}
               </div>
             ) : null}

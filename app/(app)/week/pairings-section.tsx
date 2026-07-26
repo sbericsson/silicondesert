@@ -2,7 +2,7 @@
 
 import type { TeeColor } from '@prisma/client'
 import Link from 'next/link'
-import { formatPopHoles } from '@/lib/match-net-scoring'
+import { describeMatchPops } from '@/lib/match-net-scoring'
 import { REFERENCE_SCORECARD_PLAYER_ID } from '@/lib/matchmaking'
 
 export type PairingMatch = {
@@ -84,21 +84,6 @@ interface PairingsSectionProps {
   onCopyPairingsLink: () => void
   onCopyResultsShareText: () => void
   onCloseCurrentWeek: () => void
-}
-
-function describePops(match: PairingMatch) {
-  if (match.popDifference === 0) {
-    return 'No pops in this match.'
-  }
-
-  const recipientName =
-    match.popRecipientId === match.player1Id ? match.player1Name : match.player2Name
-  const popLabel = `${match.popDifference} pop${match.popDifference === 1 ? '' : 's'}`
-  const referenceLabel = match.player2ScorecardOnly ? ' against the reference scorecard' : ''
-  // Empty until a course is set on the week, since pops land by stroke index.
-  const holeLabel = formatPopHoles(match.popHoles)
-
-  return `${recipientName} gets ${popLabel}${referenceLabel}${holeLabel ? ` ${holeLabel}` : ''}.`
 }
 
 export function PairingsSection({
@@ -305,7 +290,7 @@ export function PairingsSection({
                 </label>
               ) : null}
               <p className="mt-2 text-xs text-text-secondary">
-                {describePops(match)}
+                {describeMatchPops(match)}
               </p>
               {match.warnings.length > 0 ? (
                 <div className="mt-3 space-y-1">

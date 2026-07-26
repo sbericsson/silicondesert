@@ -4,6 +4,12 @@ All notable changes to the Silicon Desert Golf League commissioner app are docum
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.1.1.2] - 2026-07-25
+
+### Fixed
+
+- Standings values now bold only the column currently used for sorting on public and commissioner pages.
+
 ## [0.1.1.1] - 2026-07-25
 
 ### Changed

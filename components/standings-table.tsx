@@ -31,7 +31,10 @@ type NumericColumn = {
   key: NumericKey
   label: string
   width: string
-  emphasize?: boolean
+}
+
+export function getStandingValueClass(columnKey: NumericKey, sortKey: NumericKey) {
+  return columnKey === sortKey ? 'font-semibold text-text-primary' : 'text-text-primary'
 }
 
 export function StandingsTable({
@@ -43,11 +46,11 @@ export function StandingsTable({
 }) {
   const pointColumns: NumericColumn[] = multiSeason
     ? [
-        { key: 'overallPoints', label: 'Overall', width: 'w-[76px]', emphasize: true },
+        { key: 'overallPoints', label: 'Overall', width: 'w-[76px]' },
         { key: 'summerPoints', label: 'Summer', width: 'w-[72px]' },
         { key: 'springPoints', label: 'Spring', width: 'w-[72px]' }
       ]
-    : [{ key: 'overallPoints', label: 'Pts', width: 'w-[72px]', emphasize: true }]
+    : [{ key: 'overallPoints', label: 'Pts', width: 'w-[72px]' }]
 
   const numericColumns: NumericColumn[] = [
     ...pointColumns,
@@ -157,9 +160,10 @@ export function StandingsTable({
                 {numericColumns.map((column) => (
                   <td
                     key={column.key}
-                    className={`px-3 py-3 text-right text-sm tabular-nums ${
-                      column.emphasize ? 'font-semibold text-text-primary' : 'text-text-primary'
-                    } ${zebra}`}
+                    className={`px-3 py-3 text-right text-sm tabular-nums ${getStandingValueClass(
+                      column.key,
+                      sortKey
+                    )} ${zebra}`}
                   >
                     {row[column.key]}
                   </td>

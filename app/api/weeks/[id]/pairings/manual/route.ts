@@ -190,7 +190,8 @@ export async function POST(
   const pairingResult = {
     matches: [{ player1: pairingInput[0], player2: pairingInput[1] }],
     threesome: null,
-    flags: buildPairingFlags([{ player1: pairingInput[0], player2: pairingInput[1] }], priorMatches.filter((m) => !m.player2ScorecardOnly))
+    // Reference-scorecard rows count as a repeat, matching generatePairings.
+    flags: buildPairingFlags([{ player1: pairingInput[0], player2: pairingInput[1] }], priorMatches)
   }
 
   const createdMatch = await prisma.$transaction(async (tx) => {

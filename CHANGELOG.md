@@ -4,6 +4,12 @@ All notable changes to the Silicon Desert Golf League commissioner app are docum
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.1.1.1] - 2026-07-25
+
+### Changed
+
+- Players with the surname prefix "Vande" now sort under V. Lowell Vande Kamp appears with the V names across roster, standings, and pairing views.
+
 ## [0.1.1.0] - 2026-07-25
 
 ### Added

@@ -15,5 +15,6 @@ describe('player sort helpers', () => {
 
   it('keeps surname prefixes attached to the sort key', () => {
     expect(getPlayerSortKey('Ludwig van Beethoven')).toContain('van beethoven')
+    expect(getPlayerSortKey('Lowell Vande Kamp')).toContain('vande kamp')
   })
 })

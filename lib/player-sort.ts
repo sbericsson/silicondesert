@@ -11,6 +11,7 @@ const SURNAME_PREFIXES = new Set([
   'st',
   'st.',
   'van',
+  'vande',
   'von'
 ])
 

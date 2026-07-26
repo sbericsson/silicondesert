@@ -90,7 +90,9 @@ For odd player counts, the pivot is the designated trailing player if one is ava
 
 By default, Peter Pestalozzi is the trailing player when checked in. If he is not playing, the commissioner can choose a weekly commissioner to fill that role.
 
-The commissioner can override any pairing before locking the card. Pairings with a handicap gap > 6 or with repeat opponents are flagged.
+The commissioner can override any pairing before locking the card. Pairings with a handicap gap > 6 or with repeat opponents are flagged. A scorecard-only reference match counts as a repeat for both players, so pairing them again is flagged. The check-in list shows each player's prior opponents by initials; the player who played a reference scorecard picks up that opponent, while the player who lent the card does not.
+
+Each pairing also names where the pops land, for example "Natasha Ericsson gets 6 pops on holes 1, 3, 5, 6, 8, 9." Pops follow the stroke index, using the women's index whenever either player in the match is a woman. Above nine pops the holes carrying a second stroke are listed separately.
 
 After locking, the card can be unlocked for corrections — with a confirmation step if scores have already been entered. Individual match scores can also be cleared without affecting other matches.
 

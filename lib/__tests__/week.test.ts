@@ -12,7 +12,7 @@ vi.mock('@/lib/db', () => ({
   }
 }))
 
-import { getNextScheduledWeekRecord, isWeekOverdue } from '@/lib/week'
+import { buildOpponentCounts, getNextScheduledWeekRecord, isWeekOverdue } from '@/lib/week'
 
 describe('week helpers', () => {
   beforeEach(() => {
@@ -55,5 +55,62 @@ describe('week helpers', () => {
       }
     })
     expect(query.where).not.toHaveProperty('date')
+  })
+})
+
+describe('buildOpponentCounts', () => {
+  // Mirrors Summer 2026 week 3: match 8 is Martin's live match against Tom,
+  // match 9 is the threesome where Peter plays Martin's reference scorecard.
+  const liveMatch = {
+    player1Id: 'martin',
+    player2Id: 'tom',
+    player2ScorecardOnly: false,
+    player1: { name: 'Martin Aldecoa' },
+    player2: { name: 'Tom Sleasman' }
+  }
+  const referenceMatch = {
+    player1Id: 'peter',
+    player2Id: 'martin',
+    player2ScorecardOnly: true,
+    player1: { name: 'Peter Pestalozzi' },
+    player2: { name: 'Martin Aldecoa' }
+  }
+
+  it('records both sides of a live match', () => {
+    const { opponentCountsByPlayerId } = buildOpponentCounts([liveMatch])
+
+    expect(opponentCountsByPlayerId.get('martin')?.get('Tom Sleasman')).toBe(1)
+    expect(opponentCountsByPlayerId.get('tom')?.get('Martin Aldecoa')).toBe(1)
+  })
+
+  it('records a reference-scorecard opponent for the scorecard player only', () => {
+    const { opponentCountsByPlayerId } = buildOpponentCounts([liveMatch, referenceMatch])
+
+    expect(opponentCountsByPlayerId.get('peter')?.get('Martin Aldecoa')).toBe(1)
+    expect(opponentCountsByPlayerId.get('martin')?.has('Peter Pestalozzi')).toBe(false)
+    expect(Array.from(opponentCountsByPlayerId.get('martin')?.keys() ?? [])).toEqual(['Tom Sleasman'])
+  })
+
+  it('exposes reference opponents for initials disambiguation', () => {
+    const { allOpponentNames } = buildOpponentCounts([referenceMatch])
+
+    expect(Array.from(allOpponentNames)).toEqual(['Martin Aldecoa'])
+  })
+
+  it('counts a reference-scorecard pair as a repeat for warning purposes', () => {
+    const { repeatCounts } = buildOpponentCounts([liveMatch, referenceMatch])
+
+    expect(repeatCounts.get(['peter', 'martin'].sort().join(':'))).toBe(1)
+    expect(repeatCounts.get(['martin', 'tom'].sort().join(':'))).toBe(1)
+  })
+
+  it('counts repeat pairings across weeks', () => {
+    const { opponentCountsByPlayerId } = buildOpponentCounts([
+      liveMatch,
+      referenceMatch,
+      referenceMatch
+    ])
+
+    expect(opponentCountsByPlayerId.get('peter')?.get('Martin Aldecoa')).toBe(2)
   })
 })

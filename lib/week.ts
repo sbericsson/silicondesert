@@ -12,6 +12,7 @@ import {
 } from '@/lib/course-tee'
 import { roundToWholeHandicap } from '@/lib/handicap'
 import { HANDICAP_RECORDS_INCLUDE } from '@/lib/handicap-records'
+import { getPopHoles } from '@/lib/match-net-scoring'
 import { buildPairingFlags, buildRepeatCounts } from '@/lib/matchmaking'
 import { getPositioningBasis, POSITIONING_BASIS_LABEL } from '@/lib/positioning'
 import { getHandicapModeLabel, getPlayerHandicapIndexValue, getPlayingHandicap } from '@/lib/playing-handicap'
@@ -262,6 +263,56 @@ export async function getNextScheduledWeekRecord() {
   })
 }
 
+export type OpponentTallyMatch = {
+  player1Id: string
+  player2Id: string
+  player2ScorecardOnly: boolean
+  player1: { name: string }
+  player2: { name: string }
+}
+
+/**
+ * Tally season pairing history for the check-in list: the per-player opponent
+ * initials and the per-pair repeat counts that drive the repeat warnings.
+ *
+ * Both come out of one pass so the two views can't drift apart.
+ *
+ * The per-player tally treats reference-scorecard rows as one-directional. In a
+ * threesome the scorecard player (player1) is matched against the anchor
+ * player's card, so player1 has played that opponent. The anchor player
+ * (player2) is only lending a scorecard; his real match is the separate live
+ * row, so he does not pick up the scorecard player as an opponent.
+ *
+ * The per-pair repeat counts stay symmetric and include reference-scorecard
+ * rows, matching what generatePairings already does with the unfiltered season
+ * history: those two were matched, so re-pairing them should warn.
+ */
+export function buildOpponentCounts(matches: OpponentTallyMatch[]) {
+  const opponentCountsByPlayerId = new Map<string, Map<string, number>>()
+  const allOpponentNames = new Set<string>()
+
+  const addOpponent = (playerId: string, opponentName: string) => {
+    const counts = opponentCountsByPlayerId.get(playerId) ?? new Map<string, number>()
+    counts.set(opponentName, (counts.get(opponentName) ?? 0) + 1)
+    opponentCountsByPlayerId.set(playerId, counts)
+    allOpponentNames.add(opponentName)
+  }
+
+  for (const match of matches) {
+    addOpponent(match.player1Id, match.player2.name)
+
+    if (!match.player2ScorecardOnly) {
+      addOpponent(match.player2Id, match.player1.name)
+    }
+  }
+
+  return {
+    opponentCountsByPlayerId,
+    allOpponentNames,
+    repeatCounts: buildRepeatCounts(matches)
+  }
+}
+
 export async function getCurrentWeekPageData() {
   if (!process.env.DATABASE_URL) {
     return {
@@ -351,24 +402,7 @@ export async function getCurrentWeekPageData() {
       })
     : []
   const { ctpHoleUseCounts, longestPuttHoleUseCounts } = countHoleSelections(priorSideGameWeeks)
-  const opponentCountsByPlayerId = new Map<string, Map<string, number>>()
-  const allOpponentNames = new Set<string>()
-
-  const addOpponent = (playerId: string, opponentName: string) => {
-    const counts = opponentCountsByPlayerId.get(playerId) ?? new Map<string, number>()
-    counts.set(opponentName, (counts.get(opponentName) ?? 0) + 1)
-    opponentCountsByPlayerId.set(playerId, counts)
-    allOpponentNames.add(opponentName)
-  }
-
-  for (const match of priorMatches) {
-    if (match.player2ScorecardOnly) {
-      continue
-    }
-
-    addOpponent(match.player1Id, match.player2.name)
-    addOpponent(match.player2Id, match.player1.name)
-  }
+  const { opponentCountsByPlayerId, allOpponentNames, repeatCounts } = buildOpponentCounts(priorMatches)
 
   // Disambiguate against every player name and every prior opponent name so the
   // displayed initials stay consistent across the whole check-in list.
@@ -425,8 +459,6 @@ export async function getCurrentWeekPageData() {
         seasonWeekNumbers: currentWeek.season.weeks.map((seasonWeek) => seasonWeek.weekNumber)
       })
     : null
-  const filteredPriorMatches = priorMatches.filter((match) => !match.player2ScorecardOnly)
-  const repeatCounts = buildRepeatCounts(filteredPriorMatches)
 
   return {
     currentWeek: currentWeek
@@ -510,6 +542,11 @@ export async function getCurrentWeekPageData() {
                 : player1PlayingHandicap > player2PlayingHandicap
                   ? match.player1.id
                   : match.player2.id
+            const popHoles = getPopHoles({
+              popDifference,
+              holes: currentWeek.course?.holes ?? [],
+              anyWoman: match.player1.gender === 'woman' || match.player2.gender === 'woman'
+            })
 
             const warnings = buildPairingFlags(
               [
@@ -528,7 +565,7 @@ export async function getCurrentWeekPageData() {
                   }
                 }
               ],
-              filteredPriorMatches,
+              priorMatches,
               repeatCounts
             )
 
@@ -550,6 +587,7 @@ export async function getCurrentWeekPageData() {
               player2PlayingHandicap,
               popDifference,
               popRecipientId,
+              popHoles,
               player2ScorecardOnly: match.player2ScorecardOnly,
               warnings,
               locked: match.locked,

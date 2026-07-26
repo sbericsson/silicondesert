@@ -2,6 +2,7 @@
 
 import type { TeeColor } from '@prisma/client'
 import Link from 'next/link'
+import { describeMatchPops } from '@/lib/match-net-scoring'
 import { REFERENCE_SCORECARD_PLAYER_ID } from '@/lib/matchmaking'
 
 export type PairingMatch = {
@@ -22,6 +23,7 @@ export type PairingMatch = {
   player2PlayingHandicap: number
   popDifference: number
   popRecipientId: string | null
+  popHoles: Array<{ holeNumber: number; strokes: number }>
   player2ScorecardOnly: boolean
   warnings: Array<{
     player1Id: string
@@ -288,9 +290,7 @@ export function PairingsSection({
                 </label>
               ) : null}
               <p className="mt-2 text-xs text-text-secondary">
-                {match.popDifference === 0
-                  ? 'No pops in this match.'
-                  : `${match.popRecipientId === match.player1Id ? match.player1Name : match.player2Name} gets ${match.popDifference} pop${match.popDifference === 1 ? '' : 's'}${match.player2ScorecardOnly ? ' against the reference scorecard' : ''}.`}
+                {describeMatchPops(match)}
               </p>
               {match.warnings.length > 0 ? (
                 <div className="mt-3 space-y-1">

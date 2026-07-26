@@ -12,6 +12,7 @@ import {
 } from '@/lib/course-tee'
 import { roundToWholeHandicap } from '@/lib/handicap'
 import { HANDICAP_RECORDS_INCLUDE } from '@/lib/handicap-records'
+import { getPopHoles } from '@/lib/match-net-scoring'
 import { buildPairingFlags, buildRepeatCounts } from '@/lib/matchmaking'
 import { getPositioningBasis, POSITIONING_BASIS_LABEL } from '@/lib/positioning'
 import { getHandicapModeLabel, getPlayerHandicapIndexValue, getPlayingHandicap } from '@/lib/playing-handicap'
@@ -541,6 +542,11 @@ export async function getCurrentWeekPageData() {
                 : player1PlayingHandicap > player2PlayingHandicap
                   ? match.player1.id
                   : match.player2.id
+            const popHoles = getPopHoles({
+              popDifference,
+              holes: currentWeek.course?.holes ?? [],
+              anyWoman: match.player1.gender === 'woman' || match.player2.gender === 'woman'
+            })
 
             const warnings = buildPairingFlags(
               [
@@ -581,6 +587,7 @@ export async function getCurrentWeekPageData() {
               player2PlayingHandicap,
               popDifference,
               popRecipientId,
+              popHoles,
               player2ScorecardOnly: match.player2ScorecardOnly,
               warnings,
               locked: match.locked,

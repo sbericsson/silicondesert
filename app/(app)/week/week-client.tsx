@@ -59,6 +59,7 @@ type WeekPageData = {
       player2PlayingHandicap: number
       popDifference: number
       popRecipientId: string | null
+      popHoles: Array<{ holeNumber: number; strokes: number }>
       player2ScorecardOnly: boolean
       warnings: Array<{
         player1Id: string

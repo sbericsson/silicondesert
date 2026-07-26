@@ -32,6 +32,79 @@ export function getMatchStrokeAllocation(
   }
 }
 
+export interface PopHoleInput {
+  holeNumber: number
+  strokeIndex: number
+  womenStrokeIndex: number
+}
+
+export interface PopHole {
+  holeNumber: number
+  strokes: number
+}
+
+/**
+ * Which holes the pop recipient actually strokes on, and how many strokes each.
+ *
+ * Pops fall on the hardest holes first: a recipient with N pops strokes on every
+ * hole whose stroke index is <= N, and picks up a second stroke on holes whose
+ * index is <= N - 9. The women's stroke index is used whenever either player in
+ * the match is a woman, matching how match net scores are computed.
+ */
+export function getPopHoles(input: {
+  popDifference: number
+  holes: PopHoleInput[]
+  anyWoman: boolean
+}): PopHole[] {
+  if (input.popDifference <= 0) {
+    return []
+  }
+
+  return input.holes
+    .map((hole) => ({
+      holeNumber: hole.holeNumber,
+      strokes: strokesReceivedOnHole(
+        input.popDifference,
+        input.anyWoman ? hole.womenStrokeIndex : hole.strokeIndex
+      )
+    }))
+    .filter((hole) => hole.strokes > 0)
+    .sort((left, right) => left.holeNumber - right.holeNumber)
+}
+
+/**
+ * Renders pop holes as a sentence fragment to follow "gets N pops".
+ *
+ * Even allocation reads "on holes 1, 3, 4". Once a recipient has more than nine
+ * pops some holes carry two strokes, so those are called out separately rather
+ * than flattened into one misleading list.
+ */
+export function formatPopHoles(popHoles: PopHole[]) {
+  if (popHoles.length === 0) {
+    return ''
+  }
+
+  const strokeLevels = Array.from(new Set(popHoles.map((hole) => hole.strokes))).sort(
+    (left, right) => right - left
+  )
+
+  const holeList = (holes: PopHole[]) =>
+    holes.length === 1
+      ? `hole ${holes[0].holeNumber}`
+      : `holes ${holes.map((hole) => hole.holeNumber).join(', ')}`
+
+  if (strokeLevels.length === 1) {
+    return `on ${holeList(popHoles)}`
+  }
+
+  return `on ${strokeLevels
+    .map((strokes) => {
+      const holes = popHoles.filter((hole) => hole.strokes === strokes)
+      return `${holeList(holes)} (${strokes} each)`
+    })
+    .join(' and ')}`
+}
+
 export interface AdjustedMatchHoleInput {
   holeNumber: number
   strokeIndex: number

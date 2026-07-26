@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { applyESC } from '@/lib/handicap'
+import { formatPopHoles } from '@/lib/match-net-scoring'
 import { calculateMatchPlayResult, calculateMatchPoints } from '@/lib/scoring'
 
 type MatchScorePageData = {
@@ -109,16 +110,13 @@ function formatMatchPlayLabel(
   return `${winnerName} ${result.matchPlayLeadBy} up.`
 }
 
-function formatHoleList(holes: number[]) {
-  if (holes.length === 0) {
-    return ''
-  }
+function describePopHoles(
+  name: string,
+  popHoles: Array<{ holeNumber: number; strokes: number }>
+) {
+  const totalPops = popHoles.reduce((total, hole) => total + hole.strokes, 0)
 
-  if (holes.length === 1) {
-    return `Hole ${holes[0]}`
-  }
-
-  return `Holes ${holes.join(', ')}`
+  return `${name} gets ${totalPops} pop${totalPops === 1 ? '' : 's'} ${formatPopHoles(popHoles)}.`
 }
 
 export function MatchScoreClient({ initialData, returnHref }: MatchScoreClientProps) {
@@ -166,8 +164,12 @@ export function MatchScoreClient({ initialData, returnHref }: MatchScoreClientPr
     player2Net: computedRows.reduce((sum, row) => sum + (row.player2Net ?? 0), 0)
   }
 
-  const player1PopHoles = computedRows.filter((row) => row.player1StrokesReceived > 0)
-  const player2PopHoles = computedRows.filter((row) => row.player2StrokesReceived > 0)
+  const player1PopHoles = computedRows
+    .filter((row) => row.player1StrokesReceived > 0)
+    .map((row) => ({ holeNumber: row.holeNumber, strokes: row.player1StrokesReceived }))
+  const player2PopHoles = computedRows
+    .filter((row) => row.player2StrokesReceived > 0)
+    .map((row) => ({ holeNumber: row.holeNumber, strokes: row.player2StrokesReceived }))
 
   const matchPlayResult = calculateMatchPlayResult(
     computedRows.map((row) => ({
@@ -273,20 +275,10 @@ export function MatchScoreClient({ initialData, returnHref }: MatchScoreClientPr
             {player1PopHoles.length > 0 || player2PopHoles.length > 0 ? (
               <div className="mt-2 space-y-1 text-xs text-text-secondary">
                 {player1PopHoles.length > 0 ? (
-                  <p>
-                    {initialData.match.player1.name} gets{' '}
-                    {player1PopHoles[0]?.player1StrokesReceived}{' '}
-                    pop{player1PopHoles[0]?.player1StrokesReceived === 1 ? '' : 's'} on{' '}
-                    {formatHoleList(player1PopHoles.map((row) => row.holeNumber))}.
-                  </p>
+                  <p>{describePopHoles(initialData.match.player1.name, player1PopHoles)}</p>
                 ) : null}
                 {player2PopHoles.length > 0 ? (
-                  <p>
-                    {initialData.match.player2.name} gets{' '}
-                    {player2PopHoles[0]?.player2StrokesReceived}{' '}
-                    pop{player2PopHoles[0]?.player2StrokesReceived === 1 ? '' : 's'} on{' '}
-                    {formatHoleList(player2PopHoles.map((row) => row.holeNumber))}.
-                  </p>
+                  <p>{describePopHoles(initialData.match.player2.name, player2PopHoles)}</p>
                 ) : null}
               </div>
             ) : null}

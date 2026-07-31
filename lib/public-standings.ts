@@ -2,6 +2,7 @@ import { prisma } from '@/lib/db'
 import { getPlayerHandicapInlineLabel } from '@/lib/player-handicap-display'
 import { comparePlayerNamesByLastName } from '@/lib/player-sort'
 import { resolveSeasonPair } from '@/lib/seasons'
+import { getSeasonSortValueClass, type SeasonSortKey } from '@/lib/standings-sort'
 import { accumulatePoints, mergeSeasonTotals } from '@/lib/standings-engine'
 import { formatPhoenixTimestamp } from '@/lib/phoenix-time'
 import { HANDICAP_RECORDS_INCLUDE } from '@/lib/handicap-records'
@@ -27,11 +28,9 @@ type ComparisonStandingRow = PublicStandingRow & {
   weeksScored: number
 }
 
-export type ComparisonSortKey = 'overallPoints' | 'summerPoints' | 'springPoints'
+export type ComparisonSortKey = SeasonSortKey
 
-export function getComparisonValueClass(columnKey: ComparisonSortKey, sortKey: ComparisonSortKey) {
-  return columnKey === sortKey ? 'font-semibold' : ''
-}
+export const getComparisonValueClass = getSeasonSortValueClass
 
 export function getComparisonSortKey({
   targetSeasonId,

@@ -4,6 +4,23 @@ All notable changes to the Silicon Desert Golf League commissioner app are docum
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.1.2.1] - 2026-07-30
+
+### Fixed
+
+- The standings table on the printable week results page had ragged row spacing: the player column was being squeezed to nothing, so longer names wrapped onto a second line and those rows printed taller than the rest. Names now sit on one line and every row is the same height. The numbers also spread evenly across the sheet instead of bunching to the right.
+- The standings heading no longer strands itself at the foot of a page with its table starting on the next one, and a player's row no longer splits across a page break.
+
+## [0.1.2.0] - 2026-07-30
+
+### Added
+
+- The printable week results page now lets you choose how the standings are ordered before you print. Pick Overall, Summer, or Spring and the table renumbers to match, with the column you sorted by shown in bold. The picker itself does not print; instead the sheet carries a line reading "Sorted by Summer points" so anyone holding the paper knows what they are looking at. Leagues running a single season see no picker, since there is only one points column to order by.
+
+### Changed
+
+- The sort buttons meet the 44px touch target the design system calls for, and keep a visible keyboard focus ring.
+
 ## [0.1.1.3] - 2026-07-25
 
 ### Fixed

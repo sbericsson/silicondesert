@@ -373,4 +373,8 @@ Add the first player to get started.
 - Flags (repeat, gap) omitted
 - Page title: "Week 4 — Spring 2026 · Oakwood CC · Apr 10"
 - Font: Barlow (already loaded)
-- Hide: nav bar, swap buttons, action bar, status indicators
+- Hide: nav bar, swap buttons, action bar, status indicators, standings sort picker
+
+On the public week results sheet the standings sort picker is `print:hidden`, but the
+"Sorted by &lt;season&gt; points" caption below the heading does print, so a printed sheet
+states which order it is in.

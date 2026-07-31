@@ -53,7 +53,7 @@ Each Friday follows the same rhythm: the commissioner opens the week, players ar
 - Read-only pages for members: standings, schedule, current week, completed week results, match scorecards, and roster
 - Public standings can show a season view or an overall view across seasons with results
 - Public week pages reveal pairings after lock and results after all scores are complete
-- Printable public week scorecard/results view
+- Printable public week scorecard/results view, with a choice of Overall, Summer, or Spring standings order before printing
 - Commissioner can toggle public roster visibility on/off
 
 ---

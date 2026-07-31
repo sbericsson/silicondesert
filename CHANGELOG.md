@@ -4,6 +4,13 @@ All notable changes to the Silicon Desert Golf League commissioner app are docum
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.1.2.1] - 2026-07-30
+
+### Fixed
+
+- The standings table on the printable week results page had ragged row spacing: the player column was being squeezed to nothing, so longer names wrapped onto a second line and those rows printed taller than the rest. Names now sit on one line and every row is the same height. The numbers also spread evenly across the sheet instead of bunching to the right.
+- The standings heading no longer strands itself at the foot of a page with its table starting on the next one, and a player's row no longer splits across a page break.
+
 ## [0.1.2.0] - 2026-07-30
 
 ### Added

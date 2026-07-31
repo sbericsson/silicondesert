@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import { getPublicWeekData } from '@/lib/public-week'
 import { getPublicStandingsData } from '@/lib/public-standings'
 import { PrintButton } from './print-button'
+import { PrintStandings } from './print-standings'
 
 export const revalidate = 60
 export const dynamic = 'force-dynamic'
@@ -145,75 +146,11 @@ export default async function PrintWeekPage({
 
       {/* Standings */}
       {standingsData.standings.length > 0 ? (
-        <section>
-          <h2 className="font-condensed mb-2 text-sm font-bold uppercase tracking-widest text-text-muted print:text-black">
-            {standingsData.seasonLabel ?? 'Season'} Standings
-          </h2>
-          <table className="w-full table-fixed border-collapse text-sm">
-            <colgroup>
-              <col className="w-12" />
-              <col />
-              <col className="w-16" />
-              {standingsData.multiSeason ? <col className="w-16" /> : null}
-              {standingsData.multiSeason ? <col className="w-16" /> : null}
-              <col className="w-16" />
-              <col className="w-16" />
-              <col className="w-20" />
-              <col className="w-20" />
-              <col className="w-14" />
-              <col className="w-14" />
-            </colgroup>
-            <thead>
-              <tr className="border-b-2 border-surface-border text-left font-condensed text-xs font-bold uppercase tracking-widest text-text-muted print:border-black print:text-black">
-                <th className="py-2 pr-3">#</th>
-                <th className="py-2 pr-3">Player</th>
-                <th className="py-2 pr-3 text-right">HCP</th>
-                <th className="py-2 pr-3 text-right">
-                  {standingsData.multiSeason ? 'Overall' : 'Pts'}
-                </th>
-                {standingsData.multiSeason ? (
-                  <>
-                    <th className="py-2 pr-3 text-right">Summer</th>
-                    <th className="py-2 pr-3 text-right">Spring</th>
-                  </>
-                ) : null}
-                <th className="py-2 pr-3 text-right">Att</th>
-                <th className="py-2 pr-3 text-right">Stroke</th>
-                <th className="py-2 pr-3 text-right">Match</th>
-                <th className="py-2 pr-3 text-right">CTP</th>
-                <th className="py-2 text-right">LP</th>
-              </tr>
-            </thead>
-            <tbody>
-              {standingsData.standings.map((row, i) => (
-                <tr
-                  key={row.playerId}
-                  className="border-b border-surface-border print:border-gray-300"
-                >
-                  <td className="py-2 pr-3 tabular-nums text-text-secondary">{i + 1}</td>
-                  <td className="py-2 pr-3 font-medium">
-                    {row.name}
-                  </td>
-                  <td className="py-2 pr-3 text-right tabular-nums text-text-secondary">{row.currentIndexDisplay}</td>
-                  <td className="py-2 pr-3 text-right tabular-nums font-semibold">
-                    {row.overallPoints}
-                  </td>
-                  {standingsData.multiSeason ? (
-                    <>
-                      <td className="py-2 pr-3 text-right tabular-nums">{row.summerPoints}</td>
-                      <td className="py-2 pr-3 text-right tabular-nums">{row.springPoints}</td>
-                    </>
-                  ) : null}
-                  <td className="py-2 pr-3 text-right tabular-nums">{row.attendancePoints}</td>
-                  <td className="py-2 pr-3 text-right tabular-nums">{row.strokePoints}</td>
-                  <td className="py-2 pr-3 text-right tabular-nums">{row.matchPlayPoints}</td>
-                  <td className="py-2 pr-3 text-right tabular-nums">{row.ctpWins}</td>
-                  <td className="py-2 text-right tabular-nums">{row.lpWins}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </section>
+        <PrintStandings
+          rows={standingsData.standings}
+          multiSeason={standingsData.multiSeason}
+          heading={`${standingsData.seasonLabel ?? 'Season'} Standings`}
+        />
       ) : null}
     </div>
   )

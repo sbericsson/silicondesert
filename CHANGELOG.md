@@ -4,6 +4,30 @@ All notable changes to the Silicon Desert Golf League commissioner app are docum
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.1.2.5] - 2026-08-01
+
+### Changed
+
+- Internal cleanup of the player name sorting/surname logic (no user-facing change): removed duplicate normalization code and added test coverage for the less common name-suffix formats (Sr, Sr., Jr., II, IV).
+
+## [0.1.2.4] - 2026-08-01
+
+### Fixed
+
+- A player name ending in a suffix like "Jr" or "III" (e.g. "Lowell Vande Kamp Jr") had that suffix treated as the whole surname on the standings and match results pages, instead of the actual last name. The suffix now stays attached after the surname ("Vande Kamp Jr") rather than replacing it.
+
+## [0.1.2.3] - 2026-08-01
+
+### Fixed
+
+- A player whose first name happened to match a surname-prefix word (e.g. "Van" as in "Van Morrison") had that first name swallowed into the surname when the previous fix reused the standings' compound-surname logic, so the match results page would show the full name instead of just the last name. The surname extraction now always leaves the given name intact.
+
+## [0.1.2.2] - 2026-08-01
+
+### Fixed
+
+- The hole-by-hole match results page compared to the standings page named the same match-play winner two different ways: a player with a compound surname like "Vande Kamp" won a hole as "Kamp" in that table but appeared correctly as "Vande Kamp" everywhere else. Hole winners, match state ("Vande Kamp 1 up"), and clinched-match text now use the same surname logic as standings.
+
 ## [0.1.2.1] - 2026-07-30
 
 ### Fixed

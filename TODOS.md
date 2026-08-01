@@ -22,6 +22,17 @@ Grouped by component, then priority (P0 highest through P4, then Completed).
 **Context:** v1 uses dark-only (`#0f1117` background, `#4b9e6f` accent). All design tokens are in `tailwind.config.ts`. To add light mode: add `darkMode: 'class'` or `'media'` in config, duplicate tokens for light variants. Primary use case is desktop score entry, not mobile check-in/pairings.
 **Depends on:** Nothing. Self-contained styling change.
 
+## Player Data
+
+### Surname-suffix heuristic has residual edge cases
+**Priority:** P4
+**What:** `SURNAME_SUFFIXES`/`SURNAME_PREFIXES` in `lib/player-sort.ts` don't recognize "V" or "Esq." as a suffix, don't handle a comma before the suffix ("Smith, Jr."), and a real Hawaiian surname ending in "Ii" would collide with the "II" generational-suffix match.
+**Why:** Surfaced by both the Claude and Codex adversarial review passes during `/ship` of v0.1.2.5. Confirmed against the live production `Player` table (70 rows) that zero current players hit any of these cases — no suffixes at all exist in the roster today.
+**Pros:** Closing the gap makes the heuristic fully robust ahead of any future roster additions.
+**Cons:** No perfect heuristic exists without a real name-parsing library or an explicit allowlist; risk of over-engineering for names that may never appear.
+**Context:** `lib/player-sort.ts:18` (SURNAME_SUFFIXES set), `lib/player-sort.ts:20-36` (getSurnameStartIndex).
+**Depends on:** Nothing. Self-contained.
+
 ## Score Entry
 
 ### Hole-by-hole match play tracking

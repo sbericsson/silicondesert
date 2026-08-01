@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { getPublicMatchHoleData } from '@/lib/public-week'
+import { getPlayerSurname } from '@/lib/player-sort'
 
 export const revalidate = 60
 export const dynamic = 'force-dynamic'
@@ -13,8 +14,7 @@ function formatScore(value: number | null) {
 }
 
 function formatCompactName(name: string) {
-  const parts = name.trim().split(/\s+/)
-  return parts.at(-1) ?? name
+  return getPlayerSurname(name)
 }
 
 function formatMatchState(lead: number, player1Name: string, player2Name: string) {

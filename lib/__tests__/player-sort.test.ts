@@ -36,4 +36,22 @@ describe('player sort helpers', () => {
     expect(getPlayerSurname('Ludwig van Beethoven III')).toBe('van Beethoven III')
     expect(getPlayerSortKey('Lowell Vande Kamp Jr')).toContain('vande kamp jr|lowell|')
   })
+
+  it('does not treat a suffix-like second word as a suffix on a two-word name', () => {
+    expect(getPlayerSurname('Bob Jr')).toBe('Jr')
+    expect(getPlayerSortKey('Bob Jr')).toContain('jr|bob|')
+  })
+
+  it('walks past multiple chained surname prefixes', () => {
+    expect(getPlayerSurname('Karl Von Der Berg')).toBe('Von Der Berg')
+    expect(getPlayerSortKey('Karl Von Der Berg')).toContain('von der berg|karl|')
+  })
+
+  it('recognizes every suffix in SURNAME_SUFFIXES', () => {
+    expect(getPlayerSurname('Bob Clark Sr')).toBe('Clark Sr')
+    expect(getPlayerSurname('Bob Clark Sr.')).toBe('Clark Sr.')
+    expect(getPlayerSurname('Bob Clark Jr.')).toBe('Clark Jr.')
+    expect(getPlayerSurname('Bob Clark II')).toBe('Clark II')
+    expect(getPlayerSurname('Bob Clark IV')).toBe('Clark IV')
+  })
 })

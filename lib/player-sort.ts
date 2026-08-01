@@ -55,9 +55,13 @@ function splitPlayerName(parts: string[]) {
   return { givenParts, surnameParts }
 }
 
-export function getPlayerSurname(name: string) {
+function normalizeNameParts(name: string) {
   const normalized = name.trim().replace(/\s+/g, ' ')
-  const parts = normalized.split(' ')
+  return { normalized, parts: normalized.split(' ') }
+}
+
+export function getPlayerSurname(name: string) {
+  const { normalized, parts } = normalizeNameParts(name)
 
   if (parts.length <= 1) {
     return normalized
@@ -67,8 +71,7 @@ export function getPlayerSurname(name: string) {
 }
 
 export function getPlayerSortKey(name: string) {
-  const normalized = name.trim().replace(/\s+/g, ' ')
-  const parts = normalized.split(' ')
+  const { normalized, parts } = normalizeNameParts(name)
 
   if (parts.length <= 1) {
     return normalized.toLocaleLowerCase()

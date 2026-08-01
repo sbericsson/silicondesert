@@ -15,12 +15,12 @@ const SURNAME_PREFIXES = new Set([
   'von'
 ])
 
-export function getPlayerSortKey(name: string) {
+export function getPlayerSurname(name: string) {
   const normalized = name.trim().replace(/\s+/g, ' ')
   const parts = normalized.split(' ')
 
   if (parts.length <= 1) {
-    return normalized.toLocaleLowerCase()
+    return normalized
   }
 
   let surnameStartIndex = parts.length - 1
@@ -34,8 +34,19 @@ export function getPlayerSortKey(name: string) {
     surnameStartIndex -= 1
   }
 
-  const surname = parts.slice(surnameStartIndex).join(' ')
-  const givenNames = parts.slice(0, surnameStartIndex).join(' ')
+  return parts.slice(surnameStartIndex).join(' ')
+}
+
+export function getPlayerSortKey(name: string) {
+  const normalized = name.trim().replace(/\s+/g, ' ')
+  const parts = normalized.split(' ')
+
+  if (parts.length <= 1) {
+    return normalized.toLocaleLowerCase()
+  }
+
+  const surname = getPlayerSurname(normalized)
+  const givenNames = normalized.slice(0, normalized.length - surname.length).trim()
 
   return `${surname.toLocaleLowerCase('en-US')}|${givenNames.toLocaleLowerCase('en-US')}|${normalized.toLocaleLowerCase('en-US')}`
 }

@@ -4,6 +4,12 @@ All notable changes to the Silicon Desert Golf League commissioner app are docum
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.1.2.4] - 2026-08-01
+
+### Fixed
+
+- A player name ending in a suffix like "Jr" or "III" (e.g. "Lowell Vande Kamp Jr") had that suffix treated as the whole surname on the standings and match results pages, instead of the actual last name. The suffix now stays attached after the surname ("Vande Kamp Jr") rather than replacing it.
+
 ## [0.1.2.3] - 2026-08-01
 
 ### Fixed

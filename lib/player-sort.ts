@@ -15,6 +15,8 @@ const SURNAME_PREFIXES = new Set([
   'von'
 ])
 
+const SURNAME_SUFFIXES = new Set(['jr', 'jr.', 'sr', 'sr.', 'ii', 'iii', 'iv'])
+
 function getSurnameStartIndex(parts: string[]) {
   let surnameStartIndex = parts.length - 1
 
@@ -33,6 +35,26 @@ function getSurnameStartIndex(parts: string[]) {
   return surnameStartIndex
 }
 
+// Splits "given name(s) + surname (+ suffix)" into its given/surname word
+// groups, keeping a trailing suffix like "Jr" attached to the surname instead
+// of letting the prefix scan mistake it for the surname itself.
+function splitPlayerName(parts: string[]) {
+  const lastWord = parts[parts.length - 1]?.toLocaleLowerCase('en-US') ?? ''
+  const hasSuffix = parts.length > 2 && SURNAME_SUFFIXES.has(lastWord)
+  const suffix = hasSuffix ? parts[parts.length - 1] : null
+  const nameParts = hasSuffix ? parts.slice(0, -1) : parts
+
+  const surnameStartIndex = getSurnameStartIndex(nameParts)
+  const givenParts = nameParts.slice(0, surnameStartIndex)
+  const surnameParts = nameParts.slice(surnameStartIndex)
+
+  if (suffix) {
+    surnameParts.push(suffix)
+  }
+
+  return { givenParts, surnameParts }
+}
+
 export function getPlayerSurname(name: string) {
   const normalized = name.trim().replace(/\s+/g, ' ')
   const parts = normalized.split(' ')
@@ -41,7 +63,7 @@ export function getPlayerSurname(name: string) {
     return normalized
   }
 
-  return parts.slice(getSurnameStartIndex(parts)).join(' ')
+  return splitPlayerName(parts).surnameParts.join(' ')
 }
 
 export function getPlayerSortKey(name: string) {
@@ -52,9 +74,9 @@ export function getPlayerSortKey(name: string) {
     return normalized.toLocaleLowerCase()
   }
 
-  const surnameStartIndex = getSurnameStartIndex(parts)
-  const surname = parts.slice(surnameStartIndex).join(' ')
-  const givenNames = parts.slice(0, surnameStartIndex).join(' ')
+  const { givenParts, surnameParts } = splitPlayerName(parts)
+  const surname = surnameParts.join(' ')
+  const givenNames = givenParts.join(' ')
 
   return `${surname.toLocaleLowerCase('en-US')}|${givenNames.toLocaleLowerCase('en-US')}|${normalized.toLocaleLowerCase('en-US')}`
 }

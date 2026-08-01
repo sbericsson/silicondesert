@@ -29,4 +29,11 @@ describe('player sort helpers', () => {
     expect(getPlayerSurname('Van Morrison')).toBe('Morrison')
     expect(getPlayerSortKey('Van Morrison')).toContain('morrison|van|')
   })
+
+  it('keeps a trailing suffix attached to the surname instead of treating it as the surname', () => {
+    expect(getPlayerSurname('Bob Clark Jr')).toBe('Clark Jr')
+    expect(getPlayerSurname('Lowell Vande Kamp Jr')).toBe('Vande Kamp Jr')
+    expect(getPlayerSurname('Ludwig van Beethoven III')).toBe('van Beethoven III')
+    expect(getPlayerSortKey('Lowell Vande Kamp Jr')).toContain('vande kamp jr|lowell|')
+  })
 })

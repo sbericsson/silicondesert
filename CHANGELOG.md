@@ -4,6 +4,12 @@ All notable changes to the Silicon Desert Golf League commissioner app are docum
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.1.2.3] - 2026-08-01
+
+### Fixed
+
+- A player whose first name happened to match a surname-prefix word (e.g. "Van" as in "Van Morrison") had that first name swallowed into the surname when the previous fix reused the standings' compound-surname logic, so the match results page would show the full name instead of just the last name. The surname extraction now always leaves the given name intact.
+
 ## [0.1.2.2] - 2026-08-01
 
 ### Fixed

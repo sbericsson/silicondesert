@@ -4,6 +4,12 @@ All notable changes to the Silicon Desert Golf League commissioner app are docum
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.1.2.5] - 2026-08-01
+
+### Changed
+
+- Internal cleanup of the player name sorting/surname logic (no user-facing change): removed duplicate normalization code and added test coverage for the less common name-suffix formats (Sr, Sr., Jr., II, IV).
+
 ## [0.1.2.4] - 2026-08-01
 
 ### Fixed

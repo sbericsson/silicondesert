@@ -25,7 +25,10 @@ export function getPlayerSurname(name: string) {
 
   let surnameStartIndex = parts.length - 1
 
-  while (surnameStartIndex > 0) {
+  // Never consume the first word: every name here is "given name(s) + surname",
+  // so if the given name itself happens to match a prefix (e.g. "Van Morrison"),
+  // it must stay the given name rather than being folded into the surname.
+  while (surnameStartIndex > 1) {
     const candidate = parts[surnameStartIndex - 1]?.toLocaleLowerCase('en-US') ?? ''
     if (!SURNAME_PREFIXES.has(candidate)) {
       break

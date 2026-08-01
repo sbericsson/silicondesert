@@ -24,4 +24,9 @@ describe('player sort helpers', () => {
     expect(getPlayerSurname('Bob Clark')).toBe('Clark')
     expect(getPlayerSurname('Cher')).toBe('Cher')
   })
+
+  it('keeps a given name that happens to match a surname prefix as the given name', () => {
+    expect(getPlayerSurname('Van Morrison')).toBe('Morrison')
+    expect(getPlayerSortKey('Van Morrison')).toContain('morrison|van|')
+  })
 })

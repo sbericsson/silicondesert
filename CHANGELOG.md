@@ -4,6 +4,12 @@ All notable changes to the Silicon Desert Golf League commissioner app are docum
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.1.2.2] - 2026-08-01
+
+### Fixed
+
+- The hole-by-hole match results page compared to the standings page named the same match-play winner two different ways: a player with a compound surname like "Vande Kamp" won a hole as "Kamp" in that table but appeared correctly as "Vande Kamp" everywhere else. Hole winners, match state ("Vande Kamp 1 up"), and clinched-match text now use the same surname logic as standings.
+
 ## [0.1.2.1] - 2026-07-30
 
 ### Fixed

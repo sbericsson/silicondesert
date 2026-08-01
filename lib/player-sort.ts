@@ -15,14 +15,7 @@ const SURNAME_PREFIXES = new Set([
   'von'
 ])
 
-export function getPlayerSurname(name: string) {
-  const normalized = name.trim().replace(/\s+/g, ' ')
-  const parts = normalized.split(' ')
-
-  if (parts.length <= 1) {
-    return normalized
-  }
-
+function getSurnameStartIndex(parts: string[]) {
   let surnameStartIndex = parts.length - 1
 
   // Never consume the first word: every name here is "given name(s) + surname",
@@ -37,7 +30,18 @@ export function getPlayerSurname(name: string) {
     surnameStartIndex -= 1
   }
 
-  return parts.slice(surnameStartIndex).join(' ')
+  return surnameStartIndex
+}
+
+export function getPlayerSurname(name: string) {
+  const normalized = name.trim().replace(/\s+/g, ' ')
+  const parts = normalized.split(' ')
+
+  if (parts.length <= 1) {
+    return normalized
+  }
+
+  return parts.slice(getSurnameStartIndex(parts)).join(' ')
 }
 
 export function getPlayerSortKey(name: string) {
@@ -48,8 +52,9 @@ export function getPlayerSortKey(name: string) {
     return normalized.toLocaleLowerCase()
   }
 
-  const surname = getPlayerSurname(normalized)
-  const givenNames = normalized.slice(0, normalized.length - surname.length).trim()
+  const surnameStartIndex = getSurnameStartIndex(parts)
+  const surname = parts.slice(surnameStartIndex).join(' ')
+  const givenNames = parts.slice(0, surnameStartIndex).join(' ')
 
   return `${surname.toLocaleLowerCase('en-US')}|${givenNames.toLocaleLowerCase('en-US')}|${normalized.toLocaleLowerCase('en-US')}`
 }

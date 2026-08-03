@@ -141,6 +141,11 @@ npm run db:recompute-index-esc # maintenance script for saved ESC/index data
 
 The app assumes `America/Phoenix` timezone throughout. No DST — the desert keeps it simple.
 
+Public week pages use the Phoenix match date in `YYYY-MM-DD` form, for example
+`/public/weeks/2026-07-31`. The database CUID remains the internal key. Existing CUID-based
+week links are resolved and permanently redirected to the dated path. A calendar date must
+resolve to exactly one week; ambiguous dates return the public not-found page.
+
 ---
 
 ## Project layout

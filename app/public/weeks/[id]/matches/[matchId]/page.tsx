@@ -1,7 +1,9 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { notFound } from 'next/navigation'
+import { notFound, permanentRedirect } from 'next/navigation'
 import { getPublicMatchHoleData } from '@/lib/public-week'
+import { resolvePublicWeekRouteParam } from '@/lib/public-week-route'
+import { buildPublicWeekMatchPath } from '@/lib/public-week-url'
 import { getPlayerSurname } from '@/lib/player-sort'
 
 export const revalidate = 60
@@ -102,7 +104,8 @@ export async function generateMetadata({
 }: {
   params: { id: string; matchId: string }
 }): Promise<Metadata> {
-  const data = await getPublicMatchHoleData(params.id, params.matchId)
+  const weekRef = await resolvePublicWeekRouteParam(params.id)
+  const data = weekRef ? await getPublicMatchHoleData(weekRef.id, params.matchId) : null
 
   if (!data) {
     return {
@@ -121,7 +124,17 @@ export default async function PublicMatchDetailPage({
 }: {
   params: { id: string; matchId: string }
 }) {
-  const data = await getPublicMatchHoleData(params.id, params.matchId)
+  const weekRef = await resolvePublicWeekRouteParam(params.id)
+
+  if (!weekRef) {
+    notFound()
+  }
+
+  if (params.id !== weekRef.dateSlug) {
+    permanentRedirect(buildPublicWeekMatchPath(weekRef.date, params.matchId))
+  }
+
+  const data = await getPublicMatchHoleData(weekRef.id, params.matchId)
 
   if (!data) {
     notFound()
@@ -134,7 +147,7 @@ export default async function PublicMatchDetailPage({
     <section className="space-y-4">
       <div className="flex items-center justify-between gap-3">
         <Link
-          href={`/public/weeks/${data.week.id}`}
+          href={data.week.publicPath}
           className="font-condensed text-xs font-semibold uppercase tracking-widest text-accent-text"
         >
           ← Week {data.week.weekNumber}

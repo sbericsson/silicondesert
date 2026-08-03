@@ -1,7 +1,8 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { notFound } from 'next/navigation'
+import { notFound, permanentRedirect } from 'next/navigation'
 import { getPublicWeekData, getPublicWeekNav } from '@/lib/public-week'
+import { resolvePublicWeekRouteParam } from '@/lib/public-week-route'
 import { getWeekStatusChip, STATUS_CHIP_CLASSES, STATUS_DOT_CLASSES } from '@/lib/week-status'
 import { WeekStepper } from '@/components/week-stepper'
 
@@ -13,7 +14,8 @@ export async function generateMetadata({
 }: {
   params: { id: string }
 }): Promise<Metadata> {
-  const data = await getPublicWeekData(params.id)
+  const weekRef = await resolvePublicWeekRouteParam(params.id)
+  const data = weekRef ? await getPublicWeekData(weekRef.id) : null
 
   if (!data) {
     return {
@@ -36,12 +38,12 @@ export async function generateMetadata({
 }
 
 function PublicMatchCard({
-  weekId,
+  weekPath,
   match,
   resultsVisible,
   pairingsVisible
 }: {
-  weekId: string
+  weekPath: string
   match: NonNullable<Awaited<ReturnType<typeof getPublicWeekData>>>['matches'][number]
   resultsVisible: boolean
   pairingsVisible: boolean
@@ -148,7 +150,7 @@ function PublicMatchCard({
 
   if (resultsVisible) {
     return (
-      <Link href={`/public/weeks/${weekId}/matches/${match.id}`} className={cardClassName}>
+      <Link href={`${weekPath}/matches/${match.id}`} className={cardClassName}>
         {content}
       </Link>
     )
@@ -162,9 +164,19 @@ export default async function PublicWeekDetailPage({
 }: {
   params: { id: string }
 }) {
+  const weekRef = await resolvePublicWeekRouteParam(params.id)
+
+  if (!weekRef) {
+    notFound()
+  }
+
+  if (params.id !== weekRef.dateSlug) {
+    permanentRedirect(weekRef.publicPath)
+  }
+
   const [data, nav] = await Promise.all([
-    getPublicWeekData(params.id),
-    getPublicWeekNav(params.id)
+    getPublicWeekData(weekRef.id),
+    getPublicWeekNav(weekRef.id)
   ])
 
   if (!data) {
@@ -178,8 +190,8 @@ export default async function PublicWeekDetailPage({
       {/* Week identity card */}
       <div className="overflow-hidden rounded-2xl border border-surface-border bg-surface-elevated p-5 shadow-sm">
         <WeekStepper
-          prevWeekId={nav?.prevWeekId ?? null}
-          nextWeekId={nav?.nextWeekId ?? null}
+          prevWeekPath={nav?.prevWeekPath ?? null}
+          nextWeekPath={nav?.nextWeekPath ?? null}
         >
           <div className="flex flex-wrap items-center justify-center gap-2">
             <span className={`font-condensed rounded-full px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-widest ${
@@ -238,7 +250,7 @@ export default async function PublicWeekDetailPage({
           </p>
           {data.resultsVisible ? (
             <Link
-              href={`/public/weeks/${data.id}/print`}
+              href={`${data.publicPath}/print`}
               className="font-condensed shrink-0 rounded-full border border-surface-border bg-surface-base px-4 py-2 text-xs font-semibold uppercase tracking-wide text-text-secondary shadow-sm hover:border-accent hover:text-accent-text"
             >
               Print
@@ -281,7 +293,7 @@ export default async function PublicWeekDetailPage({
         {data.matches.map((match) => (
           <PublicMatchCard
             key={match.id}
-            weekId={data.id}
+            weekPath={data.publicPath}
             match={match}
             resultsVisible={data.resultsVisible}
             pairingsVisible={data.pairingsVisible}

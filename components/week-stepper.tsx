@@ -5,19 +5,19 @@ const BTN_ACTIVE = 'hover:border-accent hover:text-accent-text'
 const BTN_DISABLED = 'opacity-30 pointer-events-none'
 
 export function WeekStepper({
-  prevWeekId,
-  nextWeekId,
+  prevWeekPath,
+  nextWeekPath,
   children
 }: {
-  prevWeekId: string | null
-  nextWeekId: string | null
+  prevWeekPath: string | null
+  nextWeekPath: string | null
   children: React.ReactNode
 }) {
   return (
     <div className="flex items-center gap-3">
-      {prevWeekId ? (
+      {prevWeekPath ? (
         <Link
-          href={`/public/weeks/${prevWeekId}`}
+          href={prevWeekPath}
           className={`${BTN_BASE} ${BTN_ACTIVE}`}
           aria-label="Previous week"
         >
@@ -29,9 +29,9 @@ export function WeekStepper({
         </span>
       )}
       <div className="flex min-w-0 flex-1 items-center justify-center">{children}</div>
-      {nextWeekId ? (
+      {nextWeekPath ? (
         <Link
-          href={`/public/weeks/${nextWeekId}`}
+          href={nextWeekPath}
           className={`${BTN_BASE} ${BTN_ACTIVE}`}
           aria-label="Next week"
         >

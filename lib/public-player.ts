@@ -3,6 +3,7 @@ import { prisma } from '@/lib/db'
 import { getPlayerHandicapDisplay } from '@/lib/player-handicap-display'
 import { getPlayerSeasonTeeColor } from '@/lib/course-tee'
 import { getPublicStandingsData } from '@/lib/public-standings'
+import { buildPublicWeekMatchPath } from '@/lib/public-week-url'
 
 const TEE_COLOR_LABELS: Record<TeeColor, string> = {
   blue: 'Blue',
@@ -73,6 +74,11 @@ export async function getPublicPlayerDetail(playerId: string) {
     )
   ]
   const matchHrefByWeek = new Map<string, string>()
+  const weekDateById = new Map(
+    player.handicapRecords.flatMap((record) =>
+      record.weekId && record.week ? [[record.weekId, record.week.date] as const] : []
+    )
+  )
   if (leagueWeekIds.length > 0) {
     const matches = await prisma.match.findMany({
       where: { weekId: { in: leagueWeekIds } },
@@ -97,8 +103,9 @@ export async function getPublicPlayerDetail(playerId: string) {
       const playerMatch = weekMatches.find(
         (match) => match.player1Id === player.id || match.player2Id === player.id
       )
-      if (resultsVisible && playerMatch) {
-        matchHrefByWeek.set(weekId, `/public/weeks/${weekId}/matches/${playerMatch.id}`)
+      const weekDate = weekDateById.get(weekId)
+      if (resultsVisible && playerMatch && weekDate) {
+        matchHrefByWeek.set(weekId, buildPublicWeekMatchPath(weekDate, playerMatch.id))
       }
     }
   }

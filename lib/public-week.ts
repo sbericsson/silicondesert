@@ -6,6 +6,7 @@ import { applyStoredMatchResult } from '@/lib/points'
 import { resolveStrokeWinnerId } from '@/lib/stroke-result'
 import { formatDate, formatDateLong } from '@/lib/week'
 import { getMatchScorePageData } from '@/lib/match-score'
+import { buildPublicWeekPath } from '@/lib/public-week-url'
 
 function formatMatchPlaySummary(input: {
   matchPlayWinnerId: string | null
@@ -37,11 +38,11 @@ function formatMatchPlaySummary(input: {
   return input.matchPlayLeadBy === 0 ? 'Halved' : 'All square'
 }
 
-export type WeekNavRef = { id: string; weekNumber: number }
+export type WeekNavRef = { id: string; weekNumber: number; publicPath: string }
 
 export type WeekAdjacency = {
-  prevWeekId: string | null
-  nextWeekId: string | null
+  prevWeekPath: string | null
+  nextWeekPath: string | null
   isLatest: boolean
   position: number
   totalPublished: number
@@ -50,11 +51,11 @@ export type WeekAdjacency = {
 export function computeWeekAdjacency(weeks: WeekNavRef[], weekId: string): WeekAdjacency {
   const index = weeks.findIndex((w) => w.id === weekId)
   if (index === -1) {
-    return { prevWeekId: null, nextWeekId: null, isLatest: false, position: 0, totalPublished: weeks.length }
+    return { prevWeekPath: null, nextWeekPath: null, isLatest: false, position: 0, totalPublished: weeks.length }
   }
   return {
-    prevWeekId: index > 0 ? weeks[index - 1].id : null,
-    nextWeekId: index < weeks.length - 1 ? weeks[index + 1].id : null,
+    prevWeekPath: index > 0 ? weeks[index - 1].publicPath : null,
+    nextWeekPath: index < weeks.length - 1 ? weeks[index + 1].publicPath : null,
     isLatest: index === weeks.length - 1,
     position: index + 1,
     totalPublished: weeks.length
@@ -74,13 +75,20 @@ export async function getPublicWeekNav(weekId: string): Promise<WeekAdjacency | 
   const weeks = await prisma.week.findMany({
     where: { seasonId: week.seasonId, locked: true, season: { archivedAt: null } },
     orderBy: { date: 'asc' },
-    select: { id: true, weekNumber: true }
+    select: { id: true, weekNumber: true, date: true }
   })
 
-  return computeWeekAdjacency(weeks, weekId)
+  return computeWeekAdjacency(
+    weeks.map((publishedWeek) => ({
+      id: publishedWeek.id,
+      weekNumber: publishedWeek.weekNumber,
+      publicPath: buildPublicWeekPath(publishedWeek.date)
+    })),
+    weekId
+  )
 }
 
-export async function getLatestPublishedWeekId() {
+export async function getLatestPublishedWeek() {
   if (!process.env.DATABASE_URL) {
     return null
   }
@@ -92,10 +100,19 @@ export async function getLatestPublishedWeekId() {
         archivedAt: null
       }
     },
-    orderBy: [{ date: 'desc' }]
+    orderBy: [{ date: 'desc' }],
+    select: {
+      id: true,
+      date: true
+    }
   })
 
-  return week?.id ?? null
+  return week
+    ? {
+        id: week.id,
+        publicPath: buildPublicWeekPath(week.date)
+      }
+    : null
 }
 
 export async function getPublicWeekData(weekId: string) {
@@ -169,6 +186,7 @@ export async function getPublicWeekData(weekId: string) {
 
   return {
     id: week.id,
+    publicPath: buildPublicWeekPath(week.date),
     seasonId: week.season.id,
     weekNumber: week.weekNumber,
     seasonName: week.season.name,
@@ -304,6 +322,7 @@ export async function getPublicMatchHoleData(weekId: string, matchId: string) {
   return {
     week: {
       id: weekData.id,
+      publicPath: weekData.publicPath,
       weekNumber: weekData.weekNumber,
       seasonName: weekData.seasonName,
       dateLabel: weekData.dateLabel,

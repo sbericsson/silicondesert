@@ -2,7 +2,8 @@ import Link from 'next/link'
 import { prisma } from '@/lib/db'
 import { getPhoenixDateParts } from '@/lib/phoenix-time'
 import { formatDate, getCurrentWeekRecord, pickActiveSeason } from '@/lib/week'
-import { getLatestPublishedWeekId } from '@/lib/public-week'
+import { getLatestPublishedWeek } from '@/lib/public-week'
+import { buildPublicWeekPath, getPublicWeekDateSlug } from '@/lib/public-week-url'
 import { resolveSeasonPair } from '@/lib/seasons'
 import { STATUS_CHIP_CLASSES, getScheduleWeekStatusTone } from '@/lib/week-status'
 import { PublicPageHeader } from '@/components/public-page-header'
@@ -19,7 +20,7 @@ function getScheduleWeekStatus(
   isToday: boolean,
   isoDate: string
 ): { label: string; tone: ReturnType<typeof getScheduleWeekStatusTone> } {
-  const weekIsoDate = week.date.toISOString().slice(0, 10)
+  const weekIsoDate = getPublicWeekDateSlug(week.date)
   const completed = week.matches.length > 0 && week.matches.every((m) => m.matchPlayLeadBy !== null)
   const inProgress = week.locked && !completed
 
@@ -55,7 +56,7 @@ export default async function PublicSchedulePage({
 
   const { isoDate } = getPhoenixDateParts()
 
-  const [currentWeek, seasons, latestPublishedWeekId] = await Promise.all([
+  const [currentWeek, seasons, latestPublishedWeek] = await Promise.all([
     getCurrentWeekRecord(),
     prisma.season.findMany({
       where: { archivedAt: null },
@@ -70,7 +71,7 @@ export default async function PublicSchedulePage({
       },
       orderBy: { startDate: 'asc' }
     }),
-    getLatestPublishedWeekId()
+    getLatestPublishedWeek()
   ])
 
   const { spring, summer } = resolveSeasonPair(seasons)
@@ -136,9 +137,9 @@ export default async function PublicSchedulePage({
 
       <div className="space-y-2.5">
         {season.weeks.map((week) => {
-          const weekIsoDate = week.date.toISOString().slice(0, 10)
+          const weekIsoDate = getPublicWeekDateSlug(week.date)
           const isToday = weekIsoDate === isoDate
-          const isLatestPublished = week.id === latestPublishedWeekId
+          const isLatestPublished = week.id === latestPublishedWeek?.id
           const { label: statusLabel, tone } = getScheduleWeekStatus(week, isToday, isoDate)
 
           const cardClass = isToday
@@ -174,7 +175,7 @@ export default async function PublicSchedulePage({
           )
 
           return week.locked ? (
-            <Link key={week.id} href={`/public/weeks/${week.id}`} className="block">
+            <Link key={week.id} href={buildPublicWeekPath(week.date)} className="block">
               {content}
             </Link>
           ) : (

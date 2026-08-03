@@ -16,6 +16,7 @@ import { WeekSummaryStrip } from '@/app/(app)/week/week-summary-strip'
 type WeekPageData = {
   currentWeek: {
     id: string
+    publicPath: string
     weekNumber: number
     seasonName: string
     positioningRound: { basis: 'spring' | 'summer' | 'overall'; label: string } | null
@@ -613,7 +614,7 @@ export function WeekClient({ initialData }: WeekClientProps) {
       return
     }
 
-    const url = buildPublicUrl(`/public/weeks/${data.currentWeek.id}`, window.location.origin)
+    const url = buildPublicUrl(data.currentWeek.publicPath, window.location.origin)
     await copyToClipboard(url)
     setCopyMessage('Copied pairings link.')
   }
@@ -623,7 +624,7 @@ export function WeekClient({ initialData }: WeekClientProps) {
       return
     }
 
-    const resultsUrl = buildPublicUrl(`/public/weeks/${data.currentWeek.id}`, window.location.origin)
+    const resultsUrl = buildPublicUrl(data.currentWeek.publicPath, window.location.origin)
     const standingsUrl = buildPublicUrl('/public/standings', window.location.origin)
     const lines = [
       `Silicon Desert Golf League - Week ${data.currentWeek.weekNumber}`,

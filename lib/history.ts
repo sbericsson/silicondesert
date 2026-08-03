@@ -2,6 +2,7 @@ import { prisma } from '@/lib/db'
 import { buildPublicUrl } from '@/lib/public-url'
 import { resolveStrokeWinnerId } from '@/lib/stroke-result'
 import { formatDate } from '@/lib/week'
+import { buildPublicWeekPath } from '@/lib/public-week-url'
 
 function formatMatchPlaySummary(match: {
   player1Id: string
@@ -85,7 +86,7 @@ export async function getHistoryPageData() {
         courseName: week.course?.name ?? 'Course not selected',
         locked: week.locked,
         matchCount: week.matches.length,
-        publicResultsUrl: completed ? buildPublicUrl(`/public/weeks/${week.id}`) : null,
+        publicResultsUrl: completed ? buildPublicUrl(buildPublicWeekPath(week.date)) : null,
         comparisonUrl: completed ? `/history/${week.id}/compare` : null,
         ctpHoleNumber: week.ctpHoleNumber,
         ctpWinnerName: week.ctpWinner?.name ?? null,

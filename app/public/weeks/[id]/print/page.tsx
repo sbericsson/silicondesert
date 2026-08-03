@@ -1,6 +1,8 @@
 import type { Metadata } from 'next'
-import { notFound } from 'next/navigation'
+import { notFound, permanentRedirect } from 'next/navigation'
 import { getPublicWeekData } from '@/lib/public-week'
+import { resolvePublicWeekRouteParam } from '@/lib/public-week-route'
+import { buildPublicWeekPrintPath } from '@/lib/public-week-url'
 import { getPublicStandingsData } from '@/lib/public-standings'
 import { PrintButton } from './print-button'
 import { PrintStandings } from './print-standings'
@@ -13,7 +15,8 @@ export async function generateMetadata({
 }: {
   params: { id: string }
 }): Promise<Metadata> {
-  const data = await getPublicWeekData(params.id)
+  const weekRef = await resolvePublicWeekRouteParam(params.id)
+  const data = weekRef ? await getPublicWeekData(weekRef.id) : null
 
   if (!data) {
     return {
@@ -32,7 +35,17 @@ export default async function PrintWeekPage({
 }: {
   params: { id: string }
 }) {
-  const data = await getPublicWeekData(params.id)
+  const weekRef = await resolvePublicWeekRouteParam(params.id)
+
+  if (!weekRef) {
+    notFound()
+  }
+
+  if (params.id !== weekRef.dateSlug) {
+    permanentRedirect(buildPublicWeekPrintPath(weekRef.date))
+  }
+
+  const data = await getPublicWeekData(weekRef.id)
 
   if (!data || !data.resultsVisible) {
     notFound()

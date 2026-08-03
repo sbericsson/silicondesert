@@ -4,6 +4,12 @@ All notable changes to the Silicon Desert Golf League commissioner app are docum
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.1.3.0] - 2026-08-03
+
+### Added
+
+- Public week pages now use a date-based URL (`/public/weeks/2026-07-31`) instead of the internal database ID. Old ID-based links still resolve and redirect permanently to the new dated path, so existing bookmarks and shared links keep working.
+
 ## [0.1.2.5] - 2026-08-01
 
 ### Changed

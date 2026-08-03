@@ -16,6 +16,7 @@ import { getPopHoles } from '@/lib/match-net-scoring'
 import { buildPairingFlags, buildRepeatCounts } from '@/lib/matchmaking'
 import { getPositioningBasis, POSITIONING_BASIS_LABEL } from '@/lib/positioning'
 import { getHandicapModeLabel, getPlayerHandicapIndexValue, getPlayingHandicap } from '@/lib/playing-handicap'
+import { buildPublicWeekPath } from '@/lib/public-week-url'
 
 function phoenixStartOfDay(isoDate: string) {
   return new Date(`${isoDate}T00:00:00-07:00`)
@@ -464,6 +465,7 @@ export async function getCurrentWeekPageData() {
     currentWeek: currentWeek
       ? {
           id: currentWeek.id,
+          publicPath: buildPublicWeekPath(currentWeek.date),
           weekNumber: currentWeek.weekNumber,
           seasonName: currentWeek.season.name,
           positioningRound: positioningBasis

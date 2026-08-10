@@ -144,7 +144,8 @@ The app assumes `America/Phoenix` timezone throughout. No DST — the desert kee
 Public week pages use the Phoenix match date in `YYYY-MM-DD` form, for example
 `/public/weeks/2026-07-31`. The database CUID remains the internal key. Existing CUID-based
 week links are resolved and permanently redirected to the dated path. A calendar date must
-resolve to exactly one week; ambiguous dates return the public not-found page.
+resolve to exactly one locked week; if no locked week or multiple locked weeks match, the
+public not-found page is returned.
 
 ---
 

@@ -43,7 +43,32 @@ describe('resolvePublicWeekRouteParam', () => {
       dateSlug: '2026-07-31',
       publicPath: '/public/weeks/2026-07-31'
     })
+    expect(findManyMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({ locked: true })
+      })
+    )
     expect(findUniqueMock).not.toHaveBeenCalled()
+  })
+
+  it('resolves the published week when an unlocked duplicate shares its date', async () => {
+    const date = new Date('2026-06-26T07:00:00.000Z')
+    findManyMock.mockImplementation(async (query) => {
+      if (query.where.locked !== true) {
+        return [
+          { id: 'published-week', date },
+          { id: 'unlocked-duplicate', date }
+        ]
+      }
+
+      return [{ id: 'published-week', date }]
+    })
+
+    await expect(resolvePublicWeekRouteParam('2026-06-26')).resolves.toMatchObject({
+      id: 'published-week',
+      dateSlug: '2026-06-26',
+      publicPath: '/public/weeks/2026-06-26'
+    })
   })
 
   it('resolves an existing opaque ID to its canonical dated path', async () => {

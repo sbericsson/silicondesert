@@ -4,6 +4,12 @@ All notable changes to the Silicon Desert Golf League commissioner app are docum
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.1.3.1] - 2026-08-10
+
+### Fixed
+
+- Public results links now resolve the correct locked week when an unpublished duplicate uses the same calendar date.
+
 ## [0.1.3.0] - 2026-08-03
 
 ### Added

@@ -31,6 +31,7 @@ export async function resolvePublicWeekRouteParam(value: string): Promise<Public
   if (dateRange) {
     const weeks = await prisma.week.findMany({
       where: {
+        locked: true,
         date: {
           gte: dateRange.start,
           lt: dateRange.end

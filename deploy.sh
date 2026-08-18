@@ -88,8 +88,43 @@ _MIGRATE_DB="${DATABASE_URL:-}"
 _MIGRATE_DB="${_MIGRATE_DB##*/}"
 _MIGRATE_DB="${_MIGRATE_DB%%\?*}"
 
+# Guard: the app being deployed and the database it points at must agree.
+# Sourcing .env above resolves DATABASE_URL from THIS deployment directory,
+# but a copied or edited .env would still aim migrations at the wrong
+# database, and a migration is not something you undo. A staging app must
+# use a staging database, and production must not.
+if [ -z "$_MIGRATE_DB" ]; then
+  echo ""
+  echo "  ABORT: DATABASE_URL is not set, so there is no migration target."
+  echo "  Check .env in $APP_DIR."
+  echo ""
+  exit 1
+fi
+
+case "$APP_NAME" in
+  *staging*) _WANT_STAGING=1 ;;
+  *)         _WANT_STAGING=0 ;;
+esac
+case "$_MIGRATE_DB" in
+  *staging*) _DB_IS_STAGING=1 ;;
+  *)         _DB_IS_STAGING=0 ;;
+esac
+
+if [ "$_WANT_STAGING" != "$_DB_IS_STAGING" ]; then
+  echo ""
+  echo "  ABORT: app '$APP_NAME' would migrate database '$_MIGRATE_DB'."
+  if [ "$_WANT_STAGING" = "1" ]; then
+    echo "  A staging app must point at a staging database."
+  else
+    echo "  A production app must not point at a staging database."
+  fi
+  echo "  Nothing has been migrated. Check DATABASE_URL in $APP_DIR/.env."
+  echo ""
+  exit 1
+fi
+
 echo "► Running database migrations..."
-echo "  Target database: ${_MIGRATE_DB:-<DATABASE_URL not set>}"
+echo "  Target database: $_MIGRATE_DB"
 npx prisma migrate deploy
 echo "  Done."
 

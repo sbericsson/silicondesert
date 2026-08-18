@@ -66,7 +66,9 @@ model Player {
   active          Boolean          @default(true)
   seedHandicap    Float?
   seasonTeeChoices PlayerSeasonTee[]
-  venueMemberships PlayerVenueMembership[]
+  /// Member of the club the league plays at. Oakwood and Ironwood membership
+  /// are the same entitlement, so this is one flag rather than per-venue rows.
+  courseMember    Boolean          @default(false)
   attendance      Attendance[]
   handicapRecords HandicapRecord[]
   matchesAsP1     Match[]          @relation("Player1Matches")
@@ -102,20 +104,6 @@ model PlayerSeasonTee {
   season    Season   @relation(fields: [seasonId], references: [id], onDelete: Cascade)
 
   @@unique([playerId, seasonId])
-}
-
-/// Course membership is sold by the club, not by the individual nine, so this
-/// is keyed on the venue half of Course.name (see lib/venue.ts). The commissioner
-/// uses it on the Friday check-in sheet to collect guest fees from non-members.
-model PlayerVenueMembership {
-  id        String   @id @default(cuid())
-  playerId  String
-  venue     String
-  createdAt DateTime @default(now())
-  player    Player   @relation(fields: [playerId], references: [id], onDelete: Cascade)
-
-  @@unique([playerId, venue])
-  @@index([venue])
 }
 
 enum SeasonType {

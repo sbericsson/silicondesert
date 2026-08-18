@@ -53,6 +53,17 @@ Grouped by component, then priority (P0 highest through P4, then Completed).
 **Context:** Player model already has email field (optional). Add password hash, role field (player | commissioner). Score entry UX should work offline-first (spotty course WiFi). Gate behind feature flag so commissioner-only mode still works.
 **Depends on:** Hole-by-hole match play tracking (above) — player entry pairs naturally with hole-by-hole data.
 
+## Check-In Sheet
+
+### Course membership editing lives only on the check-in sheet page
+**Priority:** P3
+**What:** Move (or mirror) the per-player course-membership toggles into the roster page, alongside gender, tee, and seed handicap.
+**Why:** Membership is a durable player attribute, so the roster is where someone would look for it. Today it is only editable from `/week/check-in-sheet`, which is discoverable when printing but not when managing the roster.
+**Pros:** Puts a player attribute with the other player attributes; lets memberships be set before the first Friday rather than during it.
+**Cons:** `app/(app)/roster/roster-client.tsx` is ~2260 lines with a fixed desktop grid (`xl:grid-cols-[1fr_72px_60px_52px_96px_188px]`); adding a column means touching the header, both mobile and desktop row variants, and the edit-form state.
+**Context:** Deliberate scope call while building v0.2.0.0. Editing was put on the check-in sheet page instead, because that is where a wrong guest flag actually gets noticed. The API already supports it — `PATCH /api/players/[id]` accepts `venueMemberships` (full replacement), validated by `normalizeVenueMemberships` in `lib/venue.ts`. Membership is keyed on the venue half of `Course.name` (see `getCourseVenue`), so it is per club, not per nine.
+**Depends on:** Nothing.
+
 ## Completed
 
 _Nothing recorded yet. Completed items move here with a `**Completed:** vX.Y.Z.W (YYYY-MM-DD)` line._

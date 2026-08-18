@@ -4,6 +4,13 @@ All notable changes to the Silicon Desert Golf League commissioner app are docum
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.2.0.0] - 2026-08-18
+
+### Added
+
+- Printable Friday check-in sheet. "Print sheet" on the week page opens a landscape sheet built for the course, not the screen: one row per player with pen-sized Here?, CTP and LPM boxes, the player's handicap index, their course handicap for every nine in the rotation, everyone they have already been paired with this season, and blank space to pencil in that day's groups. Pairs that have already played together twice or more are flagged so nobody gets paired a third time. The full roster fits on two pages.
+- Course membership. A player can now be recorded as a member of the club being played that day. The check-in sheet prints an X for members and an open box for everyone else, so the commissioner can see at a glance who owes a guest fee for the year-end prize pool. Membership is editable directly from the check-in sheet page.
+
 ## [0.1.3.1] - 2026-08-10
 
 ### Fixed

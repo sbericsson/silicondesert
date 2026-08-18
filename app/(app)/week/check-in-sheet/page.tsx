@@ -6,8 +6,21 @@ import { SheetActions } from './sheet-actions'
 
 export const dynamic = 'force-dynamic'
 
-export const metadata: Metadata = {
-  title: 'Check-In Sheet - Silicon Desert Golf League'
+// The browser names a printed PDF after document.title, so the title is the
+// filename the commissioner ends up with: "Check-In Sheet - Summer 2026 Week 8".
+export async function generateMetadata({
+  searchParams
+}: {
+  searchParams: { week?: string }
+}): Promise<Metadata> {
+  const data = await getCheckInSheetData(searchParams.week)
+  const parts = [data.seasonName, data.weekNumber ? `Week ${data.weekNumber}` : null].filter(
+    Boolean
+  )
+
+  return {
+    title: parts.length > 0 ? `Check-In Sheet - ${parts.join(' ')}` : 'Check-In Sheet'
+  }
 }
 
 export default async function CheckInSheetPage({
@@ -30,8 +43,8 @@ export default async function CheckInSheetPage({
   return (
     <>
       <SheetActions />
-      <MembershipEditor venue={data.venue} rows={data.rows} />
-      <div className="mt-4 overflow-x-auto px-4 pb-8 xl:px-6">
+      <MembershipEditor rows={data.rows} />
+      <div className="cis-wrap mt-4 overflow-x-auto px-4 pb-8 xl:px-6">
         <CheckInSheet data={data} />
       </div>
     </>

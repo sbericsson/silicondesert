@@ -24,6 +24,14 @@ export const CHECK_IN_SHEET_CSS = `
   body .min-h-screen > .mx-auto > main { padding: 0 !important; }
   body .min-h-screen { background: #fff !important; }
   .cis-screen-only { display: none !important; }
+  /* The sheet sits in a padded, horizontally-scrolling wrapper on screen. Both
+     have to go in print, or the table is pushed past the right edge and the
+     last column is clipped off the page. */
+  .cis-wrap {
+    padding: 0 !important;
+    margin: 0 !important;
+    overflow: visible !important;
+  }
   .cis { padding: 0 !important; }
 }
 
@@ -63,8 +71,8 @@ export const CHECK_IN_SHEET_CSS = `
 .cis col.c-here { width: 0.44in; }
 .cis col.c-idx { width: 0.47in; }
 .cis col.c-ch { width: 0.46in; }
-.cis col.c-hist { width: 3.02in; }
-.cis col.c-grp { width: 1.26in; }
+.cis col.c-hist { width: 2.30in; }
+.cis col.c-grp { width: 1.55in; }
 
 .cis td.cis-num { font-size: 7pt; color: #666; }
 .cis td.cis-name { white-space: nowrap; overflow: hidden; text-align: left; padding-left: 5px; font-size: 9.4pt; font-weight: 600; }
@@ -114,8 +122,6 @@ export const CHECK_IN_SHEET_CSS = `
 `
 
 export function CheckInSheet({ data }: { data: CheckInSheetData }) {
-  const venueCode = data.venue ? data.venue.toUpperCase() : 'MEM'
-
   return (
     <div className="cis">
       <style dangerouslySetInnerHTML={{ __html: CHECK_IN_SHEET_CSS }} />
@@ -161,7 +167,7 @@ export function CheckInSheet({ data }: { data: CheckInSheetData }) {
         <thead>
           <tr className="cis-grouprow">
             <th className="cis-spacer" colSpan={2} />
-            <th className="cis-venue">{venueCode}</th>
+            <th className="cis-venue">Club</th>
             <th colSpan={2}>Proxy pool</th>
             <th>In</th>
             <th colSpan={data.courses.length + 1}>Handicap &mdash; by rotation course</th>
@@ -204,11 +210,7 @@ export function CheckInSheet({ data }: { data: CheckInSheetData }) {
                 <td className="cis-num">{rowIndex + 1}</td>
                 <td className="cis-name">{row.name}</td>
                 <td className="cis-box cis-mem">
-                  {row.isMember ? (
-                    <span className="cis-memx">X</span>
-                  ) : (
-                    <span className="cis-cb cis-guestbox" />
-                  )}
+                  {row.isMember ? <span className="cis-cb" /> : null}
                 </td>
                 <td className="cis-box">
                   <span className="cis-cb" />
@@ -273,9 +275,9 @@ export function CheckInSheet({ data }: { data: CheckInSheetData }) {
 
       <div className="cis-footer">
         <div className="cis-legend">
-          <b>Mem?</b> is pre-printed from the app: <b>X</b> = {data.venue ?? 'course'} member,
-          nothing to do. An <b>open box = guest</b> &mdash; collect the guest fee (feeds the
-          year-end prize pool) and tick the box.
+          <b>Mem?</b> is pre-printed from the app: an <b>open box = club member</b>. A
+          <b> blank cell = guest</b> &mdash; collect the guest fee (feeds the year-end prize
+          pool).
           <br />
           <b>Index</b> superscript = tee played (B blue / W white / Y yellow / S silver);
           course handicaps are computed from that tee. <b>NH</b> = no established index yet;

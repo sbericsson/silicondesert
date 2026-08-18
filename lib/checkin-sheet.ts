@@ -3,9 +3,14 @@ import { prisma } from '@/lib/db'
 import { getCourseDefaultTeeFallback, getCourseTee, getPlayerSeasonTeeColor } from '@/lib/course-tee'
 import { courseHandicap, exactHandicapIndexFromRecords, roundToTenth } from '@/lib/handicap'
 import { HANDICAP_RECORDS_INCLUDE } from '@/lib/handicap-records'
-import { comparePlayerNamesByLastName, getPlayerSurname } from '@/lib/player-sort'
-import { getCourseVenue, getVenuesFromCourses, isPlayerVenueMember } from '@/lib/venue'
-import { buildOpponentCounts, getCurrentWeekRecord, getNextScheduledWeekRecord } from '@/lib/week'
+import { comparePlayerNamesByLastName } from '@/lib/player-sort'
+import { getCourseVenue } from '@/lib/venue'
+import {
+  buildOpponentCounts,
+  createInitialsResolver,
+  getCurrentWeekRecord,
+  getNextScheduledWeekRecord
+} from '@/lib/week'
 
 export const TEE_LETTER: Record<TeeColor, string> = {
   blue: 'B',
@@ -31,10 +36,6 @@ export interface CheckInSheetRow {
   playerId: string
   name: string
   isMember: boolean
-  /** Every venue this player belongs to, not just the one being played today.
-   *  The membership editor sends the whole set back, so it must not be narrowed
-   *  to today's venue or the other clubs get wiped on save. */
-  venues: string[]
   index: number | null
   indexLabel: string
   isEstimated: boolean
@@ -51,7 +52,7 @@ export interface CheckInSheetData {
   dateLabel: string
   courseName: string | null
   venue: string | null
-  venues: string[]
+  seasonName: string | null
   courses: CheckInSheetCourse[]
   rows: CheckInSheetRow[]
   guestCount: number
@@ -65,35 +66,11 @@ const EMPTY_SHEET: CheckInSheetData = {
   dateLabel: '',
   courseName: null,
   venue: null,
-  venues: [],
+  seasonName: null,
   courses: [],
   rows: [],
   guestCount: 0,
   playerCount: 0
-}
-
-// Opponents are listed by surname to fit the printed row. Only collide-prone
-// surnames (Hudson, Kolovos, Veith, Ericsson in this league) take a first
-// initial, so the common case stays as short as possible.
-export function createSurnameResolver(names: Iterable<string>) {
-  const surnameCounts = new Map<string, number>()
-
-  for (const name of new Set(names)) {
-    const surname = getPlayerSurname(name)
-    surnameCounts.set(surname, (surnameCounts.get(surname) ?? 0) + 1)
-  }
-
-  return (name: string) => {
-    const surname = getPlayerSurname(name)
-
-    if ((surnameCounts.get(surname) ?? 0) <= 1) {
-      return surname
-    }
-
-    const firstInitial = name.trim().charAt(0).toUpperCase()
-
-    return firstInitial ? `${firstInitial}.${surname}` : surname
-  }
 }
 
 // Repeats first (they are the reason this column exists), then the remaining
@@ -133,7 +110,7 @@ export interface SheetPlayerInput {
   seedHandicap: number | null
   handicapRecords: Array<{ courseDifferential: number }>
   seasonTeeChoices: Array<{ seasonId: string; teeColor: TeeColor }>
-  venueMemberships: Array<{ venue: string }>
+  courseMember: boolean
 }
 
 export interface SheetCourseInput {
@@ -158,7 +135,6 @@ export function buildCheckInSheetRow(
   player: SheetPlayerInput,
   courses: SheetCourseInput[],
   seasonId: string,
-  todayVenue: string | null,
   opponents: CheckInSheetOpponent[] = []
 ): CheckInSheetRow {
   const exactIndex = exactHandicapIndexFromRecords(player.handicapRecords)
@@ -190,10 +166,7 @@ export function buildCheckInSheetRow(
   return {
     playerId: player.id,
     name: player.name,
-    // With no venue recorded for the week we cannot know who owes a guest fee,
-    // so nobody is marked a member and every box prints open.
-    isMember: todayVenue ? isPlayerVenueMember(player.venueMemberships, todayVenue) : false,
-    venues: player.venueMemberships.map((membership) => membership.venue),
+    isMember: player.courseMember,
     index,
     indexLabel: index === null ? 'NH' : roundToTenth(index).toFixed(1),
     isEstimated,
@@ -212,7 +185,14 @@ export async function getCheckInSheetData(weekId?: string): Promise<CheckInSheet
   const week = weekId
     ? await prisma.week.findUnique({
         where: { id: weekId },
-        select: { id: true, seasonId: true, weekNumber: true, date: true, courseId: true }
+        select: {
+          id: true,
+          seasonId: true,
+          weekNumber: true,
+          date: true,
+          courseId: true,
+          season: { select: { name: true } }
+        }
       })
     : ((await getCurrentWeekRecord()) ?? (await getNextScheduledWeekRecord()))
 
@@ -225,8 +205,7 @@ export async function getCheckInSheetData(weekId?: string): Promise<CheckInSheet
       where: { active: true },
       include: {
         handicapRecords: HANDICAP_RECORDS_INCLUDE,
-        seasonTeeChoices: true,
-        venueMemberships: { select: { venue: true } }
+        seasonTeeChoices: true
       }
     }),
     prisma.course.findMany({
@@ -256,7 +235,10 @@ export async function getCheckInSheetData(weekId?: string): Promise<CheckInSheet
   })
 
   const { opponentCountsByPlayerId, allOpponentNames } = buildOpponentCounts(priorMatches)
-  const resolveSurname = createSurnameResolver([
+  // Initials, not surnames: the full season's opponents have to fit on one
+  // printed line. This is the same resolver the week page uses, so a player
+  // reads the same on screen and on paper.
+  const resolveInitials = createInitialsResolver([
     ...players.map((player) => player.name),
     ...allOpponentNames
   ])
@@ -294,9 +276,8 @@ export async function getCheckInSheetData(weekId?: string): Promise<CheckInSheet
         player,
         sheetCourses.map(({ course }) => course),
         week.seasonId,
-        todayVenue,
         [...(opponentCountsByPlayerId.get(player.id) ?? new Map<string, number>())].map(
-          ([opponentName, count]) => ({ name: resolveSurname(opponentName), count })
+          ([opponentName, count]) => ({ name: resolveInitials(opponentName), count })
         )
       )
     )
@@ -308,7 +289,7 @@ export async function getCheckInSheetData(weekId?: string): Promise<CheckInSheet
     dateLabel: formatSheetDate(week.date),
     courseName: todayCourse?.name ?? null,
     venue: todayVenue,
-    venues: getVenuesFromCourses(courses),
+    seasonName: week.season?.name ?? null,
     courses: sheetCourses.map((entry) => entry.sheet),
     rows,
     guestCount: rows.filter((row) => !row.isMember).length,
@@ -319,7 +300,7 @@ export async function getCheckInSheetData(weekId?: string): Promise<CheckInSheet
 // The opponent list is capped to a single printed line so every row keeps the
 // same height and the page count stays predictable. Repeats are sorted first,
 // so truncation only ever drops one-time opponents.
-export const OPPONENT_CHAR_BUDGET = 50
+export const OPPONENT_CHAR_BUDGET = 44
 
 export function fitOpponents(
   opponents: CheckInSheetOpponent[],

@@ -1,39 +1,10 @@
 import { describe, expect, it } from 'vitest'
 import {
   buildCheckInSheetRow,
-  createSurnameResolver,
   fitOpponents,
   formatSheetDate,
   sortOpponents
 } from '@/lib/checkin-sheet'
-
-describe('createSurnameResolver', () => {
-  it('uses the bare surname when it is unique in the league', () => {
-    const resolve = createSurnameResolver(['Stein Ericsson', 'Bob Below', 'Mike Clay'])
-
-    expect(resolve('Bob Below')).toBe('Below')
-    expect(resolve('Mike Clay')).toBe('Clay')
-  })
-
-  it('adds a first initial only for shared surnames', () => {
-    const resolve = createSurnameResolver([
-      'Marshall Hudson',
-      'Sandy Hudson',
-      'Mike Clay'
-    ])
-
-    expect(resolve('Marshall Hudson')).toBe('M.Hudson')
-    expect(resolve('Sandy Hudson')).toBe('S.Hudson')
-    expect(resolve('Mike Clay')).toBe('Clay')
-  })
-
-  it('keeps multi-word surnames intact', () => {
-    const resolve = createSurnameResolver(['Lowell Vande Kamp', 'Michael Del Col'])
-
-    expect(resolve('Lowell Vande Kamp')).toBe('Vande Kamp')
-    expect(resolve('Michael Del Col')).toBe('Del Col')
-  })
-})
 
 describe('sortOpponents', () => {
   it('puts repeat pairings first, most repeated first, then one-timers A-Z', () => {
@@ -130,7 +101,7 @@ describe('buildCheckInSheetRow', () => {
     seedHandicap: null,
     handicapRecords: [],
     seasonTeeChoices: [{ seasonId: 's1', teeColor: 'white' as const }],
-    venueMemberships: [{ venue: 'Oakwood' }]
+    courseMember: true
   }
 
   it('computes a course handicap per course from the player tee', () => {
@@ -139,8 +110,7 @@ describe('buildCheckInSheetRow', () => {
     const row = buildCheckInSheetRow(
       { ...basePlayer, seedHandicap: 7.4 },
       courses,
-      's1',
-      'Oakwood'
+      's1'
     )
 
     expect(row.courseHandicaps).toEqual([5, 3])
@@ -157,8 +127,7 @@ describe('buildCheckInSheetRow', () => {
         seasonTeeChoices: [{ seasonId: 's1', teeColor: 'silver' }]
       },
       courses,
-      's1',
-      'Oakwood'
+      's1'
     )
 
     // 7.4*112/113 + (32.9-36) = 4.2 -> 4 ; 7.4*92/113 + (29.65-34) = 1.7 -> 2
@@ -167,7 +136,7 @@ describe('buildCheckInSheetRow', () => {
   })
 
   it('prints NH with no course handicaps when there is no index at all', () => {
-    const row = buildCheckInSheetRow(basePlayer, courses, 's1', 'Oakwood')
+    const row = buildCheckInSheetRow(basePlayer, courses, 's1')
 
     expect(row.index).toBeNull()
     expect(row.indexLabel).toBe('NH')
@@ -178,8 +147,7 @@ describe('buildCheckInSheetRow', () => {
     const row = buildCheckInSheetRow(
       { ...basePlayer, seedHandicap: 12 },
       courses,
-      's1',
-      'Oakwood'
+      's1'
     )
 
     expect(row.isEstimated).toBe(true)
@@ -190,8 +158,7 @@ describe('buildCheckInSheetRow', () => {
     const row = buildCheckInSheetRow(
       { ...basePlayer, seedHandicap: 12, handicapRecords: [{ courseDifferential: 9.4 }] },
       courses,
-      's1',
-      'Oakwood'
+      's1'
     )
 
     expect(row.isEstimated).toBe(false)
@@ -199,23 +166,24 @@ describe('buildCheckInSheetRow', () => {
     expect(row.indexLabel).toBe('7.4')
   })
 
-  it('marks a player without the week venue as a guest', () => {
-    const row = buildCheckInSheetRow(basePlayer, courses, 's1', 'Ironwood')
+  // Membership is one flag, not per-venue: an Oakwood member is an Ironwood
+  // member too, so the row does not depend on which course is being played.
+  it('marks a club member as a member', () => {
+    expect(buildCheckInSheetRow(basePlayer, courses, 's1').isMember).toBe(true)
+  })
+
+  it('marks a non-member as a guest', () => {
+    const row = buildCheckInSheetRow(
+      { ...basePlayer, courseMember: false },
+      courses,
+      's1'
+    )
 
     expect(row.isMember).toBe(false)
   })
 
-  it('marks a player with the week venue as a member', () => {
-    expect(buildCheckInSheetRow(basePlayer, courses, 's1', 'Oakwood').isMember).toBe(true)
-  })
-
-  // No course on the week means no venue, so we cannot claim anyone is a member.
-  it('treats everyone as a guest when the week has no venue', () => {
-    expect(buildCheckInSheetRow(basePlayer, courses, 's1', null).isMember).toBe(false)
-  })
-
   it('sorts the opponents it is handed', () => {
-    const row = buildCheckInSheetRow(basePlayer, courses, 's1', 'Oakwood', [
+    const row = buildCheckInSheetRow(basePlayer, courses, 's1', [
       { name: 'Wagner', count: 1 },
       { name: 'Clay', count: 2 }
     ])
@@ -224,39 +192,3 @@ describe('buildCheckInSheetRow', () => {
   })
 })
 
-describe('buildCheckInSheetRow venue set', () => {
-  const courses = [
-    {
-      nineHolePar: 36,
-      nineHoleRating: 33.7,
-      nineHoleSlope: 118,
-      tees: [
-        { color: 'white' as const, gender: 'man' as const, nineHolePar: 36, nineHoleRating: 33.7, nineHoleSlope: 118 }
-      ]
-    }
-  ]
-
-  // Regression guard: the row must expose EVERY club the player belongs to.
-  // The membership editor replaces the whole set on save, so a row that only
-  // knew about today's venue would silently wipe the player's other clubs.
-  it('carries every venue the player belongs to, not just today.s', () => {
-    const row = buildCheckInSheetRow(
-      {
-        id: 'p1',
-        name: 'Stein Ericsson',
-        gender: 'man',
-        defaultTeeColor: null,
-        seedHandicap: 7.4,
-        handicapRecords: [],
-        seasonTeeChoices: [],
-        venueMemberships: [{ venue: 'Oakwood' }, { venue: 'Ironwood' }]
-      },
-      courses,
-      's1',
-      'Oakwood'
-    )
-
-    expect(row.isMember).toBe(true)
-    expect(row.venues).toEqual(['Oakwood', 'Ironwood'])
-  })
-})

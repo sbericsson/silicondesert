@@ -79,7 +79,17 @@ echo "  Done."
 
 # ── 5. Prisma migrations ───────────────────────────────────────────────────────
 
+# Name the target before migrating. Prisma resolves DATABASE_URL from the
+# environment before .env, so a stray DATABASE_URL in the caller's shell can
+# silently point a migration at the wrong database. This script sources .env
+# above (which overwrites it), but printing the target makes a mistake visible
+# instead of silent.
+_MIGRATE_DB="${DATABASE_URL:-}"
+_MIGRATE_DB="${_MIGRATE_DB##*/}"
+_MIGRATE_DB="${_MIGRATE_DB%%\?*}"
+
 echo "► Running database migrations..."
+echo "  Target database: ${_MIGRATE_DB:-<DATABASE_URL not set>}"
 npx prisma migrate deploy
 echo "  Done."
 

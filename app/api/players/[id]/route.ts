@@ -4,6 +4,7 @@ import { prisma } from '@/lib/db'
 import { getApiSession, unauthorizedResponse } from '@/lib/api-auth'
 import { normalizeUsPhoneNumber } from '@/lib/phone'
 import { getDefaultTeeColorForGender } from '@/lib/course-tee'
+import { normalizeVenueMemberships } from '@/lib/venue'
 import {
   validateImportedHandicapRounds,
   toImportedHandicapRoundRecords
@@ -38,6 +39,7 @@ export async function PATCH(
         teeColor: TeeColor
       }>
     | undefined
+  let venueMemberships: string[] | undefined
 
   if ('name' in body && typeof body.name === 'string') {
     updates.name = body.name.trim()
@@ -152,6 +154,16 @@ export async function PATCH(
     seasonTeeChoices = normalizedChoices
   }
 
+  if ('venueMemberships' in body) {
+    const normalized = normalizeVenueMemberships(body.venueMemberships)
+
+    if (normalized.error) {
+      return NextResponse.json({ error: normalized.error }, { status: 400 })
+    }
+
+    venueMemberships = normalized.venues
+  }
+
   const player = await prisma.$transaction(async (tx) => {
     const existingPlayer = await tx.player.findUnique({
       where: { id: params.id },
@@ -239,6 +251,33 @@ export async function PATCH(
             playerId: params.id,
             seasonId: choice.seasonId,
             teeColor: choice.teeColor
+          }
+        })
+      }
+    }
+
+    if (venueMemberships !== undefined) {
+      // Full replacement: the client always sends the complete set for a player,
+      // so anything absent is a membership that was turned off.
+      await tx.playerVenueMembership.deleteMany({
+        where: {
+          playerId: params.id,
+          venue: { notIn: venueMemberships }
+        }
+      })
+
+      for (const venue of venueMemberships) {
+        await tx.playerVenueMembership.upsert({
+          where: {
+            playerId_venue: {
+              playerId: params.id,
+              venue
+            }
+          },
+          update: {},
+          create: {
+            playerId: params.id,
+            venue
           }
         })
       }

@@ -60,7 +60,8 @@ export const CHECK_IN_SHEET_CSS = `
 .cis thead tr.cis-grouprow th.cis-spacer { background: #fff; border-left-color: #fff; border-right-color: #fff; border-top-color: #fff; }
 .cis thead tr.cis-grouprow th.cis-venue { letter-spacing: 0.02em; font-size: 6pt; }
 
-.cis tbody td { height: 22.6px; font-size: 8.8pt; }
+/* Four fewer rows per landscape page leaves room for larger, easier-to-read data. */
+.cis tbody td { height: 26.4px; font-size: 9.8pt; }
 .cis tbody tr:nth-child(even) td { background: #f4f4f4; }
 .cis tbody tr:nth-child(even) td.cis-grp, .cis tbody tr:nth-child(even) td.cis-box { background: #fff; }
 
@@ -74,30 +75,30 @@ export const CHECK_IN_SHEET_CSS = `
 .cis col.c-hist { width: 2.30in; }
 .cis col.c-grp { width: 1.55in; }
 
-.cis td.cis-num { font-size: 7pt; color: #666; }
-.cis td.cis-name { white-space: nowrap; overflow: hidden; text-align: left; padding-left: 5px; font-size: 9.4pt; font-weight: 600; }
+.cis td.cis-num { font-size: 7.8pt; color: #666; }
+.cis td.cis-name { white-space: nowrap; overflow: hidden; text-align: left; padding-left: 5px; font-size: 10.5pt; font-weight: 600; }
 .cis tr.cis-guestrow td.cis-name { font-weight: 800; }
 
 .cis td.cis-box { background: #fff; }
-.cis .cis-cb { display: inline-block; width: 15.2px; height: 15.2px; line-height: 14px; text-align: center; border: 1.1pt solid #000; background: #fff; vertical-align: middle; }
-.cis .cis-cb.cis-big { width: 17.2px; height: 17.2px; border-width: 1.4pt; }
+.cis .cis-cb { display: inline-block; width: 17px; height: 17px; line-height: 15.5px; text-align: center; border: 1.1pt solid #000; background: #fff; vertical-align: middle; }
+.cis .cis-cb.cis-big { width: 19px; height: 19px; border-width: 1.4pt; }
 .cis .cis-cb.cis-guestbox { border-width: 2pt; }
-.cis .cis-memx { font-size: 8.6pt; font-weight: 600; color: #5a5a5a; }
+.cis .cis-memx { font-size: 9.6pt; font-weight: 600; color: #5a5a5a; }
 .cis th.cis-mem-h, .cis td.cis-mem { border-right: 1.4pt solid #000; }
 .cis tr.cis-guestrow td.cis-mem, .cis tbody tr:nth-child(even).cis-guestrow td.cis-mem { background: #dcdcdc; }
 .cis th.cis-here-h, .cis td.cis-here { border-left: 1.4pt solid #000; border-right: 1.4pt solid #000; }
 
-.cis td.cis-idx { font-size: 8.8pt; font-weight: 700; border-left: 1.4pt solid #000; }
-.cis td.cis-idx sup { font-size: 6pt; font-weight: 400; color: #666; margin-left: 0.5px; }
+.cis td.cis-idx { font-size: 9.8pt; font-weight: 700; border-left: 1.4pt solid #000; }
+.cis td.cis-idx sup { font-size: 6.6pt; font-weight: 400; color: #666; margin-left: 0.5px; }
 .cis th.cis-ch { font-size: 6pt; letter-spacing: 0; line-height: 1.15; white-space: nowrap; overflow: hidden; }
 .cis th.cis-ch .cis-venue-line { display: block; font-size: 4.8pt; letter-spacing: 0; font-weight: 600; }
-.cis td.cis-ch { font-size: 8.4pt; color: #222; }
+.cis td.cis-ch { font-size: 9.4pt; color: #222; }
 .cis th.cis-ch.cis-today { background: #000; color: #fff; }
-.cis td.cis-ch.cis-today { background: #d9d9d9; font-weight: 700; font-size: 9.2pt; color: #000; }
+.cis td.cis-ch.cis-today { background: #d9d9d9; font-weight: 700; font-size: 10.3pt; color: #000; }
 .cis tbody tr:nth-child(even) td.cis-ch.cis-today { background: #d0d0d0; }
 .cis th.cis-grpstart, .cis td.cis-grpstart { border-left: 1.4pt solid #000; }
 
-.cis td.cis-hist { text-align: left; padding: 0 4px; font-size: 7.6pt; white-space: nowrap; overflow: hidden; border-left: 1.4pt solid #000; letter-spacing: -0.01em; }
+.cis td.cis-hist { text-align: left; padding: 0 4px; font-size: 8.5pt; white-space: nowrap; overflow: hidden; border-left: 1.4pt solid #000; letter-spacing: -0.01em; }
 .cis td.cis-hist .cis-p { color: #444; }
 .cis td.cis-hist .cis-p::after { content: "  \\00b7  "; color: #bbb; }
 .cis td.cis-hist span:last-child::after { content: ""; }
@@ -105,7 +106,7 @@ export const CHECK_IN_SHEET_CSS = `
 .cis td.cis-hist .cis-rep + .cis-p::before, .cis td.cis-hist .cis-rep + .cis-rep::before { content: "  \\00b7  "; color: #bbb; }
 .cis td.cis-hist .cis-more { color: #888; font-style: italic; margin-left: 3px; }
 .cis td.cis-hist .cis-none { color: #bbb; }
-.cis .cis-nh { font-size: 7.2pt; color: #777; font-weight: 400; }
+.cis .cis-nh { font-size: 7.9pt; color: #777; font-weight: 400; }
 .cis td.cis-ch .cis-none { color: #ccc; }
 
 .cis td.cis-grp { background: #fff; border-left: 1.4pt solid #000; }

@@ -28,6 +28,7 @@ export async function PATCH(
     cellPhone?: string | null
     active?: boolean
     seedHandicap?: number | null
+    courseMember?: boolean
   } = {}
   let importedHandicapRounds:
     | ReturnType<typeof validateImportedHandicapRounds>['rounds']
@@ -150,6 +151,14 @@ export async function PATCH(
     }
 
     seasonTeeChoices = normalizedChoices
+  }
+
+  if ('courseMember' in body) {
+    if (typeof body.courseMember !== 'boolean') {
+      return NextResponse.json({ error: 'Course member must be true or false' }, { status: 400 })
+    }
+
+    updates.courseMember = body.courseMember
   }
 
   const player = await prisma.$transaction(async (tx) => {

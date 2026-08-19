@@ -68,7 +68,7 @@ function countHoleSelections(weeks: Array<{ ctpHoleNumber: number | null; longes
 
 // Builds a resolver that maps a player name to display initials, disambiguating
 // only the names whose base initials collide with a different player.
-function createInitialsResolver(names: Iterable<string>) {
+export function createInitialsResolver(names: Iterable<string>) {
   const namesByInitials = new Map<string, Set<string>>()
   for (const name of names) {
     const base = getPlayerInitials(name)

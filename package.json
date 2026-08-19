@@ -1,6 +1,6 @@
 {
   "name": "silicon",
-  "version": "0.1.3.1",
+  "version": "0.2.1.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -9,7 +9,7 @@
     "start": "next start",
     "test": "vitest run",
     "test:watch": "vitest",
-    "db:migrate": "prisma migrate deploy",
+    "db:migrate": "if [ -f .env ]; then set -a; . ./.env; set +a; fi; prisma migrate deploy",
     "db:recompute-index-esc": "tsx scripts/recompute-index-esc-rounds.ts",
     "db:studio": "prisma studio",
     "db:seed": "tsx prisma/seed.ts"

@@ -4,6 +4,26 @@ All notable changes to the Silicon Desert Golf League commissioner app are docum
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.2.1.0] - 2026-08-18
+
+### Changed
+
+- Club membership is now a single yes/no per player instead of one record per club. Members of Oakwood are members at Ironwood and vice versa, so there is nothing course-specific to keep in step. Anyone already marked a member keeps their status.
+- On the check-in sheet, the Mem? column now prints an empty box for members and leaves the cell blank for guests, so the boxes line up with the other check-off columns.
+- The "paired with this season" column now uses initials instead of surnames, which fits a player's whole season of opponents on the line rather than trimming it to "+2".
+- Saving the sheet as a PDF now names the file after the season and week, e.g. "Check-In Sheet - Summer 2026 Week 8.pdf".
+
+### Fixed
+
+- The right edge of the check-in sheet no longer prints off the page. The Today's Group column was being clipped because the on-screen scrolling container kept its padding when printing.
+
+## [0.2.0.0] - 2026-08-18
+
+### Added
+
+- Printable Friday check-in sheet. "Print sheet" on the week page opens a landscape sheet built for the course, not the screen: one row per player with pen-sized Here?, CTP and LPM boxes, the player's handicap index, their course handicap for every nine in the rotation, everyone they have already been paired with this season, and blank space to pencil in that day's groups. Pairs that have already played together twice or more are flagged so nobody gets paired a third time. The full roster fits on two pages.
+- Course membership. A player can now be recorded as a member of the club being played that day. The check-in sheet prints an X for members and an open box for everyone else, so the commissioner can see at a glance who owes a guest fee for the year-end prize pool. Membership is editable directly from the check-in sheet page.
+
 ## [0.1.3.1] - 2026-08-10
 
 ### Fixed

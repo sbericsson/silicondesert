@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import type { TeeColor } from '@prisma/client'
 
 export type AttendancePlayer = {
@@ -55,9 +56,17 @@ export function AttendanceList({
         <p className="font-condensed text-xs font-semibold uppercase tracking-widest text-text-muted">
           Attendance
         </p>
-        <span className="rounded bg-accent px-2 py-1 font-condensed text-[11px] font-semibold text-white">
-          {presentCount} / {totalPlayers}
-        </span>
+        <div className="flex items-center gap-3">
+          <Link
+            href="/week/check-in-sheet"
+            className="font-condensed text-[11px] font-semibold uppercase tracking-widest text-accent-text hover:underline"
+          >
+            Print sheet
+          </Link>
+          <span className="rounded bg-accent px-2 py-1 font-condensed text-[11px] font-semibold text-white">
+            {presentCount} / {totalPlayers}
+          </span>
+        </div>
       </div>
       <div className="divide-y divide-surface-border">
         {attendance.map((player) => (

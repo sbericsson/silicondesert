@@ -66,6 +66,9 @@ model Player {
   active          Boolean          @default(true)
   seedHandicap    Float?
   seasonTeeChoices PlayerSeasonTee[]
+  /// Member of the club the league plays at. Oakwood and Ironwood membership
+  /// are the same entitlement, so this is one flag rather than per-venue rows.
+  courseMember    Boolean          @default(false)
   attendance      Attendance[]
   handicapRecords HandicapRecord[]
   matchesAsP1     Match[]          @relation("Player1Matches")

@@ -81,7 +81,6 @@ export const CHECK_IN_SHEET_CSS = `
 
 .cis td.cis-box { background: #fff; }
 .cis .cis-cb { display: inline-block; width: 17px; height: 17px; line-height: 15.5px; text-align: center; border: 1.1pt solid #000; background: #fff; vertical-align: middle; }
-.cis .cis-cb.cis-big { width: 19px; height: 19px; border-width: 1.4pt; }
 .cis .cis-cb.cis-guestbox { border-width: 2pt; }
 .cis .cis-memx { font-size: 9.6pt; font-weight: 600; color: #5a5a5a; }
 .cis th.cis-mem-h, .cis td.cis-mem { border-right: 1.4pt solid #000; }
@@ -220,7 +219,7 @@ export function CheckInSheet({ data }: { data: CheckInSheetData }) {
                   <span className="cis-cb" />
                 </td>
                 <td className="cis-box cis-here">
-                  <span className="cis-cb cis-big" />
+                  <span className="cis-cb" />
                 </td>
                 <td className="cis-idx">
                   {row.index === null ? (

@@ -4,6 +4,12 @@ All notable changes to the Silicon Desert Golf League commissioner app are docum
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.2.1.1] - 2026-08-19
+
+### Changed
+
+- The printable check-in sheet now fits 24 player rows per landscape page, with larger names and sheet data for easier reading at the course.
+
 ## [0.2.1.0] - 2026-08-18
 
 ### Changed

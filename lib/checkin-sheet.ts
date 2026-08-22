@@ -1,7 +1,7 @@
 import type { Gender, TeeColor } from '@prisma/client'
 import { prisma } from '@/lib/db'
 import { getCourseDefaultTeeFallback, getCourseTee, getPlayerSeasonTeeColor } from '@/lib/course-tee'
-import { courseHandicap, exactHandicapIndexFromRecords, roundToTenth } from '@/lib/handicap'
+import { courseHandicap, exactHandicapIndexFromRecords } from '@/lib/handicap'
 import { HANDICAP_RECORDS_INCLUDE } from '@/lib/handicap-records'
 import { comparePlayerNamesByLastName } from '@/lib/player-sort'
 import { getCourseVenue } from '@/lib/venue'
@@ -168,7 +168,7 @@ export function buildCheckInSheetRow(
     name: player.name,
     isMember: player.courseMember,
     index,
-    indexLabel: index === null ? 'NH' : roundToTenth(index).toFixed(1),
+    indexLabel: index === null ? 'NH' : index.toFixed(2),
     isEstimated,
     teeColor,
     teeLetter: TEE_LETTER[teeColor],

@@ -70,10 +70,11 @@ export const CHECK_IN_SHEET_CSS = `
 .cis col.c-mem { width: 0.40in; }
 .cis col.c-box { width: 0.34in; }
 .cis col.c-here { width: 0.44in; }
-.cis col.c-idx { width: 0.47in; }
+.cis col.c-idx { width: 0.62in; }
 .cis col.c-ch { width: 0.46in; }
-.cis col.c-hist { width: 2.30in; }
-.cis col.c-grp { width: 1.55in; }
+/* Reallocate 20% of Today's group space to fit a two-decimal index. */
+.cis col.c-hist { width: 2.46in; }
+.cis col.c-grp { width: 1.24in; }
 
 .cis td.cis-num { font-size: 7.8pt; color: #666; }
 .cis td.cis-name { white-space: nowrap; overflow: hidden; text-align: left; padding-left: 5px; font-size: 10.5pt; font-weight: 600; }

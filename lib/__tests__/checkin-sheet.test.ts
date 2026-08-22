@@ -114,8 +114,18 @@ describe('buildCheckInSheetRow', () => {
     )
 
     expect(row.courseHandicaps).toEqual([5, 3])
-    expect(row.indexLabel).toBe('7.4')
+    expect(row.indexLabel).toBe('7.40')
     expect(row.teeLetter).toBe('W')
+  })
+
+  it('preserves the exact index at two fixed decimal places', () => {
+    const row = buildCheckInSheetRow(
+      { ...basePlayer, seedHandicap: 7.43 },
+      courses,
+      's1'
+    )
+
+    expect(row.indexLabel).toBe('7.43')
   })
 
   it('uses the women tee row for a woman on the same tee colour', () => {
@@ -151,7 +161,7 @@ describe('buildCheckInSheetRow', () => {
     )
 
     expect(row.isEstimated).toBe(true)
-    expect(row.indexLabel).toBe('12.0')
+    expect(row.indexLabel).toBe('12.00')
   })
 
   it('prefers a real record over the seed handicap', () => {
@@ -163,7 +173,7 @@ describe('buildCheckInSheetRow', () => {
 
     expect(row.isEstimated).toBe(false)
     // single differential, WHS 1-3 round rule applies -2.0
-    expect(row.indexLabel).toBe('7.4')
+    expect(row.indexLabel).toBe('7.40')
   })
 
   // Membership is one flag, not per-venue: an Oakwood member is an Ironwood
@@ -191,4 +201,3 @@ describe('buildCheckInSheetRow', () => {
     expect(row.opponents.map((opponent) => opponent.name)).toEqual(['Clay', 'Wagner'])
   })
 })
-

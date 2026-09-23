@@ -2,11 +2,12 @@
 
 import type { TeeColor } from '@prisma/client'
 import Link from 'next/link'
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { applyESC } from '@/lib/handicap'
 import { describePlayerPops } from '@/lib/match-net-scoring'
 import { calculateMatchPlayResult, calculateMatchPoints } from '@/lib/scoring'
+import { parseScoreEntry } from '@/lib/score-entry-input'
 
 type MatchScorePageData = {
   match: {
@@ -121,11 +122,14 @@ export function MatchScoreClient({ initialData, returnHref }: MatchScoreClientPr
   )
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const submissionInFlight = useRef(false)
+  const idempotencyRequest = useRef<{ body: string; key: string } | null>(null)
+  const scoresLocked = initialData.match.seasonArchived || !initialData.match.locked
 
   const computedRows = useMemo(() => {
     return initialData.rows.map((row) => {
-      const p1Gross = player1Scores[row.holeNumber] === '' ? null : Number(player1Scores[row.holeNumber])
-      const p2Gross = player2Scores[row.holeNumber] === '' ? null : Number(player2Scores[row.holeNumber])
+      const p1Gross = parseScoreEntry(player1Scores[row.holeNumber])
+      const p2Gross = parseScoreEntry(player2Scores[row.holeNumber])
       const p1Adj = p1Gross === null ? null : applyESC(p1Gross, row.par, row.player1AdjustedStrokesReceived)
       const p2Adj = p2Gross === null ? null : applyESC(p2Gross, row.par, row.player2AdjustedStrokesReceived)
 
@@ -188,50 +192,64 @@ export function MatchScoreClient({ initialData, returnHref }: MatchScoreClientPr
     : null
 
   async function handleSubmit() {
-    if (!isComplete || !matchPlayResult) {
+    if (submissionInFlight.current || !isComplete || !matchPlayResult || scoresLocked) {
       return
     }
 
+    submissionInFlight.current = true
     setIsSubmitting(true)
     setError(null)
 
-    const response = await fetch(
-      `/api/weeks/${initialData.match.weekId}/matches/${initialData.match.id}/scores`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          player1Scores: computedRows.map((row) => ({
-            holeNumber: row.holeNumber,
-            grossScore: row.player1Gross
-          })),
-          player2Scores: computedRows.map((row) => ({
-            holeNumber: row.holeNumber,
-            grossScore: row.player2Gross
-          }))
-        })
+    try {
+      const body = JSON.stringify({
+        player1Scores: computedRows.map((row) => ({
+          holeNumber: row.holeNumber,
+          grossScore: row.player1Gross
+        })),
+        player2Scores: computedRows.map((row) => ({
+          holeNumber: row.holeNumber,
+          grossScore: row.player2Gross
+        }))
+      })
+      if (idempotencyRequest.current?.body !== body) {
+        idempotencyRequest.current = { body, key: crypto.randomUUID() }
       }
-    )
+      const submission = idempotencyRequest.current
 
-    if (!response.ok) {
+      const response = await fetch(
+        `/api/weeks/${initialData.match.weekId}/matches/${initialData.match.id}/scores`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Idempotency-Key': submission.key
+          },
+          body
+        }
+      )
+
+      if (!response.ok) {
+        const payload = await response.json().catch(() => null)
+        const message = typeof payload?.error === 'string' ? payload.error : null
+        setError(message ?? 'Unable to save scores. Your entries are still here. Try again.')
+        return
+      }
+
       const payload = await response.json().catch(() => null)
-      setError(payload?.error ?? 'Unable to submit scores')
+      router.push(
+        initialData.match.weekCompleted
+          ? returnHref
+          : payload?.nextPendingMatchId
+            ? `/week/matches/${payload.nextPendingMatchId}`
+            : returnHref
+      )
+      router.refresh()
+    } catch {
+      setError('Unable to save scores. Check your connection and try again. Your entries are still here.')
+    } finally {
+      submissionInFlight.current = false
       setIsSubmitting(false)
-      return
     }
-
-    const payload = await response.json().catch(() => null)
-
-    router.push(
-      initialData.match.weekCompleted
-        ? returnHref
-        : payload?.nextPendingMatchId
-          ? `/week/matches/${payload.nextPendingMatchId}`
-          : returnHref
-    )
-    router.refresh()
   }
 
   function setScore(
@@ -239,13 +257,52 @@ export function MatchScoreClient({ initialData, returnHref }: MatchScoreClientPr
     holeNumber: number,
     value: string
   ) {
-    const sanitized = value.replace(/[^0-9]/g, '')
     const setter = player === 'player1' ? setPlayer1Scores : setPlayer2Scores
 
     setter((current) => ({
       ...current,
-      [holeNumber]: sanitized
+      [holeNumber]: value
     }))
+  }
+
+  function scoreField(player: 'player1' | 'player2', holeNumber: number) {
+    const playerName = initialData.match[player].name
+    const rawValue = (player === 'player1' ? player1Scores : player2Scores)[holeNumber]
+    const parsedValue = parseScoreEntry(rawValue)
+    const invalid = rawValue !== '' && parsedValue === null
+    const row = computedRows.find((item) => item.holeNumber === holeNumber)
+    const strokes = player === 'player1' ? row?.player1StrokesReceived ?? 0 : row?.player2StrokesReceived ?? 0
+    const adjusted = player === 'player1' ? row?.player1Adj : row?.player2Adj
+    const net = player === 'player1' ? row?.player1Net : row?.player2Net
+    const inputId = `${player}-${holeNumber}-score`
+    const hintId = 'score-entry-hint'
+    const errorId = `${inputId}-error`
+    const describedBy = invalid ? `${hintId} ${errorId}` : hintId
+
+    return (
+      <div className="min-w-0 space-y-2">
+        <input
+          id={inputId}
+          aria-label={`${playerName}, hole ${holeNumber} score`}
+          aria-invalid={invalid}
+          aria-describedby={describedBy}
+          className={`w-full min-w-0 rounded-md border bg-surface-sunken px-2 py-2 text-center text-lg font-bold text-text-primary ${invalid ? 'border-danger' : 'border-surface-border'}`}
+          inputMode="numeric"
+          value={rawValue}
+          onChange={(event) => setScore(player, holeNumber, event.target.value)}
+          disabled={isSubmitting || scoresLocked}
+        />
+        {invalid ? (
+          <p id={errorId} className="text-xs text-danger-text">Enter a whole score from 1 to 20.</p>
+        ) : null}
+        <p className={`text-xs font-semibold ${strokes > 0 ? 'text-accent-text' : 'text-transparent'}`}>
+          {strokes > 0 ? `${strokes} pop${strokes === 1 ? '' : 's'}` : 'No pop'}
+        </p>
+        <p className={`text-xs ${parsedValue !== null && adjusted !== parsedValue ? 'text-warning-text' : 'text-text-secondary'}`}>
+          Adj {adjusted ?? '—'} · Match Net {net ?? '—'}
+        </p>
+      </div>
+    )
   }
 
   return (
@@ -280,12 +337,6 @@ export function MatchScoreClient({ initialData, returnHref }: MatchScoreClientPr
         </div>
       </div>
 
-      {error ? (
-        <div className="rounded-md border border-danger bg-danger-dim px-4 py-3 text-sm text-danger-text">
-          {error}
-        </div>
-      ) : null}
-
       {initialData.match.seasonArchived ? (
         <div className="rounded-md border border-warning bg-warning/10 px-4 py-3 text-sm text-warning-text">
           This season is archived. Scores remain visible, but edits are disabled.
@@ -295,72 +346,40 @@ export function MatchScoreClient({ initialData, returnHref }: MatchScoreClientPr
           This week has been closed. You can still correct saved scores here, and the history and public results pages will update after you save.
         </div>
       ) : null}
+      {!initialData.match.seasonArchived && !initialData.match.locked ? (
+        <div className="rounded-md border border-warning bg-warning/10 px-4 py-3 text-sm text-warning-text">
+          This match is unlocked. Lock the match before entering scores.
+        </div>
+      ) : null}
 
       <div className="rounded-md border-l-[3px] border-accent bg-accent-dim px-4 py-3 text-sm text-accent-text">
         {completeHoleCount} of 9 holes entered
       </div>
 
       <section className="overflow-hidden rounded-xl border border-surface-border bg-surface-elevated">
-        <div className="grid grid-cols-[60px_60px_60px_1fr_1fr] gap-2 border-b border-surface-border bg-surface-sunken px-3 py-2 font-condensed text-[11px] font-bold uppercase tracking-widest text-text-muted">
+        <p id="score-entry-hint" className="px-3 pt-3 text-xs text-text-secondary">
+          Enter whole scores from 1 to 20 for each player and hole.
+        </p>
+        <div className="grid grid-cols-[36px_32px_28px_minmax(0,1fr)_minmax(0,1fr)] gap-2 border-b border-surface-border bg-surface-sunken px-3 py-2 font-condensed text-[11px] font-bold uppercase tracking-widest text-text-muted">
           <span>Hole</span>
           <span>Par</span>
           <span>SI</span>
-          <span>{initialData.match.player1.name}</span>
-          <span>{initialData.match.player2.name}</span>
+          <span className="min-w-0 break-words">{initialData.match.player1.name}</span>
+          <span className="min-w-0 break-words">{initialData.match.player2.name}</span>
         </div>
         <div className="divide-y divide-surface-border">
           {computedRows.map((row) => (
             <div
               key={row.holeNumber}
-              className={`grid grid-cols-[60px_60px_60px_1fr_1fr] gap-2 px-3 py-3 ${
+              className={`grid grid-cols-[36px_32px_28px_minmax(0,1fr)_minmax(0,1fr)] gap-2 px-3 py-3 ${
                 initialData.match.ctpHoleNumber === row.holeNumber ? 'bg-accent-dim/60' : ''
               }`}
             >
               <span className="text-sm font-semibold text-text-primary">{row.holeNumber}</span>
               <span className="text-sm text-text-secondary">{row.par}</span>
               <span className="text-sm text-text-secondary">{row.strokeIndex}</span>
-              <div className="space-y-2">
-                <input
-                  className="w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2 text-center text-lg font-bold text-text-primary"
-                  inputMode="numeric"
-                  value={player1Scores[row.holeNumber]}
-                  onChange={(event) => setScore('player1', row.holeNumber, event.target.value)}
-                  disabled={initialData.match.seasonArchived}
-                />
-                <p
-                  className={`text-xs font-semibold ${
-                    row.player1StrokesReceived > 0 ? 'text-accent-text' : 'text-transparent'
-                  }`}
-                >
-                  {row.player1StrokesReceived > 0
-                    ? `${row.player1StrokesReceived} pop${row.player1StrokesReceived === 1 ? '' : 's'}`
-                    : 'No pop'}
-                </p>
-                <p className={`text-xs ${row.player1Gross !== row.player1Adj ? 'text-warning-text' : 'text-text-secondary'}`}>
-                  Adj {row.player1Adj ?? '—'} · Match Net {row.player1Net ?? '—'}
-                </p>
-              </div>
-              <div className="space-y-2">
-                <input
-                  className="w-full rounded-md border border-surface-border bg-surface-sunken px-3 py-2 text-center text-lg font-bold text-text-primary"
-                  inputMode="numeric"
-                  value={player2Scores[row.holeNumber]}
-                  onChange={(event) => setScore('player2', row.holeNumber, event.target.value)}
-                  disabled={initialData.match.seasonArchived}
-                />
-                <p
-                  className={`text-xs font-semibold ${
-                    row.player2StrokesReceived > 0 ? 'text-accent-text' : 'text-transparent'
-                  }`}
-                >
-                  {row.player2StrokesReceived > 0
-                    ? `${row.player2StrokesReceived} pop${row.player2StrokesReceived === 1 ? '' : 's'}`
-                    : 'No pop'}
-                </p>
-                <p className={`text-xs ${row.player2Gross !== row.player2Adj ? 'text-warning-text' : 'text-text-secondary'}`}>
-                  Adj {row.player2Adj ?? '—'} · Match Net {row.player2Net ?? '—'}
-                </p>
-              </div>
+              {scoreField('player1', row.holeNumber)}
+              {scoreField('player2', row.holeNumber)}
             </div>
           ))}
         </div>
@@ -414,14 +433,22 @@ export function MatchScoreClient({ initialData, returnHref }: MatchScoreClientPr
         </section>
       ) : null}
 
+      {error ? (
+        <div role="alert" className="rounded-md border border-danger bg-danger-dim px-4 py-3 text-sm text-danger-text">
+          {error}
+        </div>
+      ) : null}
+
       <button
         type="button"
         className="font-condensed w-full rounded-lg bg-accent px-4 py-4 text-base font-bold uppercase tracking-wide text-white disabled:cursor-not-allowed disabled:bg-surface-sunken disabled:text-text-disabled"
-        disabled={!isComplete || isSubmitting || initialData.match.seasonArchived}
+        disabled={!isComplete || isSubmitting || scoresLocked}
         onClick={handleSubmit}
       >
         {initialData.match.seasonArchived
           ? 'Season Archived'
+          : !initialData.match.locked
+            ? 'Match Unlocked'
           : !isComplete
             ? `Submit Scores (${9 - completeHoleCount} holes remaining)`
             : isSubmitting

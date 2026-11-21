@@ -10,11 +10,12 @@ import { PrintStandings } from './print-standings'
 export const revalidate = 60
 export const dynamic = 'force-dynamic'
 
-export async function generateMetadata({
-  params
-}: {
-  params: { id: string }
-}): Promise<Metadata> {
+export async function generateMetadata(
+  props: {
+    params: Promise<{ id: string }>
+  }
+): Promise<Metadata> {
+  const params = await props.params;
   const weekRef = await resolvePublicWeekRouteParam(params.id)
   const data = weekRef ? await getPublicWeekData(weekRef.id) : null
 
@@ -30,11 +31,12 @@ export async function generateMetadata({
   }
 }
 
-export default async function PrintWeekPage({
-  params
-}: {
-  params: { id: string }
-}) {
+export default async function PrintWeekPage(
+  props: {
+    params: Promise<{ id: string }>
+  }
+) {
+  const params = await props.params;
   const weekRef = await resolvePublicWeekRouteParam(params.id)
 
   if (!weekRef) {

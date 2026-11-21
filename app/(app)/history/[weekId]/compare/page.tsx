@@ -14,11 +14,12 @@ function getPageTitle(data: { weekNumber: number; seasonName: string; dateLabel:
   return `Spreadsheet Comparison \u2014 Week ${data.weekNumber} \u2014 ${data.seasonName} \u2014 ${data.dateLabel}`
 }
 
-export async function generateMetadata({
-  params
-}: {
-  params: { weekId: string }
-}): Promise<Metadata> {
+export async function generateMetadata(
+  props: {
+    params: Promise<{ weekId: string }>
+  }
+): Promise<Metadata> {
+  const params = await props.params;
   const data = await getPublicWeekData(params.weekId)
 
   if (!data) {
@@ -33,11 +34,12 @@ export async function generateMetadata({
   }
 }
 
-export default async function SpreadsheetComparisonPage({
-  params
-}: {
-  params: { weekId: string }
-}) {
+export default async function SpreadsheetComparisonPage(
+  props: {
+    params: Promise<{ weekId: string }>
+  }
+) {
+  const params = await props.params;
   const data = await getPublicWeekData(params.weekId)
 
   if (!data || !data.resultsVisible) {

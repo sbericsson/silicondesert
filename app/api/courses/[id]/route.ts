@@ -3,10 +3,11 @@ import { prisma } from '@/lib/db'
 import { getApiSession, unauthorizedResponse } from '@/lib/api-auth'
 
 interface RouteParams {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }
 
-export async function PUT(request: Request, { params }: RouteParams) {
+export async function PUT(request: Request, props: RouteParams) {
+  const params = await props.params;
   const session = await getApiSession()
   if (!session) {
     return unauthorizedResponse()
@@ -63,7 +64,8 @@ export async function PUT(request: Request, { params }: RouteParams) {
   return NextResponse.json(course)
 }
 
-export async function DELETE(_request: Request, { params }: RouteParams) {
+export async function DELETE(_request: Request, props: RouteParams) {
+  const params = await props.params;
   const session = await getApiSession()
   if (!session) {
     return unauthorizedResponse()

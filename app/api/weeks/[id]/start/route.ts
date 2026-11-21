@@ -3,10 +3,8 @@ import { prisma } from '@/lib/db'
 import { getApiSession, unauthorizedResponse } from '@/lib/api-auth'
 import { writeAuditLog } from '@/lib/audit'
 
-export async function POST(
-  _request: Request,
-  { params }: { params: { id: string } }
-) {
+export async function POST(_request: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const session = await getApiSession()
   if (!session) {
     return unauthorizedResponse()

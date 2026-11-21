@@ -2,15 +2,17 @@ import { getMatchScorePageDataByMatchId } from '@/lib/match-score'
 import { MatchScoreClient } from '@/app/(app)/week/matches/[matchId]/score-client'
 
 interface MatchPageProps {
-  params: {
+  params: Promise<{
     matchId: string
-  }
-  searchParams?: {
+  }>
+  searchParams?: Promise<{
     returnTo?: string
-  }
+  }>
 }
 
-export default async function MatchPage({ params, searchParams }: MatchPageProps) {
+export default async function MatchPage(props: MatchPageProps) {
+  const searchParams = await props.searchParams;
+  const params = await props.params;
   const data = await getMatchScorePageDataByMatchId(params.matchId)
 
   if (!data) {

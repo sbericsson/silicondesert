@@ -39,11 +39,12 @@ function getScheduleWeekStatus(
   return { label, tone: getScheduleWeekStatusTone(label) }
 }
 
-export default async function PublicSchedulePage({
-  searchParams
-}: {
-  searchParams?: ScheduleSearchParams
-}) {
+export default async function PublicSchedulePage(
+  props: {
+    searchParams?: Promise<ScheduleSearchParams>
+  }
+) {
+  const searchParams = await props.searchParams;
   if (!process.env.DATABASE_URL) {
     return (
       <section className="space-y-4">

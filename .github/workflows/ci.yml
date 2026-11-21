@@ -70,11 +70,13 @@ jobs:
       # Throwaway CI database; scripts/e2e-smoke.ts refuses any DB that is not local and named *e2e*/*smoke*.
       DATABASE_URL: postgresql://postgres:postgres@localhost:5432/silicon_e2e
       NEXTAUTH_URL: http://localhost:3000
-      NEXTAUTH_SECRET: ci-only-e2e-secret-not-used-anywhere-else
       NEXT_TELEMETRY_DISABLED: '1'
       E2E_BASE_URL: http://localhost:3000
     steps:
       - uses: actions/checkout@v4
+
+      - name: Generate a throwaway NextAuth secret
+        run: echo "NEXTAUTH_SECRET=$(openssl rand -hex 32)" >> "$GITHUB_ENV"
 
       - uses: actions/setup-node@v4
         with:

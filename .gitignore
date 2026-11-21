@@ -14,4 +14,5 @@ dist
 historical_rounds_import.sql
 scripts/*
 !scripts/recompute-index-esc-rounds.ts
+!scripts/e2e-smoke.ts
 outputs/

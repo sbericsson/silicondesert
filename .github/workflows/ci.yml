@@ -46,3 +46,72 @@ jobs:
 
       - name: Audit production dependencies
         run: npm audit --omit=dev --audit-level=high
+
+  e2e:
+    # Runs beside `verify`, not after it: it does its own build, so a parallel run gives the
+    # smoke signal without adding verify's wall time, and either job failing still fails CI.
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: silicon_e2e
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d silicon_e2e"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      # Throwaway CI database; scripts/e2e-smoke.ts refuses any DB that is not local and named *e2e*/*smoke*.
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/silicon_e2e
+      NEXTAUTH_URL: http://localhost:3000
+      NEXTAUTH_SECRET: ci-only-e2e-secret-not-used-anywhere-else
+      NEXT_TELEMETRY_DISABLED: '1'
+      E2E_BASE_URL: http://localhost:3000
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          # Match the production host (cosmonerd). Bump together with the host.
+          node-version: '20.20'
+          cache: npm
+
+      - run: npm ci
+
+      - run: npx prisma generate
+
+      - name: Migrate database
+        run: npx prisma migrate deploy
+
+      - name: Seed database
+        run: npm run db:seed
+
+      - name: Build
+        run: npm run build
+
+      - name: Start server
+        run: |
+          nohup npx next start -p 3000 > next-start.log 2>&1 &
+          for attempt in $(seq 1 60); do
+            if curl -sf -o /dev/null http://localhost:3000/login; then
+              echo "server ready after ${attempt}s"
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "server did not become ready within 60s"
+          cat next-start.log
+          exit 1
+
+      - name: E2E smoke
+        run: npm run test:e2e
+
+      - name: Server log
+        if: failure()
+        run: cat next-start.log || true

@@ -9,6 +9,7 @@
     "start": "next start",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:e2e": "tsx scripts/e2e-smoke.ts",
     "db:migrate": "if [ -f .env ]; then set -a; . ./.env; set +a; fi; prisma migrate deploy",
     "db:recompute-index-esc": "tsx scripts/recompute-index-esc-rounds.ts",
     "db:studio": "prisma studio",

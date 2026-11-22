@@ -13,7 +13,8 @@
 //   DATABASE_URL=postgresql://localhost:5432/silicon_e2e E2E_BASE_URL=http://localhost:3000 npm run test:e2e
 // The script WIPES league data (players, seasons, weeks, scores, audit log) in DATABASE_URL before it runs, so it
 // refuses any database that is not on localhost with "e2e" or "smoke" in its name. The server must use the same
-// database; a sentinel row written here and read back through the API proves that before any API write.
+// database; a sentinel row written here and read back through the API proves that before the wipe and before any
+// API write.
 import { PrismaClient } from '@prisma/client'
 
 const LOCAL_HOSTS = new Set(['localhost', '127.0.0.1', '[::1]', '::1'])
@@ -598,10 +599,11 @@ async function seasonCrud(jar: Jar) {
 async function main() {
   const started = Date.now()
   console.log(`e2e-smoke against ${BASE}`)
-  await resetLeagueData()
   await signedOutChecks()
   const jar = await signIn()
+  // Prove the server reads the guarded DATABASE_URL before deleting anything in it.
   await proveSameDatabase(jar)
+  await resetLeagueData()
   await courseCrud(jar)
   const { seasonId, weekId, playerIds, playerNames } = await createSeasonAndPlayers(jar)
   const matches = await fridayFlow(jar, weekId, playerIds)

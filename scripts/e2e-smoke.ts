@@ -520,6 +520,20 @@ async function scoreAndClose(jar: Jar, weekId: string, matches: Array<{ id: stri
     await page(`GET /public/weeks/[id]/matches/[matchId] #${index + 1} hidden before close`, `/public/weeks/${weekId}/matches/${match.id}`, 404)
   }
 
+  // Value: protects=the score page's returnTo wiring (array value, rejected value, kept value) as rendered by
+  //   `next start`; fails_when=the page stops routing returnTo through getSafeReturnPath or the array type crashes it;
+  //   why_new=lib/__tests__/return-path.test.ts covers the helper, not the page; seam=none;
+  //   no_claim=client-side router.push after saving (no browser here)
+  console.log('== match page returnTo')
+  const matchPath = `/week/matches/${matches[0].id}`
+  const backHref = (html: string) => /href="([^"]*)"[^>]*>Back to /.exec(html)?.[1] ?? ''
+  const kept = await page('GET /week/matches/[matchId] keeps an allowed returnTo', `${matchPath}?returnTo=%2Fhistory%2Fx%2Fcompare`, 200, { jar })
+  check('allowed returnTo becomes the back link', backHref(kept.text) === '/history/x/compare', backHref(kept.text))
+  const rejected = await page('GET /week/matches/[matchId] with an off-site returnTo', `${matchPath}?returnTo=%2F%2Fexample.com`, 200, { jar })
+  check('off-site returnTo falls back to /week', backHref(rejected.text) === '/week', backHref(rejected.text))
+  const repeated = await page('GET /week/matches/[matchId] with a repeated returnTo', `${matchPath}?returnTo=%2Fhistory&returnTo=%2Fweek`, 200, { jar })
+  check('repeated returnTo falls back to /week', backHref(repeated.text) === '/week', backHref(repeated.text))
+
   console.log('== scores')
   const scoresBody = { player1Scores: PLAYER1_SCORES, player2Scores: PLAYER2_SCORES }
   for (const [index, match] of matches.entries()) {

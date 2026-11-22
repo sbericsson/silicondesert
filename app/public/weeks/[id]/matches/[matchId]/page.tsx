@@ -99,11 +99,12 @@ function getTotals(data: PublicMatchHoleData) {
   )
 }
 
-export async function generateMetadata({
-  params
-}: {
-  params: { id: string; matchId: string }
-}): Promise<Metadata> {
+export async function generateMetadata(
+  props: {
+    params: Promise<{ id: string; matchId: string }>
+  }
+): Promise<Metadata> {
+  const params = await props.params;
   const weekRef = await resolvePublicWeekRouteParam(params.id)
   const data = weekRef ? await getPublicMatchHoleData(weekRef.id, params.matchId) : null
 
@@ -119,11 +120,12 @@ export async function generateMetadata({
   }
 }
 
-export default async function PublicMatchDetailPage({
-  params
-}: {
-  params: { id: string; matchId: string }
-}) {
+export default async function PublicMatchDetailPage(
+  props: {
+    params: Promise<{ id: string; matchId: string }>
+  }
+) {
+  const params = await props.params;
   const weekRef = await resolvePublicWeekRouteParam(params.id)
 
   if (!weekRef) {

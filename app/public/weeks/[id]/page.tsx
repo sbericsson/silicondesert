@@ -9,11 +9,12 @@ import { WeekStepper } from '@/components/week-stepper'
 export const revalidate = 60
 export const dynamic = 'force-dynamic'
 
-export async function generateMetadata({
-  params
-}: {
-  params: { id: string }
-}): Promise<Metadata> {
+export async function generateMetadata(
+  props: {
+    params: Promise<{ id: string }>
+  }
+): Promise<Metadata> {
+  const params = await props.params;
   const weekRef = await resolvePublicWeekRouteParam(params.id)
   const data = weekRef ? await getPublicWeekData(weekRef.id) : null
 
@@ -159,11 +160,12 @@ function PublicMatchCard({
   return <article className={cardClassName}>{content}</article>
 }
 
-export default async function PublicWeekDetailPage({
-  params
-}: {
-  params: { id: string }
-}) {
+export default async function PublicWeekDetailPage(
+  props: {
+    params: Promise<{ id: string }>
+  }
+) {
+  const params = await props.params;
   const weekRef = await resolvePublicWeekRouteParam(params.id)
 
   if (!weekRef) {

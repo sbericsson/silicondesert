@@ -100,17 +100,20 @@ After locking, the card can be unlocked for corrections — with a confirmation 
 
 ## Tech stack
 
-- **Next.js 14** — app router, server components, API routes
-- **React 18**
+- **Next.js 16** — app router, server components, API routes
+- **React 19**
 - **TypeScript**
 - **PostgreSQL** + **Prisma** — schema, migrations, seed
 - **NextAuth** — commissioner authentication (username/password)
 - **Tailwind CSS**
 - **Vitest** — unit tests for scoring, handicap, matchmaking, week lifecycle, roster utilities, and public-page revalidation
+- **GitHub Actions** — CI on pushes and pull requests to `main` and `development`: typecheck, unit tests, production build, production dependency audit, and the end-to-end smoke
 
 ---
 
 ## Local development
+
+Requires Node.js 20.9 or newer (the minimum for Next.js 16).
 
 ```bash
 cp .env.example .env
@@ -133,11 +136,18 @@ Useful:
 ```bash
 npm test                       # run unit tests
 npm run test:watch             # watch unit tests
+npm run test:e2e               # end-to-end smoke against a running app (see below)
 npm run build                  # generate Prisma client, type-check, and build
 npm run db:studio              # Prisma Studio
 npm run db:migrate             # deploy migrations
 npm run db:recompute-index-esc # maintenance script for saved ESC/index data
 ```
+
+`npm run test:e2e` runs `scripts/e2e-smoke.ts` against an app already built and started with
+`next start`. It walks sign-in, a full Friday, and the public pages. It wipes league data first,
+so it refuses any `DATABASE_URL` that is not on localhost with `e2e` or `smoke` in the database
+name, and it does not read `.env`: export `DATABASE_URL` (and `E2E_BASE_URL`, default
+`http://localhost:3000`) yourself, pointing the server at the same database.
 
 The app assumes `America/Phoenix` timezone throughout. No DST — the desert keeps it simple.
 
@@ -161,6 +171,7 @@ app/
   (auth)/login/   commissioner login
   api/            authenticated mutation/query routes
   public/         public-facing league pages (no auth)
+proxy.ts          sign-in gate for the commissioner pages (Next.js 16 proxy, formerly middleware)
 lib/
   handicap.ts               WHS index, ESC, and course handicap math
   handicap-records.ts       DB-level usedInIndex marking per WHS Rule 5.2a
@@ -184,4 +195,6 @@ prisma/
   seed.ts         development seed data
 scripts/
   recompute-index-esc-rounds.ts  maintenance script for recalculating saved rounds
+  e2e-smoke.ts                   end-to-end smoke run by `npm run test:e2e` and CI
+.github/workflows/ci.yml  CI workflow
 ```

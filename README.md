@@ -106,7 +106,7 @@ After locking, the card can be unlocked for corrections — with a confirmation 
 - **PostgreSQL** + **Prisma** — schema, migrations, seed
 - **NextAuth** — commissioner authentication (username/password)
 - **Tailwind CSS**
-- **Vitest** — unit tests for scoring, handicap, matchmaking, week lifecycle, roster utilities, and public-page revalidation
+- **Vitest** — unit tests for scoring, handicap, matchmaking, week lifecycle, roster utilities, score-entry return paths, and public-page revalidation
 - **GitHub Actions** — CI on pushes and pull requests to `main` and `development`: typecheck, unit tests, production build, production dependency audit, and the end-to-end smoke
 
 ---
@@ -189,6 +189,7 @@ lib/
   standings.ts              commissioner standings aggregation
   public-*.ts               public roster, standings, URL, and week data
   roster.ts                 player, course, season, and settings queries
+  return-path.ts            allowlist for the score-entry page's return location
 prisma/
   schema.prisma   data model
   migrations/     migration history

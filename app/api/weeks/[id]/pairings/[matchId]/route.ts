@@ -23,8 +23,9 @@ function parseTeeOverrideColor(value: unknown) {
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string; matchId: string } }
+  props: { params: Promise<{ id: string; matchId: string }> }
 ) {
+  const params = await props.params;
   const session = await getApiSession()
   if (!session) {
     return unauthorizedResponse()
@@ -202,8 +203,9 @@ export async function PATCH(
 
 export async function DELETE(
   _request: Request,
-  { params }: { params: { id: string; matchId: string } }
+  props: { params: Promise<{ id: string; matchId: string }> }
 ) {
+  const params = await props.params;
   const session = await getApiSession()
   if (!session) {
     return unauthorizedResponse()

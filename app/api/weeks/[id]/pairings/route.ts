@@ -9,7 +9,8 @@ import { getPlayerHandicapIndexValue, getPlayingHandicap } from '@/lib/playing-h
 import { getPositioningBasis, getPositioningRanks } from '@/lib/positioning'
 import { getWeeklyTrailingPlayerId } from '@/lib/week-commissioner'
 
-export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const session = await getApiSession()
   if (!session) {
     return unauthorizedResponse()

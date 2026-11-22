@@ -8,11 +8,12 @@ export const dynamic = 'force-dynamic'
 
 // The browser names a printed PDF after document.title, so the title is the
 // filename the commissioner ends up with: "Check-In Sheet - Summer 2026 Week 8".
-export async function generateMetadata({
-  searchParams
-}: {
-  searchParams: { week?: string }
-}): Promise<Metadata> {
+export async function generateMetadata(
+  props: {
+    searchParams: Promise<{ week?: string }>
+  }
+): Promise<Metadata> {
+  const searchParams = await props.searchParams;
   const data = await getCheckInSheetData(searchParams.week)
   const parts = [data.seasonName, data.weekNumber ? `Week ${data.weekNumber}` : null].filter(
     Boolean
@@ -23,11 +24,12 @@ export async function generateMetadata({
   }
 }
 
-export default async function CheckInSheetPage({
-  searchParams
-}: {
-  searchParams: { week?: string }
-}) {
+export default async function CheckInSheetPage(
+  props: {
+    searchParams: Promise<{ week?: string }>
+  }
+) {
+  const searchParams = await props.searchParams;
   const data = await getCheckInSheetData(searchParams.week)
 
   if (!data.hasWeek) {

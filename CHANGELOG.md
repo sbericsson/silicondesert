@@ -4,6 +4,26 @@ All notable changes to the Silicon Desert Golf League commissioner app are docum
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.3.0.0] - 2026-11-21
+
+### Security
+
+- **The app now runs on supported, patched versions of its web framework.** It moves from Next.js 14 (no longer receiving fixes) to Next.js 16.4.6 and React 19, and the sign-in library to next-auth 4.24.15. This closes the critical and high advisories that applied to the old versions, including remote code execution through the image optimizer and denial of service against the site. The production dependency audit now reports no known vulnerabilities.
+
+### Changed
+
+- Nothing changes for the commissioner or players: every page, the Friday check-in, pairings, score entry, closing a week and the public league pages work as before. The sign-in gate for the commissioner pages is unchanged; it now lives in the file Next.js 16 expects.
+- The server needs Node.js 20.9 or newer. The production host already runs 20.20.
+
+### Fixed
+
+- Score entry on a phone now rejects scores outside 1 to 20 before saving, and a save that fails on a weak connection can be retried without losing what was typed. This fix was finished on the development branch in September and reaches production with this release.
+
+### For contributors
+
+- Every push and pull request to `main` and `development` now runs type checking, the unit tests, a production build and a dependency audit on GitHub.
+- A new end-to-end check (`npm run test:e2e`) starts the real app against a throwaway database and walks sign-in, a full Friday (season, check-in, pairings, lock, scores, close, standings) and every public page. It runs in CI and refuses any database that is not local and named for testing.
+
 ## [0.2.1.1] - 2026-08-19
 
 ### Changed

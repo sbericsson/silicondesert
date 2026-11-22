@@ -10,10 +10,8 @@ import {
 } from '@/lib/imported-handicap'
 import { recomputeUsedInIndex } from '@/lib/handicap-records'
 
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function PATCH(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const session = await getApiSession()
   if (!session) {
     return unauthorizedResponse()
@@ -261,7 +259,8 @@ export async function PATCH(
   return NextResponse.json(player)
 }
 
-export async function DELETE(_request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(_request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const session = await getApiSession()
   if (!session) {
     return unauthorizedResponse()

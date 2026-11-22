@@ -7,10 +7,8 @@ import { HANDICAP_RECORDS_INCLUDE } from '@/lib/handicap-records'
 import { buildPairingFlags, REFERENCE_SCORECARD_PLAYER_ID } from '@/lib/matchmaking'
 import { getPlayerHandicapIndexValue, getPlayingHandicap } from '@/lib/playing-handicap'
 
-export async function POST(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function POST(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const session = await getApiSession()
   if (!session) {
     return unauthorizedResponse()

@@ -25,11 +25,12 @@ function ContactItem({ label, children }: { label: string; children: React.React
   )
 }
 
-export default async function PublicPlayerDetailPage({
-  params
-}: {
-  params: { id: string }
-}) {
+export default async function PublicPlayerDetailPage(
+  props: {
+    params: Promise<{ id: string }>
+  }
+) {
+  const params = await props.params;
   const detail = await getPublicPlayerDetail(params.id)
 
   if (!detail) {

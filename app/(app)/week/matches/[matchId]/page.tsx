@@ -1,4 +1,5 @@
 import { getMatchScorePageDataByMatchId } from '@/lib/match-score'
+import { getSafeReturnPath } from '@/lib/return-path'
 import { MatchScoreClient } from '@/app/(app)/week/matches/[matchId]/score-client'
 
 interface MatchPageProps {
@@ -6,7 +7,7 @@ interface MatchPageProps {
     matchId: string
   }>
   searchParams?: Promise<{
-    returnTo?: string
+    returnTo?: string | string[]
   }>
 }
 
@@ -31,13 +32,8 @@ export default async function MatchPage(props: MatchPageProps) {
     )
   }
 
-  const requestedReturnHref = searchParams?.returnTo
   const returnHref =
-    requestedReturnHref && requestedReturnHref.startsWith('/')
-      ? requestedReturnHref
-      : data.match.weekCompleted
-        ? '/history'
-        : '/week'
+    getSafeReturnPath(searchParams?.returnTo) ?? (data.match.weekCompleted ? '/history' : '/week')
 
   return <MatchScoreClient initialData={data} returnHref={returnHref} />
 }

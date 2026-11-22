@@ -4,6 +4,16 @@ All notable changes to the Silicon Desert Golf League commissioner app are docum
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.3.1.0] - 2026-11-22
+
+### Security
+
+- **Score entry's Back link and post-save navigation now only return to the Week or History pages.** The score-entry page accepts a return location in its address; it now keeps that location only when it points at a Week or History page in the app, and otherwise goes back to the usual page for that week.
+
+### Fixed
+
+- Opening score entry from a link that repeats the return location no longer shows a server error; the page loads and returns to the usual page.
+
 ## [0.3.0.0] - 2026-11-21
 
 ### Security
